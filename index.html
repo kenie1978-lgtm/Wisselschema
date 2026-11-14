@@ -3,1204 +3,777 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O.N. Almelo JO11-4 - Opstelling & Speeltijd Manager</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>O.N. Almelo JO11-4 - Speeltijd & Opstellingen</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .table-sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: #ffffff;
+            z-index: 10;
+        }
+        tr:hover .table-sticky-col {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-orange-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">⚽ O.N. Almelo JO11-4</h1>
+                <p class="text-orange-100 text-xs sm:text-sm">Speeltijdmonitor, Eerlijke Wissels & Matchplanner</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="bg-orange-700/80 px-3 py-1 rounded-full text-xs font-semibold">Seizoen 2026/2027</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigatie Tabs -->
+    <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 flex gap-4">
+            <button onclick="switchTab('planner')" id="tab-planner" class="py-3 px-2 font-bold text-sm text-orange-600 border-b-2 border-orange-600">Wedstrijdplanner</button>
+            <button onclick="switchTab('seizoen')" id="tab-seizoen" class="py-3 px-2 font-bold text-sm text-slate-500 hover:text-slate-800">Seizoensstatistieken</button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- TAB 1: PLANNER -->
+        <div id="section-planner" class="space-y-6">
+            
+            <!-- Wedstrijd Info & Tegenstander -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tegenstander</label>
+                    <select id="matchOpponent" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="avc Heracles O11-2JM">avc Heracles O11-2JM</option>
+                        <option value="Luctor Et Emergo O11-2JM">Luctor Et Emergo O11-2JM</option>
+                        <option value="ASV '57 O11-1JM">ASV '57 O11-1JM</option>
+                        <option value="Langeveen O11-1JM">Langeveen O11-1JM</option>
+                        <option value="TVC '28 O11-2">TVC '28 O11-2</option>
+                        <option value="DETO O11-2JM">DETO O11-2JM</option>
+                        <option value="DOS '37 O11-2">DOS '37 O11-2</option>
+                        <option value="Oefenwedstrijd / Overig">Oefenwedstrijd / Overig</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Datum</label>
+                    <input type="date" id="matchDate" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="saveMatchToSeason()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-4 rounded-lg text-sm shadow transition">
+                        💾 Wedstrijd Opslaan in Seizoen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Aanwezigheid & Gastspelers beheer -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-slate-700 text-sm">👥 Vaste Spelers Aanwezigheid</h3>
+                        <span class="text-xs text-slate-400">Klik op een speler om afwezig te melden</span>
+                    </div>
+                    <div id="attendanceContainer" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Gastspelers Toevoegen -->
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-700 text-sm mb-2">➕ Gastspeler toevoegen</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <input type="text" id="guestNameInput" placeholder="Naam gastspeler..." class="border border-slate-300 rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-orange-500">
+                        <select id="guestPos1Input" class="border border-slate-300 rounded-lg p-2 text-xs bg-white outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="Verdediging">1e positie: Verdediging</option>
+                            <option value="Middenveld">1e positie: Middenveld</option>
+                            <option value="Aanval">1e positie: Aanval</option>
+                        </select>
+                        <select id="guestPos2Input" class="border border-slate-300 rounded-lg p-2 text-xs bg-white outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="">2e positie: Geen</option>
+                            <option value="Verdediging">2e positie: Verdediging</option>
+                            <option value="Middenveld">2e positie: Middenveld</option>
+                            <option value="Aanval">2e positie: Aanval</option>
+                        </select>
+                        <button onclick="addGuestPlayer()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3 py-2 rounded-lg text-xs transition">
+                            + Voeg Toe & Nog Een
+                        </button>
+                    </div>
+                    <div id="guestBadgesList" class="flex flex-wrap gap-2 mt-3"></div>
+                </div>
+            </div>
+
+            <!-- Knoppenbalk voor Generator & Noodwissel -->
+            <div class="flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="generateFairLineup()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow transition flex items-center gap-1.5">
+                        ⚡ Stel Eerlijke Opstelling Voor (Streefgemiddelde)
+                    </button>
+                    <button onclick="clearLineup()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm px-3 py-2 rounded-lg transition">
+                        Wissen
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openEmergencyModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow transition flex items-center gap-1">
+                        🚨 Noodwissel Invoeren (Blessure)
+                    </button>
+                    <button onclick="copyLineupWhatsApp()" class="bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm px-3 py-2 rounded-lg transition">
+                        💬 Deel via WhatsApp
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overzicht Actieve Noodwissels -->
+            <div id="emergencyBox" class="hidden bg-rose-50 border border-rose-200 p-4 rounded-xl">
+                <h4 class="font-bold text-rose-800 text-xs uppercase mb-2">Tussentijdse Noodwissels / Blessures deze wedstrijd:</h4>
+                <div id="emergencyList" class="space-y-1 text-xs text-rose-900"></div>
+            </div>
+
+            <!-- Opstellingstabel (4 Blokken van 15 min) met sticky kolom -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-700 text-sm">Opstelling per Kwartier (4 x 15 minuten)</h3>
+                        <p class="text-xs text-slate-500">Keeper is aanpasbaar. Dubbele selecties per kwartier worden automatisch voorkomen.</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[720px]">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b border-slate-200">
+                                <th class="p-3 table-sticky-col border-r border-slate-200 w-44">Positie</th>
+                                <th class="p-3 w-1/4">Kwartier 1 (0-15m)</th>
+                                <th class="p-3 w-1/4">Kwartier 2 (15-30m)</th>
+                                <th class="p-3 w-1/4">Kwartier 3 (30-45m)</th>
+                                <th class="p-3 w-1/4">Kwartier 4 (45-60m)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lineupBody" class="divide-y divide-slate-100 text-xs"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Wisselbank & Kwartier Instructies -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-slate-700 text-xs uppercase mb-2">🔄 Wisselspelers per Kwartier</h4>
+                    <div id="benchSummary" class="space-y-1.5 text-xs text-slate-600"></div>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-slate-700 text-xs uppercase mb-2">📋 Wisselmomenten (Aan de Lijn)</h4>
+                    <div id="rotationSummary" class="space-y-1.5 text-xs text-slate-600"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB 2: SEIZOENSMONITOR -->
+        <div id="section-seizoen" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">📊 Seizoensstatistieken & Streefgemiddelden</h3>
+                        <p class="text-xs text-slate-500">Gemiddelde tijd is exclusief afwezige duels. Veld-streefgemiddelde sluit de keeperstijd uit.</p>
+                    </div>
+                    <button onclick="clearAllSeasonData()" class="text-xs text-rose-600 hover:underline self-start">Wis alle seizoensdata</button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b border-slate-200">
+                                <th class="p-3">Speler</th>
+                                <th class="p-3 text-center">Gespeeld</th>
+                                <th class="p-3 text-center">Afwezig</th>
+                                <th class="p-3 text-center">Veldminuten</th>
+                                <th class="p-3 text-center">Gemiddeld / Duel</th>
+                                <th class="p-3 text-center">Afwijking Streef</th>
+                            </tr>
+                        </thead>
+                        <tbody id="seasonStatsBody" class="divide-y divide-slate-100 text-xs"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Opgeslagen wedstrijden -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h4 class="font-bold text-slate-800 text-sm mb-3">📁 Opgeslagen Wedstrijdgeschiedenis</h4>
+                <div id="savedMatchesContainer" class="space-y-2"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL VOOR NOODWISSEL -->
+    <div id="emergencyModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-sm w-full p-5 shadow-xl space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5 text-rose-600">
+                🚨 Noodwissel Invoeren
+            </h3>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Speelminuut van wissel (1 - 60)</label>
+                <input type="number" id="emMin" min="1" max="60" value="22" class="w-full border border-slate-300 rounded-lg p-2 text-xs">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Speler die uitvalt / veld verlaat</label>
+                <select id="emOut" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white"></select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Wisselspeler die het veld ingaat</label>
+                <select id="emIn" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white"></select>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeEmergencyModal()" class="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg text-xs font-bold">Annuleren</button>
+                <button onclick="applyEmergencySub()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-lg text-xs font-bold">Wissel Toepassen</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        ona: {
-                            orange: '#F97316',
-                            darkOrange: '#EA580C',
-                            lightOrange: '#FFEDD5',
-                            black: '#111827',
-                            pitch: '#15803D',
-                            pitchLight: '#16A34A'
+        // Spelersprofielen O.N. Almelo JO11-4
+        const defaultPlayers = [
+            { name: "Sep", defRole: "Keeper", lines: ["Keeper"] },
+            { name: "Jonathan", defRole: "Verdediger", lines: ["Verdediging"] },
+            { name: "Vince", defRole: "Verdediger", lines: ["Verdediging"] },
+            { name: "Mika", defRole: "Verdediger", lines: ["Verdediging"] },
+            { name: "Jesper", defRole: "Middenvelder / Verdediger", lines: ["Middenveld", "Verdediging"] },
+            { name: "Kerem", defRole: "Verdedigende Middenvelder", lines: ["Middenveld"] },
+            { name: "Bodi", defRole: "Middenvelder", lines: ["Middenveld"] },
+            { name: "Noud", defRole: "Middenvelder / Spits", lines: ["Middenveld", "Aanval"] },
+            { name: "Arthur", defRole: "Spits", lines: ["Aanval"] }
+        ];
+
+        const fieldPositions = [
+            { id: "KEEPER", name: "Keeper (K)", line: "Keeper" },
+            { id: "LV", name: "Linksback (LV)", line: "Verdediging" },
+            { id: "CV", name: "Centrale Verdediger (CV)", line: "Verdediging" },
+            { id: "RV", name: "Rechtsback (RV)", line: "Verdediging" },
+            { id: "LM", name: "Linkermidden (LM)", line: "Middenveld" },
+            { id: "CM", name: "Centraal/CVM (CM)", line: "Middenveld" },
+            { id: "RM", name: "Rechtermidden (RM)", line: "Middenveld" },
+            { id: "SP", name: "Spits (SP)", line: "Aanval" }
+        ];
+
+        let attendanceState = {};
+        let guestPlayersList = [];
+        let currentLineup = { 1: {}, 2: {}, 3: {}, 4: {} };
+        let activeEmergencySubs = [];
+        let seasonMatches = JSON.parse(localStorage.getItem('ona_jo11_4_matches') || '[]');
+
+        // Start applicatie
+        defaultPlayers.forEach(p => attendanceState[p.name] = true);
+        document.getElementById('matchDate').valueAsDate = new Date();
+
+        function initApp() {
+            renderAttendance();
+            renderLineupGrid();
+            renderGuestBadges();
+            updateBenchAndInstructions();
+            renderSeasonStats();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('section-planner').classList.toggle('hidden', tab !== 'planner');
+            document.getElementById('section-seizoen').classList.toggle('hidden', tab !== 'seizoen');
+            
+            document.getElementById('tab-planner').className = tab === 'planner' 
+                ? "py-3 px-2 font-bold text-sm text-orange-600 border-b-2 border-orange-600"
+                : "py-3 px-2 font-bold text-sm text-slate-500 hover:text-slate-800";
+            document.getElementById('tab-seizoen').className = tab === 'seizoen' 
+                ? "py-3 px-2 font-bold text-sm text-orange-600 border-b-2 border-orange-600"
+                : "py-3 px-2 font-bold text-sm text-slate-500 hover:text-slate-800";
+
+            if (tab === 'seizoen') renderSeasonStats();
+        }
+
+        function renderAttendance() {
+            const container = document.getElementById('attendanceContainer');
+            container.innerHTML = '';
+            defaultPlayers.forEach(p => {
+                const isPresent = attendanceState[p.name];
+                const btn = document.createElement('button');
+                btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                    isPresent 
+                    ? 'bg-orange-50 border-orange-300 text-orange-700' 
+                    : 'bg-slate-100 border-slate-300 text-slate-400 line-through'
+                }`;
+                btn.innerHTML = `${p.name} ${isPresent ? '✅' : '❌'}`;
+                btn.onclick = () => {
+                    attendanceState[p.name] = !isPresent;
+                    renderAttendance();
+                    renderLineupGrid();
+                    updateBenchAndInstructions();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function addGuestPlayer() {
+            const nameInput = document.getElementById('guestNameInput');
+            const name = nameInput.value.trim();
+            const p1 = document.getElementById('guestPos1Input').value;
+            const p2 = document.getElementById('guestPos2Input').value;
+
+            if (!name) {
+                alert("Vul een naam in voor de gastspeler.");
+                return;
+            }
+
+            const fullName = `${name} (G)`;
+            if (guestPlayersList.some(g => g.name === fullName)) {
+                alert("Er bestaat al een gastspeler met deze naam.");
+                return;
+            }
+
+            const lines = [p1];
+            if (p2 && p2 !== p1) lines.push(p2);
+
+            guestPlayersList.push({ name: fullName, defRole: "Gastspeler", lines });
+            nameInput.value = ''; // Direct leegmaken zodat er nóg een kan worden toegevoegd
+            renderGuestBadges();
+            renderLineupGrid();
+            updateBenchAndInstructions();
+        }
+
+        function removeGuestPlayer(idx) {
+            guestPlayersList.splice(idx, 1);
+            renderGuestBadges();
+            renderLineupGrid();
+            updateBenchAndInstructions();
+        }
+
+        function renderGuestBadges() {
+            const container = document.getElementById('guestBadgesList');
+            container.innerHTML = '';
+            if (guestPlayersList.length === 0) return;
+
+            guestPlayersList.forEach((g, idx) => {
+                const badge = document.createElement('span');
+                badge.className = "bg-orange-100 text-orange-800 text-xs px-2.5 py-1 rounded-full font-semibold flex items-center gap-1.5";
+                badge.innerHTML = `${g.name} [${g.lines.join('/')}] <button onclick="removeGuestPlayer(${idx})" class="text-red-500 hover:text-red-800 font-bold ml-1">✕</button>`;
+                container.appendChild(badge);
+            });
+        }
+
+        function getPresentPlayers() {
+            const active = defaultPlayers.filter(p => attendanceState[p.name]);
+            return [...active, ...guestPlayersList];
+        }
+
+        function renderLineupGrid() {
+            const tbody = document.getElementById('lineupBody');
+            tbody.innerHTML = '';
+            const allAvailable = getPresentPlayers();
+
+            fieldPositions.forEach(pos => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+
+                // Vaste kolom links
+                const tdName = document.createElement('td');
+                tdName.className = "p-3 table-sticky-col border-r border-slate-200 font-semibold text-slate-700 bg-white";
+                tdName.innerText = pos.name;
+                tr.appendChild(tdName);
+
+                // 4 Blokken
+                for (let b = 1; b <= 4; b++) {
+                    const td = document.createElement('td');
+                    td.className = "p-2";
+
+                    const select = document.createElement('select');
+                    select.className = "w-full border border-slate-300 rounded p-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-orange-500";
+                    
+                    const emptyOpt = document.createElement('option');
+                    emptyOpt.value = "";
+                    emptyOpt.innerText = "-- Kies speler --";
+                    select.appendChild(emptyOpt);
+
+                    // Reeds gekozen in dit kwartier
+                    const chosenInBlock = Object.entries(currentLineup[b])
+                        .filter(([k]) => k !== pos.id)
+                        .map(([, v]) => v);
+
+                    allAvailable.forEach(p => {
+                        if (!chosenInBlock.includes(p.name) || currentLineup[b][pos.id] === p.name) {
+                            const opt = document.createElement('option');
+                            opt.value = p.name;
+                            opt.innerText = p.name;
+                            if (currentLineup[b][pos.id] === p.name) opt.selected = true;
+                            select.appendChild(opt);
+                        }
+                    });
+
+                    select.onchange = (e) => {
+                        currentLineup[b][pos.id] = e.target.value;
+                        renderLineupGrid();
+                        updateBenchAndInstructions();
+                    };
+
+                    td.appendChild(select);
+                    tr.appendChild(td);
+                }
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearLineup() {
+            currentLineup = { 1: {}, 2: {}, 3: {}, 4: {} };
+            activeEmergencySubs = [];
+            document.getElementById('emergencyBox').classList.add('hidden');
+            renderLineupGrid();
+            updateBenchAndInstructions();
+        }
+
+        // SLIMME EERLIJKE OPSTELLING GENERATOR
+        function generateFairLineup() {
+            const available = getPresentPlayers();
+            if (available.length < 8) {
+                alert("Je hebt minimaal 8 aanwezige spelers nodig om een 8-tal op te stellen.");
+                return;
+            }
+
+            // 1. Bepaal keeper (Sep als aanwezig, anders eerste speler met keeper voorkeur of eerste beschikbare)
+            let keeper = available.find(p => p.name === "Sep") || available.find(p => p.lines.includes("Keeper")) || available[0];
+            const outfielders = available.filter(p => p.name !== keeper.name);
+
+            // 2. Bereken historische gemiddelden van outfielders
+            const stats = calculateSeasonStats();
+            const rankedOutfielders = [...outfielders].map(p => {
+                const s = stats[p.name] || { avgFieldMin: 45, fieldMin: 0 };
+                return {
+                    player: p,
+                    avg: s.avgFieldMin,
+                    fieldMin: s.fieldMin
+                };
+            }).sort((a, b) => a.avg - b.avg); // Spelers met laagste gemiddelde krijgen voorrang
+
+            // Aantal wisselbeurten nodig: als er 9 spelers zijn (1 keeper + 8 veldspelers) en 7 veldplekken:
+            // er moeten 4 kwartieren x 7 posities = 28 'speler-kwartieren' gevuld worden.
+            // Iedere veldspeler speelt 3 of 4 kwartieren (45 of 60 min).
+            const neededQuarters = 28;
+            const numField = outfielders.length;
+            
+            // Bepaal hoeveel kwartieren elke veldspeler speelt
+            // Degene met laagste seizoensgemiddelde krijgt 4 kwartieren (60m), de hoogste krijgt 3 kwartieren (45m)
+            const targetQuarters = {};
+            let assignedTotal = 0;
+            
+            rankedOutfielders.forEach((item, idx) => {
+                targetQuarters[item.player.name] = Math.floor(neededQuarters / numField);
+                assignedTotal += targetQuarters[item.player.name];
+            });
+            
+            let remainder = neededQuarters - assignedTotal;
+            for (let i = 0; i < remainder; i++) {
+                targetQuarters[rankedOutfielders[i].player.name]++;
+            }
+
+            // Bouw de 4 kwartieren
+            currentLineup = { 1: {}, 2: {}, 3: {}, 4: {} };
+
+            for (let b = 1; b <= 4; b++) {
+                currentLineup[b]["KEEPER"] = keeper.name;
+                
+                // Kies 7 veldspelers voor dit blok die nog kwartieren tegoed hebben
+                let eligible = outfielders.filter(p => targetQuarters[p.name] > 0);
+                
+                // Sorteer op geschiktheid per linie
+                let blockLineup = assignPositionsToBlock(eligible);
+                for (let posId in blockLineup) {
+                    currentLineup[b][posId] = blockLineup[posId];
+                    targetQuarters[blockLineup[posId]]--;
+                }
+            }
+
+            renderLineupGrid();
+            updateBenchAndInstructions();
+        }
+
+        function assignPositionsToBlock(playersList) {
+            const res = {};
+            const available = [...playersList];
+
+            function fillPos(posId, lineName) {
+                // Zoek eerst iemand die deze lijn als voorkeur heeft
+                let matchIdx = available.findIndex(p => p.lines && p.lines.includes(lineName));
+                if (matchIdx === -1) matchIdx = 0; // anders willekeurig
+                if (available[matchIdx]) {
+                    res[posId] = available[matchIdx].name;
+                    available.splice(matchIdx, 1);
+                }
+            }
+
+            // Kerem bij voorkeur op CM als hij erin zit
+            let keremIdx = available.findIndex(p => p.name === "Kerem");
+            if (keremIdx !== -1) {
+                res["CM"] = "Kerem";
+                available.splice(keremIdx, 1);
+            } else {
+                fillPos("CM", "Middenveld");
+            }
+
+            // Arthur bij voorkeur in de Spits
+            let arthurIdx = available.findIndex(p => p.name === "Arthur");
+            if (arthurIdx !== -1) {
+                res["SP"] = "Arthur";
+                available.splice(arthurIdx, 1);
+            } else {
+                fillPos("SP", "Aanval");
+            }
+
+            // Verdedigers
+            fillPos("LV", "Verdediging");
+            fillPos("CV", "Verdediging");
+            fillPos("RV", "Verdediging");
+
+            // Resterend middenveld
+            if (!res["LM"]) fillPos("LM", "Middenveld");
+            if (!res["RM"]) fillPos("RM", "Middenveld");
+            if (!res["SP"]) fillPos("SP", "Aanval");
+
+            return res;
+        }
+
+        function updateBenchAndInstructions() {
+            const allActive = getPresentPlayers();
+            const benchDiv = document.getElementById('benchSummary');
+            const rotDiv = document.getElementById('rotationSummary');
+            benchDiv.innerHTML = '';
+            rotDiv.innerHTML = '';
+
+            for (let b = 1; b <= 4; b++) {
+                const onPitch = Object.values(currentLineup[b]).filter(Boolean);
+                const onBench = allActive.filter(p => !onPitch.includes(p.name)).map(p => p.name);
+
+                const bRow = document.createElement('div');
+                bRow.className = "flex justify-between border-b border-slate-100 pb-1";
+                bRow.innerHTML = `<span><strong>Kwartier ${b}:</strong></span> <span class="font-bold text-orange-600">${onBench.length ? onBench.join(', ') : 'Geen wissel'}</span>`;
+                benchDiv.appendChild(bRow);
+
+                if (b > 1) {
+                    const prevPitch = Object.values(currentLineup[b-1]).filter(Boolean);
+                    const subIn = onPitch.filter(p => !prevPitch.includes(p));
+                    const subOut = prevPitch.filter(p => !onPitch.includes(p));
+
+                    if (subIn.length || subOut.length) {
+                        const rRow = document.createElement('div');
+                        rRow.className = "border-b border-slate-100 pb-1 text-slate-700";
+                        rRow.innerHTML = `<strong>Wissel na Kwartier ${b-1}:</strong> <span class="text-emerald-700">In: ${subIn.join(', ') || '-'}</span> | <span class="text-rose-600">Uit: ${subOut.join(', ') || '-'}</span>`;
+                        rotDiv.appendChild(rRow);
+                    }
+                }
+            }
+        }
+
+        // NOODWISSEL LOGICA
+        function openEmergencyModal() {
+            const active = getPresentPlayers();
+            const outSelect = document.getElementById('emOut');
+            const inSelect = document.getElementById('emIn');
+            outSelect.innerHTML = '';
+            inSelect.innerHTML = '';
+
+            active.forEach(p => {
+                outSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+                inSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+            });
+
+            document.getElementById('emergencyModal').classList.remove('hidden');
+        }
+
+        function closeEmergencyModal() {
+            document.getElementById('emergencyModal').classList.add('hidden');
+        }
+
+        function applyEmergencySub() {
+            const min = parseInt(document.getElementById('emMin').value, 10);
+            const pOut = document.getElementById('emOut').value;
+            const pIn = document.getElementById('emIn').value;
+
+            if (pOut === pIn) {
+                alert("Kies twee verschillende spelers.");
+                return;
+            }
+
+            activeEmergencySubs.push({ min, out: pOut, in: pIn });
+            
+            // Toon in noodwissel container
+            document.getElementById('emergencyBox').classList.remove('hidden');
+            const list = document.getElementById('emergencyList');
+            const row = document.createElement('div');
+            row.innerHTML = `⏱ <strong>Minuut ${min}:</strong> <span class="text-emerald-700 font-semibold">${pIn}</span> vervangt <span class="text-rose-600 font-semibold">${pOut}</span> (Blessure/Nood)`;
+            list.appendChild(row);
+
+            closeEmergencyModal();
+        }
+
+        // OPSLAAN & SEIZOENSTATISTIEKEN
+        function calculateCurrentMatchMinutes() {
+            const active = getPresentPlayers();
+            const minutes = {};
+            active.forEach(p => minutes[p.name] = { total: 0, field: 0, isKeeper: false });
+
+            // 1. Kwartieren tellen
+            for (let b = 1; b <= 4; b++) {
+                for (let posId in currentLineup[b]) {
+                    const pName = currentLineup[b][posId];
+                    if (pName && minutes[pName]) {
+                        minutes[pName].total += 15;
+                        if (posId === "KEEPER") {
+                            minutes[pName].isKeeper = true;
+                        } else {
+                            minutes[pName].field += 15;
                         }
                     }
                 }
             }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F3F4F6;
-        }
-        .pitch-bg {
-            background: repeating-linear-gradient(
-                0deg,
-                #15803d,
-                #15803d 35px,
-                #16a34a 35px,
-                #16a34a 70px
-            );
-            position: relative;
-        }
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.4rem center;
-            background-repeat: no-repeat;
-            background-size: 1.3em 1.3em;
-            padding-right: 2rem;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-    </style>
-</head>
-<body class="text-gray-800 min-h-screen flex flex-col">
 
-    <!-- Browser Tab & Snel-Open Info Bar -->
-    <div class="bg-orange-600 text-white px-4 py-2 text-xs font-bold flex flex-wrap justify-between items-center gap-2 shadow-sm">
-        <div class="flex items-center gap-2">
-            <i class="fa-solid fa-globe"></i>
-            <span><strong>Browser Modus Actief:</strong> Je kunt deze app direct gebruiken in elke browser of openen in een los tabblad.</span>
-        </div>
-        <button onclick="openInNewBrowserTab()" class="bg-white text-orange-700 hover:bg-orange-50 px-3 py-1 rounded-lg text-xs font-extrabold shadow-sm transition flex items-center gap-1.5 cursor-pointer">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in los browsertabblad
-        </button>
-    </div>
+            // 2. Corrigeer voor noodwissels
+            activeEmergencySubs.forEach(sub => {
+                let affectedQuarter = Math.ceil(sub.min / 15);
+                let minsPlayedBeforeInjury = sub.min - ((affectedQuarter - 1) * 15);
+                let minsPlayedBySub = 15 - minsPlayedBeforeInjury;
 
-    <!-- Top Navigatiebalk -->
-    <header class="bg-gray-900 text-white border-b-4 border-orange-500 sticky top-0 z-30 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-3">
-            <div class="flex items-center space-x-3">
-                <div class="w-11 h-11 rounded-full bg-orange-500 flex items-center justify-center text-gray-900 font-extrabold text-xl shadow-md border-2 border-white">
-                    <i class="fa-solid fa-futbol"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white">O.N. ALMELO <span class="text-orange-500">JO11-4</span></h1>
-                        <span class="hidden sm:inline-block bg-orange-500/20 text-orange-400 border border-orange-500/40 text-xs font-bold px-2 py-0.5 rounded-full">8v8 (1-3-3-1)</span>
-                        <button onclick="openCloudSettingsModal()" id="cloud-status-btn" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gray-800 border border-gray-700 text-gray-300 hover:border-orange-500 transition cursor-pointer">
-                            <span id="cloud-status-dot" class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                            <span id="cloud-status-text">Cloud Online</span>
-                            <span id="cloud-team-code-badge" class="ml-1 px-1.5 py-0.2 bg-gray-900 text-orange-400 rounded text-[10px] font-mono">ONA-JO11-4</span>
-                        </button>
-                    </div>
-                    <p class="text-xs text-gray-400">4x 15 min Wissel- & Seizoensspeeltijd Manager</p>
-                </div>
-            </div>
-
-            <nav class="flex space-x-1 sm:space-x-2 bg-gray-800 p-1 rounded-xl border border-gray-700 w-full sm:w-auto justify-center">
-                <button onclick="switchMainTab('planner')" id="nav-planner" class="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-orange-500 text-white shadow">
-                    <i class="fa-solid fa-clipboard-user mr-1.5"></i>Wedstrijdplanner
-                </button>
-                <button onclick="switchMainTab('season')" id="nav-season" class="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-gray-300 hover:text-white hover:bg-gray-700">
-                    <i class="fa-solid fa-chart-pie mr-1.5"></i>Seizoensmonitor
-                    <span id="badge-matches-count" class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-gray-700 text-orange-400">2</span>
-                </button>
-                <button onclick="switchMainTab('players')" id="nav-players" class="flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-gray-300 hover:text-white hover:bg-gray-700">
-                    <i class="fa-solid fa-users-gear mr-1.5"></i>Team & Regels
-                </button>
-            </nav>
-        </div>
-    </header>
-
-    <!-- Hoofd Content Container -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6">
-
-        <!-- TAB 1: WEDSTRIJDPLANNER -->
-        <section id="tab-planner" class="space-y-6">
-
-            <!-- Wedstrijd Info, Tegenstander Pull-down & Gastspeler Optie -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-5 space-y-4">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                    <!-- Tegenstander Keuzemenu (uit competitie stand) -->
-                    <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Tegenstander (Competitie)</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                                    <i class="fa-solid fa-shield-halved text-orange-500"></i>
-                                </span>
-                                <select id="match-opponent-select" onchange="handleOpponentSelectChange(this.value)"
-                                    class="w-full pl-9 pr-8 py-2 bg-gray-50 border border-gray-300 rounded-xl text-sm font-bold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none cursor-pointer">
-                                    <option value="Oranje Nassau JO11-4 (Oefenwedstrijd)">Oranje Nassau JO11-4 (Oefen)</option>
-                                    <option value="avc Heracles 011-2JM">avc Heracles 011-2JM</option>
-                                    <option value="Luctor Et E..o 011-2JM">Luctor Et E..o 011-2JM</option>
-                                    <option value="ASV '57 011-1JM">ASV '57 011-1JM</option>
-                                    <option value="Langeveen 011-1JM">Langeveen 011-1JM</option>
-                                    <option value="TVC '28 011-2">TVC '28 011-2</option>
-                                    <option value="DETO 011-2JM">DETO 011-2JM</option>
-                                    <option value="DOS '37 011-2">DOS '37 011-2</option>
-                                    <option value="custom">-- Andere / Vrije invoer --</option>
-                                </select>
-                            </div>
-                            <!-- Vrije invoer als 'custom' gekozen -->
-                            <input type="text" id="match-opponent-custom" placeholder="Naam tegenstander..."
-                                class="w-full mt-2 px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500 outline-none hidden">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Datum</label>
-                            <input type="date" id="match-date"
-                                class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Actieknoppen -->
-                    <div class="lg:col-span-7 flex flex-wrap items-center justify-start lg:justify-end gap-2">
-                        <button onclick="generateFairLineup()" class="px-3.5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition flex items-center gap-2">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            <span>Stel Eerlijke Opstelling Voor</span>
-                        </button>
-                        <button onclick="copyWhatsAppSummary()" class="px-3.5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition flex items-center gap-2">
-                            <i class="fa-brands fa-whatsapp text-base"></i>
-                            <span>Deel op WhatsApp</span>
-                        </button>
-                        <button onclick="saveMatchToSeason()" class="px-3.5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition flex items-center gap-2">
-                            <i class="fa-solid fa-cloud-arrow-up text-orange-400"></i>
-                            <span id="save-match-btn-label">Opslaan in Seizoen</span>
-                        </button>
-                        <button onclick="clearCurrentLineup()" title="Maak schema leeg" class="p-2.5 bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 font-bold text-xs sm:text-sm rounded-xl border border-gray-200 transition">
-                            <i class="fa-solid fa-rotate-left"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Gastspeler Optie & Configureren -->
-                <div class="pt-3 border-t border-gray-100 bg-orange-50/50 p-3.5 rounded-xl border border-orange-200">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <label class="flex items-center gap-2.5 cursor-pointer select-none">
-                            <input type="checkbox" id="guest-player-toggle" onchange="toggleGuestPlayer(this.checked)"
-                                class="w-4 h-4 text-orange-600 focus:ring-orange-500 rounded border-gray-300">
-                            <span class="text-xs sm:text-sm font-extrabold text-orange-950 flex items-center gap-1.5">
-                                <i class="fa-solid fa-user-plus text-orange-600"></i> Gastspeler meenemen deze wedstrijd
-                            </span>
-                        </label>
-                        <span class="text-[11px] text-gray-500">Gastspeler telt volwaardig mee in het 4-kwartieren schema en de wisselbank.</span>
-                    </div>
-
-                    <!-- Gastspeler formulier (alleen zichtbaar als aangevinkt) -->
-                    <div id="guest-player-form" class="hidden mt-3 pt-3 border-t border-orange-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase text-gray-600 mb-1">Naam Gastspeler</label>
-                            <input type="text" id="guest-name" placeholder="Bijv. Sem (JO11-5)" oninput="updateGuestPlayerProp('name', this.value)"
-                                class="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-orange-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase text-gray-600 mb-1">1e Voorkeurspositie</label>
-                            <select id="guest-pos1" onchange="updateGuestPlayerProp('pos1', this.value)"
-                                class="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-orange-500 outline-none">
-                                <option value="Verdediging">Verdediging (LV, CV, RV)</option>
-                                <option value="Middenveld">Middenveld (LM, CM, RM)</option>
-                                <option value="Aanval">Aanval / Spits (SP)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold uppercase text-gray-600 mb-1">Optionele 2e Positie</label>
-                            <select id="guest-pos2" onchange="updateGuestPlayerProp('pos2', this.value)"
-                                class="w-full px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-orange-500 outline-none">
-                                <option value="">-- Geen 2e voorkeur --</option>
-                                <option value="Verdediging">Verdediging (LV, CV, RV)</option>
-                                <option value="Middenveld">Middenveld (LM, CM, RM)</option>
-                                <option value="Aanval">Aanval / Spits (SP)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Aanwezigheid per speler -->
-                <div class="pt-2 border-t border-gray-100">
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                        <span class="text-xs font-extrabold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
-                            <i class="fa-solid fa-user-check text-green-600"></i>
-                            Aanwezigheid Vandaag (<span id="present-count-label">9/9</span> spelers aanwezig):
-                        </span>
-                        <span class="text-[11px] text-gray-400">Klik op een speler om hem afwezig/aanwezig te melden</span>
-                    </div>
-                    <div id="attendance-pills-container" class="flex flex-wrap gap-1.5"></div>
-                </div>
-
-                <div id="rotation-advice-banner" class="pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs"></div>
-            </div>
-
-            <!-- Weergave Switcher -->
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center space-x-2">
-                    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 flex items-center gap-2">
-                        <span class="w-2.5 h-6 bg-orange-500 rounded-full inline-block"></span>
-                        Opstelling & Wisselschema (4x 15 min)
-                    </h2>
-                    <span id="editing-match-indicator" class="hidden bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-300">
-                        Bewerken van opgeslagen wedstrijd
-                    </span>
-                </div>
-
-                <div class="inline-flex rounded-xl bg-gray-200 p-1">
-                    <button onclick="setPlannerView('matrix')" id="view-btn-matrix" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-900 shadow-sm transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-table-columns text-orange-500"></i> Matrix Overzicht (Alle 4 Blokken)
-                    </button>
-                    <button onclick="setPlannerView('pitch')" id="view-btn-pitch" class="px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:text-gray-900 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-futbol text-green-600"></i> Veldweergave per Kwartier
-                    </button>
-                </div>
-            </div>
-
-            <!-- WEERGAVE A: MATRIX TABEL -->
-            <div id="planner-matrix-view" class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="p-3 bg-gray-900 text-white flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-orange-400"></i>
-                        <span><strong>Slimme filter actief:</strong> Gekozen spelers verdwijnen automatisch uit andere lijsten in hetzelfde kwartier.</span>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[760px]">
-                        <thead>
-                            <tr class="bg-gray-100 border-b border-gray-200 text-xs uppercase font-extrabold text-gray-600">
-                                <th class="py-3.5 px-4 w-44">Positie (1-3-3-1)</th>
-                                <th class="py-3.5 px-3 border-l border-gray-200">
-                                    <div class="flex items-center justify-between">
-                                        <span>Blok 1 <span class="text-gray-400 font-semibold">(0-15m)</span></span>
-                                        <button onclick="copyPeriodToNext(0)" class="text-[11px] text-orange-600 hover:underline font-semibold normal-case">Kopieer <i class="fa-solid fa-arrow-right"></i></button>
-                                    </div>
-                                </th>
-                                <th class="py-3.5 px-3 border-l border-gray-200">
-                                    <div class="flex items-center justify-between">
-                                        <span>Blok 2 <span class="text-gray-400 font-semibold">(15-30m)</span></span>
-                                        <button onclick="copyPeriodToNext(1)" class="text-[11px] text-orange-600 hover:underline font-semibold normal-case">Kopieer <i class="fa-solid fa-arrow-right"></i></button>
-                                    </div>
-                                </th>
-                                <th class="py-3.5 px-3 border-l border-gray-200">
-                                    <div class="flex items-center justify-between">
-                                        <span>Blok 3 <span class="text-gray-400 font-semibold">(30-45m)</span></span>
-                                        <button onclick="copyPeriodToNext(2)" class="text-[11px] text-orange-600 hover:underline font-semibold normal-case">Kopieer <i class="fa-solid fa-arrow-right"></i></button>
-                                    </div>
-                                </th>
-                                <th class="py-3.5 px-3 border-l border-gray-200">
-                                    <span>Blok 4 <span class="text-gray-400 font-semibold">(45-60m)</span></span>
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="matrix-tbody" class="divide-y divide-gray-200 text-sm"></tbody>
-                        <tfoot id="matrix-tfoot" class="bg-orange-50/70 border-t-2 border-orange-200"></tfoot>
-                    </table>
-                </div>
-            </div>
-
-            <!-- WEERGAVE B: VISUEEL VOETBALVELD -->
-            <div id="planner-pitch-view" class="hidden space-y-4">
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <button onclick="selectPitchPeriod(0)" id="pitch-tab-0" class="p-3 rounded-xl border-2 border-orange-500 bg-orange-500 text-white font-bold text-left transition shadow-sm">
-                        <div class="text-xs opacity-80">1e Kwartier</div>
-                        <div class="text-sm sm:text-base font-extrabold">Blok 1 (0-15 min)</div>
-                        <div id="pitch-tab-sub-0" class="text-[11px] mt-1 font-medium truncate">Wissel: -</div>
-                    </button>
-                    <button onclick="selectPitchPeriod(1)" id="pitch-tab-1" class="p-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-orange-300 font-bold text-left transition">
-                        <div class="text-xs text-gray-400">2e Kwartier</div>
-                        <div class="text-sm sm:text-base font-extrabold">Blok 2 (15-30 min)</div>
-                        <div id="pitch-tab-sub-1" class="text-[11px] mt-1 text-gray-500 font-medium truncate">Wissel: -</div>
-                    </button>
-                    <button onclick="selectPitchPeriod(2)" id="pitch-tab-2" class="p-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-orange-300 font-bold text-left transition">
-                        <div class="text-xs text-gray-400">3e Kwartier</div>
-                        <div class="text-sm sm:text-base font-extrabold">Blok 3 (30-45 min)</div>
-                        <div id="pitch-tab-sub-2" class="text-[11px] mt-1 text-gray-500 font-medium truncate">Wissel: -</div>
-                    </button>
-                    <button onclick="selectPitchPeriod(3)" id="pitch-tab-3" class="p-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 hover:border-orange-300 font-bold text-left transition">
-                        <div class="text-xs text-gray-400">4e Kwartier</div>
-                        <div class="text-sm sm:text-base font-extrabold">Blok 4 (45-60 min)</div>
-                        <div id="pitch-tab-sub-3" class="text-[11px] mt-1 text-gray-500 font-medium truncate">Wissel: -</div>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                    <div class="lg:col-span-8 pitch-bg rounded-2xl border-4 border-white shadow-xl p-4 sm:p-6 text-white relative overflow-hidden min-h-[520px] flex flex-col justify-between">
-                        <div class="absolute inset-3 border-2 border-white/40 rounded-lg pointer-events-none"></div>
-                        <div class="absolute left-3 right-3 top-1/2 border-t-2 border-white/40 pointer-events-none"></div>
-                        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 border-2 border-white/40 rounded-full pointer-events-none"></div>
-                        <div class="absolute left-1/2 bottom-3 -translate-x-1/2 w-48 h-20 border-2 border-b-0 border-white/40 pointer-events-none"></div>
-                        <div class="absolute left-1/2 top-3 -translate-x-1/2 w-48 h-16 border-2 border-t-0 border-white/40 pointer-events-none"></div>
-
-                        <div class="relative z-10 flex justify-between items-center bg-black/40 backdrop-blur-sm px-3.5 py-2 rounded-xl border border-white/20">
-                            <span id="pitch-active-title" class="font-extrabold text-sm sm:text-base text-orange-400">Blok 1 (0 - 15 min)</span>
-                            <span class="text-xs font-semibold text-white/90">Formatie: 1 - 3 - 3 - 1</span>
-                        </div>
-
-                        <div class="relative z-10 flex justify-center my-2">
-                            <div id="pitch-pos-SP" class="w-44 sm:w-52"></div>
-                        </div>
-
-                        <div class="relative z-10 grid grid-cols-3 gap-2 sm:gap-4 my-2">
-                            <div id="pitch-pos-LM"></div>
-                            <div id="pitch-pos-CM"></div>
-                            <div id="pitch-pos-RM"></div>
-                        </div>
-
-                        <div class="relative z-10 grid grid-cols-3 gap-2 sm:gap-4 my-2">
-                            <div id="pitch-pos-LV"></div>
-                            <div id="pitch-pos-CV"></div>
-                            <div id="pitch-pos-RV"></div>
-                        </div>
-
-                        <div class="relative z-10 flex justify-center mt-2">
-                            <div id="pitch-pos-K" class="w-44 sm:w-52"></div>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-gray-200 p-5 space-y-4">
-                        <h3 class="font-extrabold text-gray-900 text-base flex items-center gap-2">
-                            <i class="fa-solid fa-couch text-orange-500"></i> Wisselbank in dit Kwartier
-                        </h3>
-                        <div id="pitch-bench-card" class="p-4 rounded-xl bg-orange-50 border border-orange-200"></div>
-
-                        <div class="border-t border-gray-100 pt-3">
-                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-1.5">
-                                <i class="fa-solid fa-right-left text-orange-500"></i> Wissel-instructie langs de lijn
-                            </h4>
-                            <div id="pitch-sub-instructions" class="text-xs space-y-1.5 text-gray-700 bg-gray-50 p-3 rounded-xl border border-gray-200"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LIVE SPEELTIJD MONITOR -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-                    <div>
-                        <h3 class="text-base sm:text-lg font-extrabold text-gray-900 flex items-center gap-2">
-                            <i class="fa-solid fa-stopwatch text-orange-500"></i> Speeltijd & Wissel Monitor
-                        </h3>
-                        <p class="text-xs text-gray-500">Sep speelt altijd 60 minuten. Veldspelers spelen bij volledige opstelling 45 of 60 minuten.</p>
-                    </div>
-                    <div id="match-completeness-badge"></div>
-                </div>
-                <div id="live-player-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-            </div>
-        </section>
-
-        <!-- TAB 2: SEIZOENSMONITOR -->
-        <section id="tab-season" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-trophy"></i></div>
-                    <div>
-                        <div class="text-xs font-bold uppercase text-gray-400">Vastgelegde Wedstrijden</div>
-                        <div id="season-total-matches" class="text-2xl font-extrabold text-gray-900">0</div>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-green-100 text-green-600 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-scale-balanced"></i></div>
-                    <div>
-                        <div class="text-xs font-bold uppercase text-gray-400">Gem. Speeltijd Veldspeler</div>
-                        <div id="season-avg-minutes" class="text-2xl font-extrabold text-gray-900">52.5 min</div>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-rotate"></i></div>
-                    <div>
-                        <div class="text-xs font-bold uppercase text-gray-400">Eerstvolgende Wisselbeurt</div>
-                        <div id="season-next-bench-names" class="text-sm font-extrabold text-gray-900">-</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="p-4 sm:p-5 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-base sm:text-lg font-extrabold text-gray-900 flex items-center gap-2">
-                            <i class="fa-solid fa-chart-column text-orange-500"></i> Seizoensoverzicht Speeltijd
-                        </h2>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="exportSeasonWhatsApp()" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> Deel Seizoensstand</button>
-                        <button onclick="exportDataJSON()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5"><i class="fa-solid fa-download"></i> Backup</button>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[700px]">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-200 text-[11px] uppercase font-extrabold text-gray-500">
-                                <th class="py-3 px-4">Speler & Rol</th>
-                                <th class="py-3 px-3 text-center">Wedstr.</th>
-                                <th class="py-3 px-3 text-center">Totaal Speeltijd</th>
-                                <th class="py-3 px-3 text-center">Keren Wissel</th>
-                                <th class="py-3 px-4">Eerlijkheids-status</th>
-                                <th class="py-3 px-4 w-44">Speeltijd Balans</th>
-                            </tr>
-                        </thead>
-                        <tbody id="season-stats-tbody" class="divide-y divide-gray-200 text-sm"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-5">
-                <h3 class="text-base font-extrabold text-gray-900 mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-orange-500"></i> Opgeslagen Wedstrijden Historie
-                </h3>
-                <div id="saved-matches-list" class="space-y-3"></div>
-            </div>
-        </section>
-
-        <!-- TAB 3: TEAM & REGELS -->
-        <section id="tab-players" class="hidden space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
-                    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1 flex items-center gap-2">
-                        <i class="fa-solid fa-people-group text-orange-500"></i> Selectie Oranje Nassau JO11-4 & Correctie
-                    </h2>
-                    <p class="text-xs text-gray-500 mb-4">Hier zie je de vaste rollen. Eventuele extra minuten of wisselbeurten van vorig seizoen kun je hier optellen.</p>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-gray-50 border-b border-gray-200 text-xs uppercase font-bold text-gray-500">
-                                    <th class="py-2.5 px-3">Speler</th>
-                                    <th class="py-2.5 px-3">Hoofdrol</th>
-                                    <th class="py-2.5 px-3 text-center">Extra Minuten</th>
-                                    <th class="py-2.5 px-3 text-center">Extra Wissels</th>
-                                </tr>
-                            </thead>
-                            <tbody id="players-config-tbody" class="divide-y divide-gray-200"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-4 space-y-4">
-                    <div class="bg-gray-900 text-white rounded-2xl p-5 shadow-sm border-t-4 border-orange-500">
-                        <h3 class="font-extrabold text-base text-orange-400 mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-clipboard-check"></i> Teamafspraken JO11-4
-                        </h3>
-                        <ul class="text-xs space-y-2.5 text-gray-300 leading-relaxed">
-                            <li><i class="fa-solid fa-check text-orange-400 mr-1.5"></i><strong>Keeper:</strong> Sep wisselt nooit (60m).</li>
-                            <li><i class="fa-solid fa-check text-orange-400 mr-1.5"></i><strong>Verdediging:</strong> Jonathan, Vince, Mika (+ Jesper).</li>
-                            <li><i class="fa-solid fa-check text-orange-400 mr-1.5"></i><strong>Middenveld:</strong> Kerem (CVM), Jesper, Bodi, Noud.</li>
-                            <li><i class="fa-solid fa-check text-orange-400 mr-1.5"></i><strong>Spits:</strong> Arthur (+ Noud).</li>
-                            <li><i class="fa-solid fa-check text-orange-400 mr-1.5"></i><strong>Gastspeler:</strong> Kan per wedstrijd worden toegevoegd op Verdediging, Middenveld of Aanval.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Toast / Meldingen Container -->
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
-
-    <!-- Modal Container -->
-    <div id="custom-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-gray-200 overflow-hidden">
-            <div class="bg-gray-900 text-white px-5 py-3.5 flex items-center justify-between border-b-2 border-orange-500">
-                <h3 id="modal-title" class="font-extrabold text-sm sm:text-base">Melding</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div id="modal-body" class="p-5 text-sm text-gray-700 space-y-3"></div>
-            <div id="modal-footer" class="px-5 py-3 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
-                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl text-xs font-bold">Sluiten</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript Logica -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const PLAYERS = [
-            { id: 'sep', name: 'Sep', displayName: 'Sep', roleBadge: 'Keeper (Vast)', roleColor: 'bg-gray-900 text-orange-400 border-gray-700', primaryPositions: ['K'], isFixedKeeper: true },
-            { id: 'jonathan', name: 'Jonathan', displayName: 'Jonathan', roleBadge: 'Verdediger', roleColor: 'bg-blue-100 text-blue-800 border-blue-200', primaryPositions: ['LV', 'CV', 'RV'], isFixedKeeper: false },
-            { id: 'vince', name: 'Vince', displayName: 'Vince', roleBadge: 'Verdediger', roleColor: 'bg-blue-100 text-blue-800 border-blue-200', primaryPositions: ['LV', 'CV', 'RV'], isFixedKeeper: false },
-            { id: 'mika', name: 'Mika', displayName: 'Mika', roleBadge: 'Verdediger', roleColor: 'bg-blue-100 text-blue-800 border-blue-200', primaryPositions: ['LV', 'CV', 'RV'], isFixedKeeper: false },
-            { id: 'kerem', name: 'Kerem', displayName: 'Kerem', roleBadge: 'Verd. Middenvelder (CM)', roleColor: 'bg-amber-100 text-amber-900 border-amber-300', primaryPositions: ['CM'], isFixedKeeper: false },
-            { id: 'jesper', name: 'Jesper', displayName: 'Jesper (Jasper)', roleBadge: 'Middenveld & Verdediging', roleColor: 'bg-teal-100 text-teal-800 border-teal-200', primaryPositions: ['LM', 'CM', 'RM', 'LV', 'CV', 'RV'], isFixedKeeper: false },
-            { id: 'bodi', name: 'Bodi', displayName: 'Bodi', roleBadge: 'Middenvelder', roleColor: 'bg-amber-100 text-amber-800 border-amber-200', primaryPositions: ['LM', 'CM', 'RM'], isFixedKeeper: false },
-            { id: 'noud', name: 'Noud', displayName: 'Noud', roleBadge: 'Middenveld & Spits', roleColor: 'bg-purple-100 text-purple-800 border-purple-200', primaryPositions: ['LM', 'CM', 'RM', 'SP'], isFixedKeeper: false },
-            { id: 'arthur', name: 'Arthur', displayName: 'Arthur', roleBadge: 'Spits', roleColor: 'bg-rose-100 text-rose-800 border-rose-200', primaryPositions: ['SP'], isFixedKeeper: false }
-        ];
-
-        const POSITIONS = [
-            { code: 'K',  label: 'Keeper',               short: 'K',   line: 'Doel',        color: 'bg-gray-800 text-white',           border: 'border-gray-700', hint: 'Sep (Vast)' },
-            { code: 'LV', label: 'Linksachter',          short: 'LV',  line: 'Verdediging', color: 'bg-blue-600 text-white',           border: 'border-blue-500', hint: 'Jonathan, Vince, Mika, Jesper' },
-            { code: 'CV', label: 'Centraal Achterin',    short: 'CV',  line: 'Verdediging', color: 'bg-blue-600 text-white',           border: 'border-blue-500', hint: 'Jonathan, Vince, Mika, Jesper' },
-            { code: 'RV', label: 'Rechtsachter',         short: 'RV',  line: 'Verdediging', color: 'bg-blue-600 text-white',           border: 'border-blue-500', hint: 'Jonathan, Vince, Mika, Jesper' },
-            { code: 'LM', label: 'Linksmidden',          short: 'LM',  line: 'Middenveld',  color: 'bg-amber-500 text-white',          border: 'border-amber-500', hint: 'Jesper, Bodi, Noud, Kerem' },
-            { code: 'CM', label: 'Centraal / Verd. Mid', short: 'CM',  line: 'Middenveld',  color: 'bg-amber-600 text-white',          border: 'border-amber-600', hint: 'Kerem (CVM), Jesper, Bodi, Noud' },
-            { code: 'RM', label: 'Rechtsmidden',         short: 'RM',  line: 'Middenveld',  color: 'bg-amber-500 text-white',          border: 'border-amber-500', hint: 'Jesper, Bodi, Noud, Kerem' },
-            { code: 'SP', label: 'Spits',                short: 'SP',  line: 'Aanval',      color: 'bg-rose-600 text-white',           border: 'border-rose-500', hint: 'Arthur, Noud' }
-        ];
-
-        const PERIOD_NAMES = ['Blok 1 (0-15 min)', 'Blok 2 (15-30 min)', 'Blok 3 (30-45 min)', 'Blok 4 (45-60 min)'];
-
-        let db = null;
-        let auth = null;
-        let currentUser = null;
-        let unsubscribeTeamSnapshot = null;
-        let isApplyingRemoteUpdate = false;
-        let saveDebounceTimer = null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'oranje-nassau-jo11-4-app';
-
-        let appState = {
-            teamCode: 'ONA-JO11-4',
-            activeMainTab: 'planner',
-            plannerView: 'matrix',
-            activePitchPeriod: 0,
-            editingMatchId: null,
-            currentMatch: {
-                opponent: "avc Heracles 011-2JM",
-                date: new Date().toISOString().split('T')[0],
-                absentPlayerIds: [],
-                hasGuest: false,
-                guest: { name: "", pos1: "Middenveld", pos2: "" },
-                periods: [
-                    { K: 'sep', LV: 'jonathan', CV: 'vince',  RV: 'mika',     LM: 'jesper', CM: 'kerem', RM: 'noud', SP: 'arthur' },
-                    { K: 'sep', LV: 'jonathan', CV: 'vince',  RV: 'jesper',   LM: 'bodi',   CM: 'kerem', RM: 'noud', SP: 'arthur' },
-                    { K: 'sep', LV: 'jonathan', CV: 'mika',   RV: 'vince',    LM: 'jesper', CM: 'bodi',  RM: 'noud', SP: 'arthur' },
-                    { K: 'sep', LV: 'vince',    CV: 'mika',   RV: 'jonathan', LM: 'jesper', CM: 'kerem', RM: 'bodi', SP: 'noud'   }
-                ]
-            },
-            manualAdjustments: {},
-            savedMatches: [
-                {
-                    id: 'match-1',
-                    opponent: "avc Heracles 011-2JM",
-                    date: "2026-11-01",
-                    absentPlayerIds: [],
-                    hasGuest: false,
-                    guest: { name: "", pos1: "Middenveld", pos2: "" },
-                    periods: [
-                        { K: 'sep', LV: 'jonathan', CV: 'vince',  RV: 'mika',   LM: 'jesper', CM: 'kerem', RM: 'bodi', SP: 'arthur' },
-                        { K: 'sep', LV: 'jesper',   CV: 'vince',  RV: 'mika',   LM: 'noud',   CM: 'kerem', RM: 'bodi', SP: 'arthur' },
-                        { K: 'sep', LV: 'jonathan', CV: 'jesper', RV: 'mika',   LM: 'noud',   CM: 'kerem', RM: 'bodi', SP: 'arthur' },
-                        { K: 'sep', LV: 'jonathan', CV: 'vince',  RV: 'mika',   LM: 'noud',   CM: 'kerem', RM: 'bodi', SP: 'arthur' }
-                    ]
-                }
-            ]
-        };
-
-        function getActivePlayerList() {
-            const list = [...PLAYERS];
-            const m = appState.currentMatch;
-            if (m.hasGuest && m.guest && m.guest.name.trim() !== '') {
-                list.push({
-                    id: 'guest_player',
-                    name: m.guest.name.trim(),
-                    displayName: m.guest.name.trim() + ' (Gast)',
-                    roleBadge: `Gast (${m.guest.pos1})`,
-                    roleColor: 'bg-purple-100 text-purple-900 border-purple-300',
-                    primaryPositions: getPositionsForGuest(m.guest.pos1),
-                    secondaryPositions: m.guest.pos2 ? getPositionsForGuest(m.guest.pos2) : [],
-                    isFixedKeeper: false,
-                    isGuest: true
-                });
-            }
-            return list;
-        }
-
-        function getPositionsForGuest(cat) {
-            if (cat === 'Verdediging') return ['LV', 'CV', 'RV'];
-            if (cat === 'Middenveld') return ['LM', 'CM', 'RM'];
-            if (cat === 'Aanval') return ['SP'];
-            return ['LM', 'CM', 'RM', 'LV', 'CV', 'RV', 'SP'];
-        }
-
-        function openInNewBrowserTab() {
-            const htmlContent = document.documentElement.outerHTML;
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        }
-
-        async function initFirebaseCloud() {
-            try {
-                if (typeof __firebase_config === 'undefined' || !__firebase_config) return;
-                const firebaseConfig = JSON.parse(__firebase_config);
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                onAuthStateChanged(auth, (user) => {
-                    currentUser = user;
-                    if (user) subscribeToTeamDocument(appState.teamCode);
-                });
-            } catch (err) { console.error('Cloud init error:', err); }
-        }
-
-        function getTeamDocRef(code) {
-            return doc(db, 'artifacts', appId, 'public', 'data', 'on_jo11_4_state', code.toUpperCase());
-        }
-
-        function subscribeToTeamDocument(code) {
-            if (!db || !currentUser) return;
-            if (unsubscribeTeamSnapshot) unsubscribeTeamSnapshot();
-            unsubscribeTeamSnapshot = onSnapshot(getTeamDocRef(code), async (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.data();
-                    isApplyingRemoteUpdate = true;
-                    if (data.currentMatchJson) appState.currentMatch = JSON.parse(data.currentMatchJson);
-                    if (data.savedMatchesJson) appState.savedMatches = JSON.parse(data.savedMatchesJson);
-                    if (data.manualAdjustmentsJson) appState.manualAdjustments = JSON.parse(data.manualAdjustmentsJson);
-                    renderAll();
-                    isApplyingRemoteUpdate = false;
-                } else {
-                    await pushStateToCloud(true);
-                }
+                if (minutes[sub.out]) minutes[sub.out].field -= minsPlayedBySub;
+                if (minutes[sub.in]) minutes[sub.in].field += minsPlayedBySub;
             });
+
+            return minutes;
         }
 
-        async function pushStateToCloud(immediate = false) {
-            if (!db || !currentUser || isApplyingRemoteUpdate) return;
-            const execute = async () => {
-                try {
-                    await setDoc(getTeamDocRef(appState.teamCode), {
-                        currentMatchJson: JSON.stringify(appState.currentMatch),
-                        savedMatchesJson: JSON.stringify(appState.savedMatches),
-                        manualAdjustmentsJson: JSON.stringify(appState.manualAdjustments),
-                        updatedAt: new Date().toISOString()
-                    }, { merge: true });
-                } catch (e) { console.error(e); }
+        function saveMatchToSeason() {
+            const opponent = document.getElementById('matchOpponent').value;
+            const date = document.getElementById('matchDate').value || new Date().toISOString().slice(0, 10);
+            const matchMins = calculateCurrentMatchMinutes();
+
+            const record = {
+                id: Date.now(),
+                opponent,
+                date,
+                attendance: { ...attendanceState },
+                minutes: matchMins,
+                emergencySubs: [...activeEmergencySubs]
             };
-            if (immediate) {
-                if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
-                await execute();
-            } else {
-                if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
-                saveDebounceTimer = setTimeout(execute, 400);
-            }
-        }
 
-        function getPlayerById(id) {
-            return getActivePlayerList().find(p => p.id === id) || null;
-        }
-
-        function togglePlayerAttendance(id) {
-            if (id === 'sep') return;
-            if (!appState.currentMatch.absentPlayerIds) appState.currentMatch.absentPlayerIds = [];
-            const idx = appState.currentMatch.absentPlayerIds.indexOf(id);
-            if (idx === -1) {
-                appState.currentMatch.absentPlayerIds.push(id);
-                appState.currentMatch.periods.forEach(per => {
-                    Object.keys(per).forEach(pos => { if (per[pos] === id) per[pos] = ''; });
-                });
-            } else {
-                appState.currentMatch.absentPlayerIds.splice(idx, 1);
-            }
-            renderAll();
-            pushStateToCloud();
-        }
-
-        function toggleGuestPlayer(checked) {
-            appState.currentMatch.hasGuest = checked;
-            const form = document.getElementById('guest-player-form');
-            if (checked) form.classList.remove('hidden');
-            else {
-                form.classList.add('hidden');
-                // Verwijder gast uit posities
-                appState.currentMatch.periods.forEach(per => {
-                    Object.keys(per).forEach(pos => { if (per[pos] === 'guest_player') per[pos] = ''; });
-                });
-            }
-            renderAll();
-            pushStateToCloud();
-        }
-
-        function updateGuestPlayerProp(prop, val) {
-            appState.currentMatch.guest[prop] = val;
-            renderAll();
-            pushStateToCloud();
-        }
-
-        function handleOpponentSelectChange(val) {
-            const customInput = document.getElementById('match-opponent-custom');
-            if (val === 'custom') {
-                customInput.classList.remove('hidden');
-                appState.currentMatch.opponent = customInput.value || '';
-            } else {
-                customInput.classList.add('hidden');
-                appState.currentMatch.opponent = val;
-            }
-            renderAll();
-            pushStateToCloud();
-        }
-
-        function getBenchPlayersForPeriod(periodObj) {
-            const assignedIds = Object.values(periodObj).filter(Boolean);
-            const absentIds = appState.currentMatch.absentPlayerIds || [];
-            return getActivePlayerList().filter(p => !absentIds.includes(p.id) && !assignedIds.includes(p.id));
-        }
-
-        function calculateMatchStats(matchObj) {
-            const stats = {};
-            const absentIds = matchObj.absentPlayerIds || [];
-            const playersList = PLAYERS; // basis + evt gast
-            playersList.forEach(p => {
-                stats[p.id] = { isAbsent: absentIds.includes(p.id), minutes: 0, benchCount: 0, positionsByPeriod: [] };
-            });
-            if (matchObj.hasGuest && matchObj.guest && matchObj.guest.name.trim()) {
-                stats['guest_player'] = { isAbsent: false, minutes: 0, benchCount: 0, positionsByPeriod: [] };
-            }
-
-            matchObj.periods.forEach(period => {
-                const assignedMap = {};
-                Object.entries(period).forEach(([pos, pid]) => { if (pid) assignedMap[pid] = pos; });
-
-                Object.keys(stats).forEach(id => {
-                    if (id !== 'guest_player' && absentIds.includes(id)) {
-                        stats[id].positionsByPeriod.push('Afwezig');
-                        return;
-                    }
-                    const pos = assignedMap[id];
-                    if (pos) {
-                        stats[id].minutes += 15;
-                        stats[id].positionsByPeriod.push(pos);
-                    } else {
-                        stats[id].benchCount += 1;
-                        stats[id].positionsByPeriod.push('Wissel');
-                    }
-                });
-            });
-            return stats;
+            seasonMatches.push(record);
+            localStorage.setItem('ona_jo11_4_matches', JSON.stringify(seasonMatches));
+            alert(`Wedstrijd tegen ${opponent} opgeslagen!`);
+            renderSeasonStats();
         }
 
         function calculateSeasonStats() {
-            const season = {};
-            PLAYERS.forEach(p => {
-                const adj = appState.manualAdjustments[p.id] || { extraMinutes: 0, extraBench: 0 };
-                season[p.id] = { player: p, matchesPlayed: 0, totalMinutes: Number(adj.extraMinutes) || 0, totalBench: Number(adj.extraBench) || 0, positionCounts: {} };
+            const stats = {};
+            defaultPlayers.forEach(p => {
+                stats[p.name] = { played: 0, absent: 0, fieldMin: 0, keeperMin: 0, avgFieldMin: 0 };
             });
 
-            appState.savedMatches.forEach(match => {
-                const absentIds = match.absentPlayerIds || [];
-                PLAYERS.forEach(p => {
-                    if (!absentIds.includes(p.id)) season[p.id].matchesPlayed += 1;
-                });
-                match.periods.forEach(period => {
-                    const assignedMap = {};
-                    Object.entries(period).forEach(([pos, pid]) => { if (pid) assignedMap[pid] = pos; });
-                    PLAYERS.forEach(p => {
-                        if (absentIds.includes(p.id)) return;
-                        const pos = assignedMap[p.id];
-                        if (pos) season[p.id].totalMinutes += 15;
-                        else season[p.id].totalBench += 1;
-                    });
+            seasonMatches.forEach(m => {
+                defaultPlayers.forEach(p => {
+                    const wasPresent = m.attendance[p.name] !== false;
+                    if (wasPresent) {
+                        stats[p.name].played++;
+                        if (m.minutes[p.name]) {
+                            stats[p.name].fieldMin += m.minutes[p.name].field || 0;
+                            stats[p.name].keeperMin += (m.minutes[p.name].isKeeper ? 60 : 0);
+                        }
+                    } else {
+                        stats[p.name].absent++;
+                    }
                 });
             });
-            return season;
-        }
 
-        function buildPositionDropdownHTML(periodIndex, posCode, selectedPlayerId) {
-            if (posCode === 'K') {
-                return `<div class="w-full px-3 py-2 bg-gray-900 text-orange-400 font-bold text-xs sm:text-sm rounded-xl border border-gray-700 flex items-center justify-between"><span><i class="fa-solid fa-hand-dots mr-1.5"></i>Sep (Vast)</span><span class="text-[10px] bg-orange-500/20 text-orange-300 px-1.5 py-0.5 rounded">60m</span></div>`;
+            // Bereken gemiddelden
+            for (let name in stats) {
+                const s = stats[name];
+                s.avgFieldMin = s.played > 0 ? (s.fieldMin / s.played) : 0;
             }
 
-            const periodObj = appState.currentMatch.periods[periodIndex];
-            const absentIds = appState.currentMatch.absentPlayerIds || [];
-            const occupied = new Set();
-            Object.entries(periodObj).forEach(([pCode, pId]) => { if (pCode !== posCode && pId) occupied.add(pId); });
-
-            const activeList = getActivePlayerList();
-            const available = activeList.filter(p => !p.isFixedKeeper && !absentIds.includes(p.id) && !occupied.has(p.id));
-
-            const preferred = available.filter(p => p.primaryPositions.includes(posCode));
-            const others = available.filter(p => !p.primaryPositions.includes(posCode));
-
-            let html = `<option value="">-- Kies speler --</option>`;
-            if (preferred.length > 0) {
-                html += `<optgroup label="★ Voorkeur (${posCode})">`;
-                preferred.forEach(p => {
-                    html += `<option value="${p.id}" ${p.id === selectedPlayerId ? 'selected' : ''}>${p.displayName} (${p.roleBadge})</option>`;
-                });
-                html += `</optgroup>`;
-            }
-            if (others.length > 0) {
-                html += `<optgroup label="Overig beschikbaar">`;
-                others.forEach(p => {
-                    html += `<option value="${p.id}" ${p.id === selectedPlayerId ? 'selected' : ''}>${p.displayName} (${p.roleBadge})</option>`;
-                });
-                html += `</optgroup>`;
-            }
-
-            return `<select onchange="handlePositionChange(${periodIndex}, '${posCode}', this.value)" class="w-full px-2.5 py-2 border ${!selectedPlayerId ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-300 bg-white text-gray-900'} rounded-xl text-xs sm:text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none cursor-pointer">${html}</select>`;
+            return stats;
         }
 
-        function handlePositionChange(periodIndex, posCode, newId) {
-            if (posCode === 'K') return;
-            if (newId) {
-                Object.keys(appState.currentMatch.periods[periodIndex]).forEach(op => {
-                    if (op !== posCode && appState.currentMatch.periods[periodIndex][op] === newId) {
-                        appState.currentMatch.periods[periodIndex][op] = '';
-                    }
-                });
+        function renderSeasonStats() {
+            const stats = calculateSeasonStats();
+            const tbody = document.getElementById('seasonStatsBody');
+            tbody.innerHTML = '';
+
+            // Bepaal ideaal veld-streefgemiddelde over het hele team
+            // 7 veldspelers x 60 min = 420 veldminuten te verdelen over aanwezige veldspelers (vaak 8) = 52.5 min
+            const targetAvgField = 52.5;
+
+            for (let pName in stats) {
+                const s = stats[pName];
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+
+                const diff = (s.avgFieldMin - targetAvgField).toFixed(1);
+                let diffBadge = `<span class="text-slate-400">0.0</span>`;
+                if (diff > 0) diffBadge = `<span class="text-emerald-600 font-bold">+${diff}m</span>`;
+                if (diff < 0) diffBadge = `<span class="text-rose-600 font-bold">${diff}m</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-800">${pName}</td>
+                    <td class="p-3 text-center font-semibold text-emerald-600">${s.played}</td>
+                    <td class="p-3 text-center text-slate-400">${s.absent}</td>
+                    <td class="p-3 text-center font-bold text-slate-700">${Math.round(s.fieldMin)} min</td>
+                    <td class="p-3 text-center font-bold text-orange-600">${s.avgFieldMin.toFixed(1)} min</td>
+                    <td class="p-3 text-center">${pName === "Sep" ? '<span class="text-slate-400 text-xs">Keeper</span>' : diffBadge}</td>
+                `;
+                tbody.appendChild(tr);
             }
-            appState.currentMatch.periods[periodIndex][posCode] = newId || '';
-            renderAll();
-            pushStateToCloud();
-        }
 
-        function copyPeriodToNext(fromIdx) {
-            if (fromIdx < 0 || fromIdx >= 3) return;
-            appState.currentMatch.periods[fromIdx + 1] = { ...appState.currentMatch.periods[fromIdx] };
-            showToast(`Opstelling gekopieerd naar Blok ${fromIdx + 2}!`, 'success');
-            renderAll();
-            pushStateToCloud();
-        }
+            // Opgeslagen wedstrijden renderen
+            const mContainer = document.getElementById('savedMatchesContainer');
+            mContainer.innerHTML = '';
+            if (seasonMatches.length === 0) {
+                mContainer.innerHTML = `<p class="text-xs text-slate-400 italic">Nog geen wedstrijden opgeslagen.</p>`;
+                return;
+            }
 
-        function generateFairLineup() {
-            const absentIds = appState.currentMatch.absentPlayerIds || [];
-            const activeOutfield = getActivePlayerList().filter(p => !p.isFixedKeeper && !absentIds.includes(p.id));
-
-            appState.currentMatch.periods = [0, 1, 2, 3].map(b => {
-                const per = { K: 'sep', LV: '', CV: '', RV: '', LM: '', CM: '', RM: '', SP: '' };
-                const used = new Set(['sep']);
-
-                // Verdeel spelers slim over linies
-                const assign = (pos, candidateIds) => {
-                    for (const cid of candidateIds) {
-                        const found = activeOutfield.find(p => p.id === cid && !used.has(p.id));
-                        if (found) { per[pos] = found.id; used.add(found.id); return; }
-                    }
-                    const fallback = activeOutfield.find(p => !used.has(p.id));
-                    if (fallback) { per[pos] = fallback.id; used.add(fallback.id); }
-                };
-
-                assign('SP', ['arthur', 'noud', 'guest_player', 'bodi', 'jesper']);
-                assign('CM', ['kerem', 'jesper', 'bodi', 'noud', 'guest_player']);
-                assign('LV', ['jonathan', 'vince', 'mika', 'jesper', 'guest_player']);
-                assign('CV', ['vince', 'mika', 'jonathan', 'jesper', 'guest_player']);
-                assign('RV', ['mika', 'jonathan', 'vince', 'jesper', 'guest_player']);
-                assign('LM', ['jesper', 'bodi', 'noud', 'guest_player', 'kerem']);
-                assign('RM', ['bodi', 'noud', 'jesper', 'guest_player', 'kerem']);
-
-                Object.keys(per).forEach(pos => {
-                    if (!per[pos]) {
-                        const rem = activeOutfield.find(p => !used.has(p.id));
-                        if (rem) { per[pos] = rem.id; used.add(rem.id); }
-                    }
-                });
-                return per;
+            seasonMatches.forEach((m, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-slate-50 border border-slate-200 p-2.5 rounded-lg text-xs";
+                div.innerHTML = `
+                    <div><strong>vs ${m.opponent}</strong> <span class="text-slate-400 ml-2">(${m.date})</span></div>
+                    <button onclick="deleteMatch(${idx})" class="text-rose-600 hover:underline">Verwijderen</button>
+                `;
+                mContainer.appendChild(div);
             });
-
-            showToast('Eerlijke opstelling gegenereerd!', 'success');
-            renderAll();
-            pushStateToCloud();
         }
 
-        function renderAll() {
-            // Opponent select sync
-            const sel = document.getElementById('match-opponent-select');
-            const customInp = document.getElementById('match-opponent-custom');
-            const opp = appState.currentMatch.opponent;
-
-            let foundOpt = false;
-            for (let opt of sel.options) {
-                if (opt.value === opp) { sel.value = opp; foundOpt = true; break; }
+        function deleteMatch(idx) {
+            if (confirm("Wedstrijd verwijderen?")) {
+                seasonMatches.splice(idx, 1);
+                localStorage.setItem('ona_jo11_4_matches', JSON.stringify(seasonMatches));
+                renderSeasonStats();
             }
-            if (!foundOpt && opp) {
-                sel.value = 'custom';
-                customInp.classList.remove('hidden');
-                customInp.value = opp;
-            } else if (sel.value !== 'custom') {
-                customInp.classList.add('hidden');
-            }
-
-            document.getElementById('match-date').value = appState.currentMatch.date;
-            document.getElementById('badge-matches-count').textContent = appState.savedMatches.length;
-
-            const editBadge = document.getElementById('editing-match-indicator');
-            const saveLabel = document.getElementById('save-match-btn-label');
-            if (appState.editingMatchId) {
-                editBadge.classList.remove('hidden');
-                saveLabel.textContent = 'Wijzigingen Opslaan';
-            } else {
-                editBadge.classList.add('hidden');
-                saveLabel.textContent = 'Opslaan in Seizoen';
-            }
-
-            // Gastspeler UI sync
-            const guestToggle = document.getElementById('guest-player-toggle');
-            const guestForm = document.getElementById('guest-player-form');
-            guestToggle.checked = appState.currentMatch.hasGuest;
-            if (appState.currentMatch.hasGuest) guestForm.classList.remove('hidden');
-            else guestForm.classList.add('hidden');
-
-            document.getElementById('guest-name').value = appState.currentMatch.guest.name || '';
-            document.getElementById('guest-pos1').value = appState.currentMatch.guest.pos1 || 'Middenveld';
-            document.getElementById('guest-pos2').value = appState.currentMatch.guest.pos2 || '';
-
-            renderAttendancePills();
-            renderMatrixView();
-            renderPitchView();
-            renderLiveMatchMonitor();
-            renderSeasonDashboard();
-            renderPlayersConfigTab();
         }
 
-        function renderAttendancePills() {
-            const container = document.getElementById('attendance-pills-container');
-            const absentIds = appState.currentMatch.absentPlayerIds || [];
-            document.getElementById('present-count-label').textContent = `${PLAYERS.length - absentIds.length}/${PLAYERS.length}`;
-
-            container.innerHTML = PLAYERS.map(p => {
-                const isAbs = absentIds.includes(p.id);
-                return `<button onclick="togglePlayerAttendance('${p.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold ${isAbs ? 'bg-red-50 text-red-600 border border-red-200 line-through' : 'bg-green-50 text-green-800 border border-green-300'} flex items-center gap-1.5 transition"><i class="fa-solid ${isAbs ? 'fa-user-xmark' : 'fa-check'}"></i> ${p.name}</button>`;
-            }).join('');
+        function clearAllSeasonData() {
+            if (confirm("Weet je zeker dat je alle seizoensdata wilt wissen? Dit kan niet ongedaan worden gemaakt.")) {
+                seasonMatches = [];
+                localStorage.removeItem('ona_jo11_4_matches');
+                renderSeasonStats();
+            }
         }
 
-        function renderMatrixView() {
-            const tbody = document.getElementById('matrix-tbody');
-            const tfoot = document.getElementById('matrix-tfoot');
-            let rows = '';
-
-            POSITIONS.forEach(pos => {
-                let cells = '';
-                for (let i = 0; i < 4; i++) {
-                    const selId = appState.currentMatch.periods[i][pos.code] || '';
-                    cells += `<td class="p-2.5 border-l border-gray-200 align-middle">${buildPositionDropdownHTML(i, pos.code, selId)}</td>`;
+        function copyLineupWhatsApp() {
+            const opp = document.getElementById('matchOpponent').value;
+            let text = `⚽ *O.N. Almelo JO11-4 - Opstelling vs ${opp}*\n\n`;
+            for (let b = 1; b <= 4; b++) {
+                text += `*Kwartier ${b} (15m):*\n`;
+                for (let pos of fieldPositions) {
+                    text += `- ${pos.name}: ${currentLineup[b][pos.id] || 'Nog open'}\n`;
                 }
-                rows += `<tr class="hover:bg-gray-50"><td class="py-2.5 px-4"><div class="flex items-center gap-2.5"><span class="w-9 h-7 rounded-lg ${pos.color} font-extrabold text-xs flex items-center justify-center">${pos.short}</span><div><div class="font-bold text-gray-900 text-xs sm:text-sm">${pos.label}</div></div></div></td>${cells}</tr>`;
-            });
-            tbody.innerHTML = rows;
-
-            let benchCells = '';
-            for (let i = 0; i < 4; i++) {
-                const bench = getBenchPlayersForPeriod(appState.currentMatch.periods[i]);
-                const names = bench.map(b => b.displayName).join(', ') || 'Geen';
-                benchCells += `<td class="p-3 border-l border-orange-200"><div class="flex items-center justify-between bg-white px-3 py-2 rounded-xl border border-orange-300 shadow-2xs"><span class="font-extrabold text-gray-900 text-xs sm:text-sm truncate">${names}</span><span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-orange-100 text-orange-800">Wissel</span></div></td>`;
+                text += `\n`;
             }
-            tfoot.innerHTML = `<tr><td class="py-3 px-4"><div class="flex items-center gap-2.5"><span class="w-9 h-7 rounded-lg bg-orange-500 text-white font-extrabold text-xs flex items-center justify-center"><i class="fa-solid fa-couch"></i></span><div class="font-extrabold text-orange-950 text-xs sm:text-sm">Wisselbank</div></div></td>${benchCells}</tr>`;
+            navigator.clipboard.writeText(text);
+            alert("Opstelling gekopieerd naar klembord voor WhatsApp!");
         }
 
-        function renderPitchView() {
-            const pIdx = appState.activePitchPeriod;
-            const periodObj = appState.currentMatch.periods[pIdx];
-
-            for (let i = 0; i < 4; i++) {
-                const btn = document.getElementById(`pitch-tab-${i}`);
-                const sub = document.getElementById(`pitch-tab-sub-${i}`);
-                const bench = getBenchPlayersForPeriod(appState.currentMatch.periods[i]);
-                sub.textContent = bench.length > 0 ? `Wissel: ${bench.map(b => b.name).join(', ')}` : `Geen wissel`;
-                btn.className = i === pIdx ? "p-3 rounded-xl border-2 border-orange-500 bg-orange-500 text-white font-bold text-left transition shadow-sm" : "p-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-left transition";
-            }
-
-            document.getElementById('pitch-active-title').textContent = PERIOD_NAMES[pIdx];
-
-            POSITIONS.forEach(pos => {
-                const container = document.getElementById(`pitch-pos-${pos.code}`);
-                if (!container) return;
-                container.innerHTML = `<div class="bg-white/95 text-gray-900 p-2 sm:p-2.5 rounded-xl shadow-lg border-2 ${pos.border}"><div class="flex items-center justify-between mb-1"><span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${pos.color}">${pos.short}</span><span class="text-[10px] font-bold text-gray-500">${pos.label}</span></div>${buildPositionDropdownHTML(pIdx, pos.code, periodObj[pos.code] || '')}</div>`;
-            });
-
-            const benchPlayers = getBenchPlayersForPeriod(periodObj);
-            document.getElementById('pitch-bench-card').innerHTML = benchPlayers.map(bp => `<div class="font-extrabold text-gray-900 text-sm">${bp.displayName}</div>`).join('') || '<div class="text-xs font-bold text-green-800">Iedereen staat in het veld!</div>';
-
-            const subInstrEl = document.getElementById('pitch-sub-instructions');
-            if (pIdx === 0) subInstrEl.innerHTML = `Dit is de startopstelling.`;
-            else {
-                subInstrEl.innerHTML = `Wissel na Blok ${pIdx}: <strong>${benchPlayers.map(b => b.name).join(', ') || '-'}</strong> erin.`;
-            }
-        }
-
-        function renderLiveMatchMonitor() {
-            const container = document.getElementById('live-player-cards');
-            const matchStats = calculateMatchStats(appState.currentMatch);
-            const seasonStats = calculateSeasonStats();
-
-            let cards = '';
-            getActivePlayerList().forEach(p => {
-                const st = matchStats[p.id];
-                if (!st) return;
-                const seaSt = seasonStats[p.id] || { totalMinutes: 0 };
-                cards += `<div class="p-3.5 rounded-xl border border-gray-200 bg-gray-50/60 shadow-2xs flex flex-col justify-between gap-2"><div class="flex justify-between items-start"><div><div class="font-extrabold text-gray-900 text-sm">${p.displayName}</div><span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded border mt-0.5 ${p.roleColor}">${p.roleBadge}</span></div><span class="px-2.5 py-1 rounded-lg text-xs font-extrabold border bg-green-100 text-green-800 border-green-300">${st.minutes} min</span></div></div>`;
-            });
-            container.innerHTML = cards;
-        }
-
-        function renderSeasonDashboard() {
-            const seasonStats = calculateSeasonStats();
-            document.getElementById('season-total-matches').textContent = appState.savedMatches.length;
-
-            const tbody = document.getElementById('season-stats-tbody');
-            let rows = '';
-            PLAYERS.forEach(p => {
-                const st = seasonStats[p.id];
-                rows += `<tr class="hover:bg-gray-50"><td class="py-3 px-4"><div class="font-extrabold text-gray-900">${p.displayName}</div><span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded border ${p.roleColor}">${p.roleBadge}</span></td><td class="py-3 px-3 text-center font-bold">${st.matchesPlayed}</td><td class="py-3 px-3 text-center"><span class="px-2.5 py-1 rounded-lg bg-green-100 text-green-900 font-extrabold text-xs">${st.totalMinutes} min</span></td><td class="py-3 px-3 text-center"><span class="px-2.5 py-1 rounded-lg bg-orange-100 text-orange-900 font-extrabold text-xs">${st.totalBench}x</span></td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-100 text-green-800">Actief</span></td><td class="py-3 px-4"><div class="w-full bg-gray-200 h-2.5 rounded-full overflow-hidden"><div class="bg-orange-500 h-full rounded-full" style="width: 100%"></div></div></td></tr>`;
-            });
-            tbody.innerHTML = rows;
-
-            const listContainer = document.getElementById('saved-matches-list');
-            listContainer.innerHTML = appState.savedMatches.length === 0 ? '<div class="text-xs text-gray-500">Nog geen wedstrijden opgeslagen.</div>' : appState.savedMatches.map(m => `<div class="p-3 rounded-xl border bg-gray-50 flex justify-between items-center text-xs"><div><strong>${m.date}</strong> - vs ${m.opponent}</div><button onclick="loadSavedMatch('${m.id}')" class="px-3 py-1 bg-white border rounded font-bold">Open</button></div>`).join('');
-        }
-
-        function renderPlayersConfigTab() {
-            const tbody = document.getElementById('players-config-tbody');
-            tbody.innerHTML = PLAYERS.map(p => {
-                const adj = appState.manualAdjustments[p.id] || { extraMinutes: 0, extraBench: 0 };
-                return `<tr><td class="py-3 px-3 font-extrabold">${p.displayName}</td><td class="py-3 px-3"><span class="text-xs font-bold px-2 py-1 rounded border ${p.roleColor}">${p.roleBadge}</span></td><td class="py-3 px-3 text-center"><input type="number" value="${adj.extraMinutes}" onchange="updateManualAdjustment('${p.id}', 'extraMinutes', this.value)" class="w-20 px-2 py-1 text-center border rounded font-bold text-xs"></td><td class="py-3 px-3 text-center"><input type="number" value="${adj.extraBench}" onchange="updateManualAdjustment('${p.id}', 'extraBench', this.value)" class="w-20 px-2 py-1 text-center border rounded font-bold text-xs"></td></tr>`;
-            }).join('');
-        }
-
-        function updateManualAdjustment(pid, field, val) {
-            if (!appState.manualAdjustments[pid]) appState.manualAdjustments[pid] = { extraMinutes: 0, extraBench: 0 };
-            appState.manualAdjustments[pid][field] = Math.max(0, parseInt(val, 10) || 0);
-            renderAll();
-            pushStateToCloud(true);
-        }
-
-        function switchMainTab(tabName) {
-            appState.activeMainTab = tabName;
-            ['planner', 'season', 'players'].forEach(t => {
-                const sec = document.getElementById(`tab-${t}`);
-                const btn = document.getElementById(`nav-${t}`);
-                if (t === tabName) { sec.classList.remove('hidden'); btn.className = "flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-orange-500 text-white shadow"; }
-                else { sec.classList.add('hidden'); btn.className = "flex-1 sm:flex-initial px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-gray-300 hover:text-white hover:bg-gray-700"; }
-            });
-            renderAll();
-        }
-
-        function setPlannerView(mode) {
-            appState.plannerView = mode;
-            const matrix = document.getElementById('planner-matrix-view');
-            const pitch = document.getElementById('planner-pitch-view');
-            if (mode === 'matrix') { matrix.classList.remove('hidden'); pitch.classList.add('hidden'); }
-            else { matrix.classList.add('hidden'); pitch.classList.remove('hidden'); }
-            renderAll();
-        }
-
-        function selectPitchPeriod(idx) { appState.activePitchPeriod = idx; renderPitchView(); }
-
-        async function saveMatchToSeason() {
-            const opp = appState.currentMatch.opponent || 'Tegenstander';
-            const date = document.getElementById('match-date').value || new Date().toISOString().split('T')[0];
-            appState.currentMatch.date = date;
-
-            if (appState.editingMatchId) {
-                const idx = appState.savedMatches.findIndex(m => m.id === appState.editingMatchId);
-                if (idx !== -1) appState.savedMatches[idx] = { ...appState.currentMatch, id: appState.editingMatchId };
-                appState.editingMatchId = null;
-                showToast('Wedstrijd bijgewerkt!', 'success');
-            } else {
-                appState.savedMatches.push({ ...appState.currentMatch, id: 'match-' + Date.now() });
-                showToast('Wedstrijd opgeslagen in seizoensoverzicht!', 'success');
-            }
-            renderAll();
-            await pushStateToCloud(true);
-        }
-
-        function loadSavedMatch(id) {
-            const found = appState.savedMatches.find(m => m.id === id);
-            if (!found) return;
-            appState.editingMatchId = found.id;
-            appState.currentMatch = JSON.parse(JSON.stringify(found));
-            switchMainTab('planner');
-            showToast('Wedstrijd geladen om te bewerken.', 'info');
-        }
-
-        function clearCurrentLineup() {
-            appState.editingMatchId = null;
-            appState.currentMatch.periods = [0,1,2,3].map(() => ({ K: 'sep', LV: '', CV: '', RV: '', LM: '', CM: '', RM: '', SP: '' }));
-            showToast('Schema leeggemaakt.', 'info');
-            renderAll();
-        }
-
-        function copyWhatsAppSummary() {
-            let lines = [`⚽ *ORANJE NASSAU JO11-4 OPSTELLING* 🟠⚫`, `📅 *vs ${appState.currentMatch.opponent}* (${appState.currentMatch.date})`, `-----------------------------------`];
-            appState.currentMatch.periods.forEach((p, i) => {
-                const getName = code => getPlayerById(p[code])?.name || '?';
-                lines.push(`⏱️ *Blok ${i + 1} (${i * 15}-${(i + 1) * 15}m):* Doel: ${getName('K')} | Achter: ${getName('LV')}-${getName('CV')}-${getName('RV')} | Midden: ${getName('LM')}-${getName('CM')}-${getName('RM')} | Spits: ${getName('SP')}`);
-            });
-            const text = lines.join('\n');
-            copyTextToClipboard(text, 'WhatsApp opstelling gekopieerd!');
-            showModal('WhatsApp Opstelling', `<textarea readonly class="w-full h-48 p-2 font-mono text-xs border rounded">${text}</textarea>`);
-        }
-
-        function exportSeasonWhatsApp() {
-            const seasonStats = calculateSeasonStats();
-            let lines = [`🏆 *ORANJE NASSAU JO11-4 SEIZOENSTAND*`];
-            PLAYERS.forEach(p => { lines.push(`• ${p.name}: ${seasonStats[p.id].totalMinutes} min`); });
-            const text = lines.join('\n');
-            copyTextToClipboard(text, 'Seizoensstand gekopieerd!');
-            showModal('WhatsApp Seizoen', `<textarea readonly class="w-full h-48 p-2 font-mono text-xs border rounded">${text}</textarea>`);
-        }
-
-        function exportDataJSON() {
-            const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'ON-JO11-4-backup.json'; a.click();
-        }
-
-        function copyTextToClipboard(text, msg) {
-            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
-            try { document.execCommand('copy'); showToast(msg, 'success'); } catch (e) {}
-            document.body.removeChild(ta);
-        }
-
-        function showModal(title, html) {
-            document.getElementById('modal-title').textContent = title;
-            document.getElementById('modal-body').innerHTML = html;
-            const m = document.getElementById('custom-modal');
-            m.classList.remove('hidden'); m.classList.add('flex');
-        }
-
-        function closeModal() {
-            const m = document.getElementById('custom-modal');
-            m.classList.add('hidden'); m.classList.remove('flex');
-        }
-
-        function showToast(msg, type = 'info') {
-            const c = document.getElementById('toast-container');
-            const t = document.createElement('div');
-            t.className = `flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border-l-4 bg-gray-900 text-white ${type === 'success' ? 'border-green-500' : 'border-orange-500'} text-xs font-semibold`;
-            t.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${msg}</span>`;
-            c.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
-        }
-
-        Object.assign(window, {
-            openInNewBrowserTab,
-            switchMainTab,
-            setPlannerView,
-            selectPitchPeriod,
-            handlePositionChange,
-            copyPeriodToNext,
-            generateFairLineup,
-            saveMatchToSeason,
-            loadSavedMatch,
-            clearCurrentLineup,
-            copyWhatsAppSummary,
-            exportSeasonWhatsApp,
-            exportDataJSON,
-            updateManualAdjustment,
-            togglePlayerAttendance,
-            toggleGuestPlayer,
-            updateGuestPlayerProp,
-            handleOpponentSelectChange,
-            closeModal
-        });
-
-        window.onload = function() {
-            renderAll();
-            initFirebaseCloud();
-        };
+        window.onload = initApp;
     </script>
 </body>
 </html>
