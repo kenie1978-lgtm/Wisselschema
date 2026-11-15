@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O.N. Almelo JO11-4 - Wedstrijd & Speeltijd App</title>
+    <title>O.N. Almelo JO11-4 - Live Cloud Wedstrijd & Speeltijd App</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK (Compat versie zodat het direct in 1 los HTML-bestand werkt) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body {
@@ -38,11 +41,6 @@
             border-color: rgba(255, 255, 255, 0.65);
             pointer-events: none;
         }
-        /* Read-only waas voor vergrendelde elementen */
-        .readonly-disabled {
-            pointer-events: none;
-            opacity: 0.78;
-        }
         ::-webkit-scrollbar {
             height: 8px;
             width: 8px;
@@ -63,24 +61,30 @@
 
     <!-- Top Hero Header -->
     <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-orange-950 text-white shadow-lg border-b-4 border-orange-500">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3.5">
                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md border-2 border-orange-300 font-black text-xl tracking-tighter text-white">
                     ON
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">Oranje Nassau JO11-4</h1>
                         <span class="bg-orange-500/20 border border-orange-400/40 text-orange-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                             8v8 • 4x 15 min
                         </span>
                     </div>
-                    <p class="text-slate-300 text-xs mt-0.5">Interactieve Veldopstelling, Wisselplanner & Streefgemiddelde Monitor</p>
+                    <p class="text-slate-300 text-xs mt-0.5">Centrale Cloud Speeltijdmonitor, Wisselplanner & Veldopstelling</p>
                 </div>
             </div>
 
-            <!-- Hoofdnavigatie & Backup Knoppen -->
-            <div class="flex flex-wrap items-center gap-2">
+            <!-- Hoofdnavigatie, Live Cloud Indicator & Backup Knoppen -->
+            <div class="flex flex-wrap items-center justify-center gap-2">
+                <!-- Cloud Status Knop -->
+                <button onclick="openCloudSetupModal()" id="cloudStatusBtn" class="bg-amber-500/20 border border-amber-400/50 hover:bg-amber-500/30 text-amber-200 px-3 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-2 shadow-sm">
+                    <span id="cloudStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                    <span id="cloudStatusText">☁️ Cloud Koppelen (Nu Lokaal)</span>
+                </button>
+
                 <div class="flex items-center gap-1.5 bg-slate-800/90 p-1.5 rounded-xl border border-slate-700">
                     <button onclick="switchMainTab('match')" id="mainTab-match" class="px-3.5 py-2 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow">
                         ⚽ Wedstrijd & Veld
@@ -89,7 +93,8 @@
                         📊 Seizoensmonitor (<span id="savedCountBadge">0</span>)
                     </button>
                 </div>
-                <button onclick="openBackupModal()" class="bg-slate-800 hover:bg-slate-700 text-orange-300 border border-slate-600 px-3.5 py-2.5 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 shadow-sm">
+
+                <button onclick="openBackupModal()" class="bg-slate-800 hover:bg-slate-700 text-orange-300 border border-slate-600 px-3.5 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 shadow-sm">
                     📦 Backup / Export
                 </button>
             </div>
@@ -101,16 +106,14 @@
         <!-- ========================================================= -->
         <!-- BANNER BIJ HET BEKIJKEN / BEWERKEN VAN OUDE WEDSTRIJD     -->
         <!-- ========================================================= -->
-        <div id="loadedMatchBanner" class="hidden rounded-2xl p-4 shadow-md border-2 transition-all">
-            <!-- Wordt dynamisch gevuld: Blauw in Read-Only modus, Oranje in Bewerk-modus -->
-        </div>
+        <div id="loadedMatchBanner" class="hidden rounded-2xl p-4 shadow-md border-2 transition-all"></div>
 
         <!-- ========================================================= -->
         <!-- TAB 1: WEDSTRIJD & VELDPLANNER                            -->
         <!-- ========================================================= -->
         <div id="view-match" class="space-y-6">
 
-            <!-- Bovenste rij: Wedstrijdgegevens (Met Custom Tegenstander Menu) & Keeper Configuratie -->
+            <!-- Bovenste rij: Wedstrijdgegevens & Keeper Configuratie -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 
                 <!-- Kaart 1: Tegenstander & Datum (5 kolommen) -->
@@ -121,7 +124,7 @@
                                 <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Wedstrijd Details
                             </h2>
                             <span id="matchStatusBadge" class="text-[11px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                                Nieuwe Wedstrijd
+                                Nieuwe Wedstrijd (Live Concept)
                             </span>
                         </div>
 
@@ -134,9 +137,8 @@
                                     <svg class="w-4 h-4 text-slate-500 shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </button>
 
-                                <!-- Uitklapmenu met Actieve Tegenstanders, Verborgen (Grijze) Tegenstanders met Slotje & Toevoegen -->
+                                <!-- Uitklapmenu -->
                                 <div id="opponentDropdownMenu" class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden min-w-[290px]">
-                                    <!-- Nieuwe tegenstander toevoegen balk -->
                                     <div class="p-2.5 bg-slate-50 border-b border-slate-200">
                                         <label class="block text-[10px] font-extrabold uppercase text-slate-400 mb-1">➕ Nieuwe tegenstander toevoegen</label>
                                         <div class="flex gap-1.5">
@@ -146,7 +148,6 @@
                                             </button>
                                         </div>
                                     </div>
-                                    <!-- Lijst met tegenstanders -->
                                     <div id="opponentOptionsList" class="max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
                                 </div>
                             </div>
@@ -154,7 +155,7 @@
                             <!-- Speeldatum -->
                             <div class="sm:col-span-5">
                                 <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Speeldatum</label>
-                                <input type="date" id="matchDate" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none editable-control">
+                                <input type="date" id="matchDate" onchange="syncLiveDraftToCloud()" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none editable-control">
                             </div>
                         </div>
                     </div>
@@ -267,7 +268,6 @@
             <!-- Derde rij: Generator Balk, Weergave Switch (Veld vs Tabel) & Noodwissel -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
                 
-                <!-- Links: Slimme Generator (opent bevestigingsmodal), Noodwissel & Reset -->
                 <div class="flex flex-wrap items-center gap-2 editable-section">
                     <button onclick="askFairLineupConfirmation()" class="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition cursor-pointer flex items-center gap-2 editable-control">
                         ⚡ Stel Eerlijke Opstelling Voor (Streefgemiddelde)
@@ -280,7 +280,7 @@
                     </button>
                 </div>
 
-                <!-- Rechts: Schakelen tussen Veldplattegrond en Tabel (altijd klikbaar, ook in Read-Only) -->
+                <!-- Rechts: Schakelen tussen Veldplattegrond en Tabel -->
                 <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
                     <button onclick="setDisplayMode('pitch')" id="modeBtn-pitch" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer bg-white text-orange-600 shadow-sm">
                         🏟️ Veldplattegrond (Per Blok)
@@ -343,15 +343,11 @@
 
                 <!-- Het Veld + Zijpaneel voor het Geselecteerde Blok -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    
-                    <!-- Links: Het 2D Voetbalveld met Pull-down Menu's & Kopieerknop (8 kolommen) -->
                     <div class="lg:col-span-8">
                         <div id="singlePitchContainer"></div>
                     </div>
 
-                    <!-- Rechts: Wisselbank & Wissel-instructies voor dit blok (4 kolommen) -->
                     <div class="lg:col-span-4 space-y-4">
-                        
                         <!-- Snelle Doorkopieer Kaart -->
                         <div id="pitchCopyCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 editable-section">
                             <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
@@ -406,7 +402,7 @@
                                 <th class="p-3 w-1/4">
                                     <div class="flex items-center justify-between gap-1">
                                         <span class="font-extrabold">Blok 1 (0-15m)</span>
-                                        <button onclick="copyBlockToNext(1)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control" title="Kopieer Blok 1 naar Blok 2">
+                                        <button onclick="copyBlockToNext(1)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
                                             Kopieer → B2
                                         </button>
                                     </div>
@@ -414,7 +410,7 @@
                                 <th class="p-3 w-1/4">
                                     <div class="flex items-center justify-between gap-1">
                                         <span class="font-extrabold">Blok 2 (15-30m)</span>
-                                        <button onclick="copyBlockToNext(2)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control" title="Kopieer Blok 2 naar Blok 3">
+                                        <button onclick="copyBlockToNext(2)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
                                             Kopieer → B3
                                         </button>
                                     </div>
@@ -422,7 +418,7 @@
                                 <th class="p-3 w-1/4">
                                     <div class="flex items-center justify-between gap-1">
                                         <span class="font-extrabold">Blok 3 (30-45m)</span>
-                                        <button onclick="copyBlockToNext(3)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control" title="Kopieer Blok 3 naar Blok 4">
+                                        <button onclick="copyBlockToNext(3)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
                                             Kopieer → B4
                                         </button>
                                     </div>
@@ -541,6 +537,56 @@
     </main>
 
     <!-- ========================================================= -->
+    <!-- MODAL 0: CENTRALE CLOUD DATABASE KOPPELEN (FIREBASE)      -->
+    <!-- ========================================================= -->
+    <div id="cloudSetupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-extrabold text-base text-slate-800 flex items-center gap-2">
+                    ☁️ Centrale Cloud Opslag Koppelen (Real-Time Sync)
+                </h3>
+                <button onclick="closeCloudSetupModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer">✕</button>
+            </div>
+
+            <div class="bg-sky-50 border border-sky-200 rounded-xl p-3.5 text-xs text-sky-950 space-y-1.5">
+                <p class="font-bold">Samen en tegelijk werken met meerdere personen:</p>
+                <p>
+                    Plak hieronder jouw gratis <strong>Firebase Web Config</strong> (vanuit <em>console.firebase.google.com → Project settings → Your apps</em>). Zodra deze gekoppeld is, worden alle opstellingen, wissels en wedstrijden <strong>direct real-time gesynchroniseerd</strong> tussen alle telefoons en laptops!
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Team Ruimte / Document ID</label>
+                <input type="text" id="cloudTeamRoomInput" value="ONA-JO11-4" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-orange-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Plak hier je firebaseConfig (JSON of JS-object)</label>
+                <textarea id="firebaseConfigInput" rows="6" placeholder='{
+  "apiKey": "AIzaSy...",
+  "authDomain": "ona-jo11-4.firebaseapp.com",
+  "projectId": "ona-jo11-4",
+  "storageBucket": "ona-jo11-4.appspot.com",
+  "messagingSenderId": "...",
+  "appId": "..."
+}' class="w-full border border-slate-300 rounded-xl p-2.5 text-[11px] font-mono bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+            </div>
+
+            <div class="flex flex-wrap gap-2 pt-1">
+                <button onclick="saveAndConnectFirebase()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow cursor-pointer transition">
+                    🔗 Verbind & Synchroniseer Nu
+                </button>
+                <button onclick="disconnectFirebase()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-2.5 px-3 rounded-xl text-xs cursor-pointer transition">
+                    Ontkoppelen
+                </button>
+                <button onclick="closeCloudSetupModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-xs cursor-pointer">
+                    Sluiten
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
     <!-- MODAL 1: AKKOORD VELD-POSITIES NEGEREN BIJ EERLIJKE OPST. -->
     <!-- ========================================================= -->
     <div id="fairLineupModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
@@ -624,12 +670,8 @@
                 <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer">✕</button>
             </div>
 
-            <!-- Sectie 1: Download Backup of Excel/CSV -->
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                 <h4 class="text-xs font-extrabold uppercase text-slate-700">1. Exporteren & Downloaden</h4>
-                <p class="text-xs text-slate-500">
-                    Sla een volledige backup op (alle wedstrijden, opstellingen, tegenstanders en statistieken) of exporteer de tabel voor Excel.
-                </p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <button onclick="downloadJsonBackup()" class="bg-orange-600 hover:bg-orange-700 text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow-sm transition cursor-pointer flex items-center justify-center gap-1.5">
                         💾 Download Volledige Backup (.json)
@@ -640,16 +682,11 @@
                 </div>
             </div>
 
-            <!-- Sectie 2: Backup terugzetten via Bestand of Tekst -->
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                <h4 class="text-xs font-extrabold uppercase text-slate-700">2. Backup Herstellen / Inladen</h4>
-                <p class="text-xs text-slate-500">
-                    Kies een eerder gedownload <code>.json</code> backup-bestand om al je gegevens op dit apparaat of een andere telefoon/laptop in te laden:
-                </p>
+                <h4 class="text-xs font-extrabold uppercase text-slate-700">2. Backup Herstellen via Bestand</h4>
                 <input type="file" id="importJsonFile" accept=".json" onchange="importJsonFromFile(event)" class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-slate-800 file:text-white hover:file:bg-slate-900 cursor-pointer">
             </div>
 
-            <!-- Sectie 3: Snelle Kopieer/Plak Code (handig voor doorsturen via WhatsApp/Mail) -->
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
                 <div class="flex justify-between items-center">
                     <h4 class="text-xs font-extrabold uppercase text-slate-700">3. Snelle Backup-tekst (Kopiëren / Plakken)</h4>
@@ -657,7 +694,7 @@
                         📋 Kopieer Backup-code
                     </button>
                 </div>
-                <textarea id="backupTextarea" rows="3" placeholder="Plak hier eventueel een gekopieerde backup-code om te herstellen..." class="w-full border border-slate-300 rounded-lg p-2 text-[11px] font-mono bg-white outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                <textarea id="backupTextarea" rows="3" class="w-full border border-slate-300 rounded-lg p-2 text-[11px] font-mono bg-white outline-none focus:ring-2 focus:ring-orange-500"></textarea>
                 <button onclick="restoreFromTextarea()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs cursor-pointer transition">
                     🔄 Herstel vanuit bovenstaande tekst
                 </button>
@@ -672,6 +709,29 @@
     </div>
 
     <script>
+        // =========================================================
+        // 0. OPTIONEEL: VASTE FIREBASE CONFIG IN DE CODE ZETTEN
+        // Als je hieronder tussen de accolades je Firebase gegevens plakt,
+        // is IEDEREEN die de GitHub link opent direct verbonden!
+        // =========================================================
+        const HARDCODED_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCAVZ_RZ3dYmDfC4mWiR16UETx-gfhRiy8",
+  authDomain: "wisselschema-28c1a.firebaseapp.com",
+  projectId: "wisselschema-28c1a",
+  storageBucket: "wisselschema-28c1a.firebasestorage.app",
+  messagingSenderId: "217692450451",
+  appId: "1:217692450451:web:cd27d276f0b96afed72766"
+}; 
+        // Voorbeeld:
+        // const HARDCODED_FIREBASE_CONFIG = {
+        //     apiKey: "AIzaSy...",
+        //     authDomain: "ona-jo11-4.firebaseapp.com",
+        //     projectId: "ona-jo11-4",
+        //     storageBucket: "ona-jo11-4.appspot.com",
+        //     messagingSenderId: "123456",
+        //     appId: "1:123456:web:abcdef"
+        // };
+
         // =========================================================
         // 1. VASTE SELECTIE & POSITIES (O.N. ALMELO JO11-4)
         // =========================================================
@@ -699,14 +759,8 @@
         ];
 
         const TABLE_POSITIONS = [
-            POSITIONS[7], // GK
-            POSITIONS[4], // LV
-            POSITIONS[5], // CV
-            POSITIONS[6], // RV
-            POSITIONS[1], // LM
-            POSITIONS[2], // CM
-            POSITIONS[3], // RM
-            POSITIONS[0]  // SP
+            POSITIONS[7], POSITIONS[4], POSITIONS[5], POSITIONS[6],
+            POSITIONS[1], POSITIONS[2], POSITIONS[3], POSITIONS[0]
         ];
 
         const DEFAULT_OPPONENTS = [
@@ -721,31 +775,35 @@
         ];
 
         // =========================================================
-        // 2. APPLICATIE STATE
+        // 2. APPLICATIE & CLOUD STATE
         // =========================================================
         let opponentsList = JSON.parse(localStorage.getItem('ona_jo11_4_opponents_v4') || 'null') || DEFAULT_OPPONENTS;
         let selectedOpponent = "";
         let attendance = {};
-        let guestPlayers = []; // [{ id, name, pos1, pos2 }]
+        let guestPlayers = [];
         let isFixedKeeper = true;
         let fixedKeeperName = "Sep";
         let quarterKeepers = { 1: "Sep", 2: "Sep", 3: "Sep", 4: "Sep" };
         let lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
-        let emergencySubs = []; // [{ id, minute, quarter, out, in, posId }]
+        let emergencySubs = [];
         let activeQuarterView = 1;
-        let displayMode = "pitch"; // 'pitch' | 'pitchAll' | 'table'
+        let displayMode = "pitch";
 
-        // Historie & Read-Only / Edit State voor opgeslagen wedstrijden
         let savedMatches = JSON.parse(localStorage.getItem('ona_jo11_4_season_v3') || '[]');
-        let loadedMatchId = null; // null = nieuwe wedstrijd, anders ID van geopende wedstrijd
-        let isReadOnlyMode = false; // true = oude wedstrijd geopend in alleen-lezen modus
+        let loadedMatchId = null;
+        let isReadOnlyMode = false;
 
-        // Initieel iedereen aanwezig zetten
+        // Cloud Variabelen
+        let firestoreDb = null;
+        let cloudUnsubscribe = null;
+        let isApplyingRemoteUpdate = false;
+        let clientSessionId = "client_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+        let teamRoomId = localStorage.getItem('ona_jo11_4_room_id') || "ONA-JO11-4";
+
         BASE_PLAYERS.forEach(p => attendance[p.name] = true);
         document.getElementById('matchDate').valueAsDate = new Date();
 
         function initApp() {
-            // Kies eerste niet-vergrendelde tegenstander
             const firstUnlocked = opponentsList.find(o => !o.locked) || opponentsList[0];
             selectedOpponent = firstUnlocked ? firstUnlocked.name : "avc Heracles O11-2JM";
 
@@ -753,7 +811,6 @@
                 lineup[q]["GK"] = fixedKeeperName;
             }
 
-            // Sluit custom tegenstander-dropdown als je erbuiten klikt
             document.addEventListener('click', (e) => {
                 const wrapper = document.getElementById('opponentDropdownWrapper');
                 const menu = document.getElementById('opponentDropdownMenu');
@@ -765,12 +822,230 @@
             renderOpponentDropdown();
             renderAttendancePills();
             renderKeeperControls();
-            executeFairLineup(false); // Start met een nette standaardopstelling
+            executeFairLineup(false);
             renderSeasonOverview();
+
+            // Start Cloud als HARDCODED of opgeslagen config aanwezig is
+            const storedCfg = localStorage.getItem('ona_jo11_4_firebase_config');
+            if (HARDCODED_FIREBASE_CONFIG) {
+                connectToFirebase(HARDCODED_FIREBASE_CONFIG, teamRoomId);
+            } else if (storedCfg) {
+                try {
+                    connectToFirebase(JSON.parse(storedCfg), teamRoomId);
+                } catch (e) {
+                    console.warn("Kon opgeslagen Firebase config niet lezen:", e);
+                }
+            }
+        }
+
+        // =========================================================
+        // 3. REAL-TIME FIREBASE CLOUD SYNCHRONISATIE ENGINE
+        // =========================================================
+        function openCloudSetupModal() {
+            document.getElementById('cloudTeamRoomInput').value = teamRoomId;
+            const existing = localStorage.getItem('ona_jo11_4_firebase_config');
+            if (existing) {
+                document.getElementById('firebaseConfigInput').value = existing;
+            }
+            document.getElementById('cloudSetupModal').classList.remove('hidden');
+        }
+
+        function closeCloudSetupModal() {
+            document.getElementById('cloudSetupModal').classList.add('hidden');
+        }
+
+        function parseLooseConfigInput(rawText) {
+            let txt = rawText.trim();
+            // Als iemand het hele 'const firebaseConfig = { ... };' blok plakt, pak alleen tussen { en }
+            const firstBrace = txt.indexOf('{');
+            const lastBrace = txt.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                txt = txt.slice(firstBrace, lastBrace + 1);
+            }
+            // Zet eventuele onquoted JS keys om naar geldige JSON keys
+            txt = txt.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+            // Verwijder trailing comma's
+            txt = txt.replace(/,\s*}/g, '}');
+            return JSON.parse(txt);
+        }
+
+        function saveAndConnectFirebase() {
+            const raw = document.getElementById('firebaseConfigInput').value;
+            const room = document.getElementById('cloudTeamRoomInput').value.trim() || "ONA-JO11-4";
+            if (!raw.trim()) {
+                alert("Plak eerst je firebaseConfig in het tekstvak.");
+                return;
+            }
+            try {
+                const cfg = parseLooseConfigInput(raw);
+                if (!cfg.apiKey || !cfg.projectId) {
+                    alert("Configuratie mist 'apiKey' of 'projectId'. Controleer je geplakte tekst.");
+                    return;
+                }
+                teamRoomId = room;
+                localStorage.setItem('ona_jo11_4_room_id', teamRoomId);
+                localStorage.setItem('ona_jo11_4_firebase_config', JSON.stringify(cfg, null, 2));
+                connectToFirebase(cfg, teamRoomId);
+                closeCloudSetupModal();
+            } catch (err) {
+                alert("Kon de Firebase-configuratie niet lezen. Zorg dat je het blok tussen { en } plakt.\n\nFoutmelding: " + err.message);
+            }
+        }
+
+        function disconnectFirebase() {
+            if (cloudUnsubscribe) {
+                cloudUnsubscribe();
+                cloudUnsubscribe = null;
+            }
+            firestoreDb = null;
+            localStorage.removeItem('ona_jo11_4_firebase_config');
+            updateCloudStatusBadge('local', '☁️ Cloud Koppelen (Nu Lokaal)');
+            closeCloudSetupModal();
+        }
+
+        function updateCloudStatusBadge(state, text) {
+            const btn = document.getElementById('cloudStatusBtn');
+            const dot = document.getElementById('cloudStatusDot');
+            const label = document.getElementById('cloudStatusText');
+            label.innerText = text;
+
+            if (state === 'live') {
+                btn.className = "bg-emerald-500/20 border border-emerald-400/50 hover:bg-emerald-500/30 text-emerald-200 px-3 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-2 shadow-sm";
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+            } else if (state === 'error') {
+                btn.className = "bg-rose-500/20 border border-rose-400/50 hover:bg-rose-500/30 text-rose-200 px-3 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-2 shadow-sm";
+                dot.className = "w-2.5 h-2.5 rounded-full bg-rose-400";
+            } else {
+                btn.className = "bg-amber-500/20 border border-amber-400/50 hover:bg-amber-500/30 text-amber-200 px-3 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center gap-2 shadow-sm";
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+            }
+        }
+
+        function connectToFirebase(config, roomName) {
+            try {
+                updateCloudStatusBadge('local', '⏳ Verbinden met Cloud...');
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(config);
+                }
+                firestoreDb = firebase.firestore();
+
+                if (cloudUnsubscribe) cloudUnsubscribe();
+
+                const docRef = firestoreDb.collection('ona_teams').doc(roomName);
+
+                // Luister Real-Time naar alle wijzigingen van alle gebruikers tegelijk
+                cloudUnsubscribe = docRef.onSnapshot((docSnap) => {
+                    updateCloudStatusBadge('live', `🟢 Live Cloud (${roomName})`);
+
+                    if (!docSnap.exists) {
+                        // Eerste keer ooit in deze cloud-ruimte: upload huidige lokale data naar de cloud!
+                        pushFullStateToCloud();
+                        return;
+                    }
+
+                    const data = docSnap.data();
+                    if (!data) return;
+
+                    isApplyingRemoteUpdate = true;
+                    try {
+                        // 1. Synchroniseer opgeslagen seizoenswedstrijden
+                        if (Array.isArray(data.savedMatches)) {
+                            savedMatches = data.savedMatches;
+                            localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
+                        }
+
+                        // 2. Synchroniseer tegenstanderslijst + slotjes
+                        if (Array.isArray(data.opponentsList)) {
+                            opponentsList = data.opponentsList;
+                            localStorage.setItem('ona_jo11_4_opponents_v4', JSON.stringify(opponentsList));
+                        }
+
+                        // 3. Als we NIET in een oude geopende wedstrijd zitten te kijken, synchroniseer ook het live wedstrijdformulier!
+                        if (loadedMatchId === null && data.liveDraft && data.updatedBy !== clientSessionId) {
+                            const d = data.liveDraft;
+                            selectedOpponent = d.selectedOpponent || selectedOpponent;
+                            if (d.matchDate) document.getElementById('matchDate').value = d.matchDate;
+                            if (d.attendance) attendance = { ...d.attendance };
+                            if (Array.isArray(d.guestPlayers)) {
+                                guestPlayers = d.guestPlayers;
+                                const hasG = guestPlayers.length > 0;
+                                document.getElementById('guestToggleCheck').checked = hasG;
+                                document.getElementById('guestPanel').classList.toggle('hidden', !hasG);
+                                renderGuestRows();
+                            }
+                            if (d.isFixedKeeper !== undefined) {
+                                isFixedKeeper = d.isFixedKeeper;
+                                document.getElementById('fixedKeeperCheck').checked = isFixedKeeper;
+                                document.getElementById('fixedKeeperBox').classList.toggle('hidden', !isFixedKeeper);
+                                document.getElementById('splitKeeperBox').classList.toggle('hidden', isFixedKeeper);
+                            }
+                            if (d.fixedKeeperName) fixedKeeperName = d.fixedKeeperName;
+                            if (d.quarterKeepers) quarterKeepers = { ...d.quarterKeepers };
+                            if (d.lineup) lineup = JSON.parse(JSON.stringify(d.lineup));
+                            if (Array.isArray(d.emergencySubs)) emergencySubs = d.emergencySubs;
+                        }
+
+                        renderOpponentDropdown();
+                        renderAttendancePills();
+                        renderKeeperControls();
+                        renderEmergencyBanner();
+                        renderSeasonOverview();
+                        renderAllViews();
+                    } finally {
+                        isApplyingRemoteUpdate = false;
+                    }
+                }, (error) => {
+                    console.error("Firestore Live Sync fout:", error);
+                    updateCloudStatusBadge('error', '⚠️ Cloud Fout (Controleer Rules)');
+                });
+
+            } catch (err) {
+                console.error("Firebase init fout:", err);
+                updateCloudStatusBadge('error', '⚠️ Cloud Verbinding Mislukt');
+            }
+        }
+
+        // Stuurt wijzigingen in de huidige concept-opstelling én seizoensdata direct naar Firestore
+        function pushFullStateToCloud() {
+            if (!firestoreDb || isApplyingRemoteUpdate) return;
+            const docRef = firestoreDb.collection('ona_teams').doc(teamRoomId);
+
+            const payload = {
+                updatedAt: new Date().toISOString(),
+                updatedBy: clientSessionId,
+                savedMatches: JSON.parse(JSON.stringify(savedMatches)),
+                opponentsList: JSON.parse(JSON.stringify(opponentsList))
+            };
+
+            // Alleen liveDraft meesturen als we niet in een oude wedstrijd (Read-Only/Edit) zitten
+            if (loadedMatchId === null) {
+                payload.liveDraft = {
+                    selectedOpponent,
+                    matchDate: document.getElementById('matchDate').value,
+                    attendance: { ...attendance },
+                    guestPlayers: JSON.parse(JSON.stringify(guestPlayers)),
+                    isFixedKeeper,
+                    fixedKeeperName,
+                    quarterKeepers: { ...quarterKeepers },
+                    lineup: JSON.parse(JSON.stringify(lineup)),
+                    emergencySubs: JSON.parse(JSON.stringify(emergencySubs))
+                };
+            }
+
+            docRef.set(payload, { merge: true }).catch(err => {
+                console.warn("Kon status niet naar Cloud schrijven:", err);
+            });
+        }
+
+        function syncLiveDraftToCloud() {
+            if (loadedMatchId === null) {
+                pushFullStateToCloud();
+            }
         }
 
         function saveOpponentsToStorage() {
             localStorage.setItem('ona_jo11_4_opponents_v4', JSON.stringify(opponentsList));
+            pushFullStateToCloud();
         }
 
         function switchMainTab(tab) {
@@ -788,7 +1063,7 @@
         }
 
         // =========================================================
-        // 3. CUSTOM TEGENSTANDERS PULL-DOWN MENU (MET SLOTJES 🔒/🔓)
+        // 4. CUSTOM TEGENSTANDERS PULL-DOWN MENU (MET SLOTJES 🔒/🔓)
         // =========================================================
         function toggleOpponentDropdown() {
             if (isReadOnlyMode) return;
@@ -802,6 +1077,7 @@
             selectedOpponent = name;
             document.getElementById('opponentDropdownMenu').classList.add('hidden');
             renderOpponentDropdown();
+            syncLiveDraftToCloud();
         }
 
         function toggleOpponentLock(name, event) {
@@ -810,14 +1086,13 @@
             const opp = opponentsList.find(o => o.name === name);
             if (opp) {
                 opp.locked = !opp.locked;
-                saveOpponentsToStorage();
-                // Als deze zojuist ontgrendeld is en nog geen actieve gekozen was, selecteer hem
                 if (!opp.locked) {
                     selectedOpponent = opp.name;
                 } else if (selectedOpponent === opp.name) {
                     const nextAvailable = opponentsList.find(o => !o.locked);
                     if (nextAvailable) selectedOpponent = nextAvailable.name;
                 }
+                saveOpponentsToStorage();
                 renderOpponentDropdown();
             }
         }
@@ -852,7 +1127,6 @@
             const activeOpps = opponentsList.filter(o => !o.locked);
             const lockedOpps = opponentsList.filter(o => o.locked);
 
-            // 1. Beschikbare tegenstanders
             if (activeOpps.length === 0) {
                 listEl.innerHTML += `<div class="p-3 text-xs text-slate-400 italic">Alle tegenstanders zijn al gespeeld/verborgen. Klik op een slotje (🔒) hieronder of voeg een nieuwe toe.</div>`;
             } else {
@@ -875,7 +1149,6 @@
                 });
             }
 
-            // 2. Reeds gespeelde / verborgen tegenstanders (Lichtgrijs met slotje om terug te zetten)
             if (lockedOpps.length > 0) {
                 const header = document.createElement('div');
                 header.className = "bg-slate-100 px-3 py-1.5 text-[10px] font-extrabold uppercase text-slate-400 tracking-wider";
@@ -899,7 +1172,7 @@
         }
 
         // =========================================================
-        // 4. BLOK DOORKOPIËREN LOGICA (NAAR VOLGEND BLOK / ALLE)
+        // 5. BLOK DOORKOPIËREN LOGICA
         // =========================================================
         function copyBlockToNext(fromQuarter) {
             if (isReadOnlyMode) return;
@@ -912,6 +1185,7 @@
             renderKeeperControls();
             selectActiveQuarter(toQuarter);
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         function copyBlockToAllSubsequent(fromQuarter) {
@@ -922,10 +1196,11 @@
             }
             renderKeeperControls();
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         // =========================================================
-        // 5. SPELERS, AANWEZIGHEID & GASTSPELERS
+        // 6. SPELERS, AANWEZIGHEID & GASTSPELERS
         // =========================================================
         function getActivePlayers() {
             const base = BASE_PLAYERS.filter(p => attendance[p.name]);
@@ -972,6 +1247,7 @@
                     renderAttendancePills();
                     renderKeeperControls();
                     renderAllViews();
+                    syncLiveDraftToCloud();
                 };
                 container.appendChild(btn);
             });
@@ -997,6 +1273,7 @@
                 document.getElementById('guestRowsList').innerHTML = '';
                 renderKeeperControls();
                 renderAllViews();
+                syncLiveDraftToCloud();
             }
         }
 
@@ -1009,6 +1286,7 @@
                 pos2: ""
             });
             renderGuestRows();
+            syncLiveDraftToCloud();
         }
 
         function removeGuestPlayerRow(id) {
@@ -1026,6 +1304,7 @@
             renderGuestRows();
             renderKeeperControls();
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         function updateGuestRow(id, field, val) {
@@ -1048,6 +1327,7 @@
             }
             renderKeeperControls();
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         function renderGuestRows() {
@@ -1081,7 +1361,7 @@
                         </select>
                     </div>
                     <div class="sm:col-span-1 flex justify-end sm:pt-4">
-                        <button onclick="removeGuestPlayerRow(${g.id})" ${isReadOnlyMode ? 'disabled' : ''} class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg font-bold text-xs cursor-pointer" title="Verwijder gastspeler">✕</button>
+                        <button onclick="removeGuestPlayerRow(${g.id})" ${isReadOnlyMode ? 'disabled' : ''} class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg font-bold text-xs cursor-pointer">✕</button>
                     </div>
                 `;
                 container.appendChild(row);
@@ -1089,7 +1369,7 @@
         }
 
         // =========================================================
-        // 6. KEEPER LOGICA (VAST VINKJE OF PERIODE KEUZE)
+        // 7. KEEPER LOGICA
         // =========================================================
         function toggleFixedKeeperMode() {
             if (isReadOnlyMode) return;
@@ -1105,6 +1385,7 @@
                 }
                 renderKeeperControls();
                 renderAllViews();
+                syncLiveDraftToCloud();
             }
         }
 
@@ -1155,6 +1436,7 @@
             }
             renderKeeperControls();
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         function setQuarterKeeper(q, keeperName) {
@@ -1168,6 +1450,7 @@
             lineup[q]["GK"] = keeperName;
             renderKeeperControls();
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         function setKeeperSplitPreset(type) {
@@ -1191,7 +1474,7 @@
         }
 
         // =========================================================
-        // 7. POSITIE PULL-DOWN BUILDER & VELD/MATRIX WEERGAVE
+        // 8. POSITIE PULL-DOWN BUILDER & VELD/MATRIX WEERGAVE
         // =========================================================
         function isPlayerPreferredForPos(player, posObj) {
             if (posObj.id === "GK") return player.pos1 === "Keeper";
@@ -1227,6 +1510,7 @@
             }
             renderKeeperControls();
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         function buildPositionSelectHTML(quarter, posObj, extraClasses = "") {
@@ -1305,7 +1589,6 @@
 
             return `
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <!-- Veld Header met directe Kopieerknop -->
                     <div class="bg-slate-900 text-white px-4 py-3 flex flex-wrap justify-between items-center gap-2">
                         <div class="flex items-center gap-2">
                             <span class="bg-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-lg">BLOK ${quarter}</span>
@@ -1319,14 +1602,12 @@
                         </div>
                     </div>
 
-                    <!-- Het Groene Voetbalveld (3-3-1 + Keeper) -->
                     <div class="soccer-pitch rounded-b-xl ${compact ? 'p-3 sm:p-4' : 'p-4 sm:p-6'} flex flex-col justify-between gap-5 min-h-[470px]">
                         <div class="absolute inset-x-0 top-1/2 border-t-2 pitch-line"></div>
                         <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border-2 pitch-line"></div>
                         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-56 h-24 border-t-2 border-x-2 pitch-line bg-white/5"></div>
                         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-12 border-b-2 border-x-2 pitch-line bg-white/5"></div>
 
-                        <!-- LINIE 1: AANVAL (SPITS) -->
                         <div class="relative z-10 pt-1">
                             <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1">⬆ Aanval (Spits) ⬆</div>
                             <div class="grid grid-cols-1 justify-items-center">
@@ -1334,7 +1615,6 @@
                             </div>
                         </div>
 
-                        <!-- LINIE 2: MIDDENVELD (LM - CM/CVM - RM) -->
                         <div class="relative z-10">
                             <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1.5">Middenveld (LM • CVM • RM)</div>
                             <div class="grid grid-cols-3 gap-2 sm:gap-4 items-center">
@@ -1346,7 +1626,6 @@
                             </div>
                         </div>
 
-                        <!-- LINIE 3: VERDEDIGING (LV - CV - RV) -->
                         <div class="relative z-10">
                             <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1.5">Verdediging (LV • CV • RV)</div>
                             <div class="grid grid-cols-3 gap-2 sm:gap-4 items-center">
@@ -1356,7 +1635,6 @@
                             </div>
                         </div>
 
-                        <!-- LINIE 4: KEEPER (GK) -->
                         <div class="relative z-10 pb-1">
                             <div class="grid grid-cols-1 justify-items-center">
                                 ${createPitchCardHTML(quarter, "GK", "bg-amber-200 text-amber-900")}
@@ -1402,7 +1680,6 @@
         function renderAllViews() {
             const active = getActivePlayers();
 
-            // 1. Update de 4 Blok-knoppen
             for (let q = 1; q <= 4; q++) {
                 const onPitch = Object.values(lineup[q]).filter(Boolean);
                 const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
@@ -1412,10 +1689,8 @@
                 }
             }
 
-            // 2. Render Single Pitch View
             document.getElementById('singlePitchContainer').innerHTML = generatePitchHTMLForQuarter(activeQuarterView, false);
 
-            // Update Kopieer-kaart rechts naast het veld
             document.getElementById('copyCardCurrentQ').innerText = activeQuarterView;
             const copyBtnsDiv = document.getElementById('pitchCopyButtonsContainer');
             copyBtnsDiv.innerHTML = '';
@@ -1436,7 +1711,6 @@
                 copyBtnsDiv.innerHTML = `<div class="text-xs text-slate-400 italic">Blok 4 is het laatste blok van de wedstrijd.</div>`;
             }
 
-            // Update Wisselbank zijpaneel
             document.getElementById('sideBenchQuarterNum').innerText = activeQuarterView;
             document.getElementById('sideInstrQuarterNum').innerText = activeQuarterView;
 
@@ -1458,7 +1732,6 @@
                 });
             }
 
-            // Wissel-instructies
             const instrDiv = document.getElementById('sideQuarterInstructions');
             if (activeQuarterView === 1) {
                 instrDiv.innerHTML = `<div class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-medium">Dit is de <strong>basisopstelling</strong> bij de aftrap (0 - 15 min). Klik op Blok 2, 3 of 4 om de wissels te zien.</div>`;
@@ -1494,13 +1767,11 @@
                 `;
             }
 
-            // 3. Render 4-Veldjes tegelijk overzicht
             const allPitchesDiv = document.getElementById('display-pitchAll');
             if (displayMode === 'pitchAll') {
                 allPitchesDiv.innerHTML = [1, 2, 3, 4].map(q => generatePitchHTMLForQuarter(q, true)).join('');
             }
 
-            // 4. Render Matrix Tabel met vaste linkerkolom
             const matrixBody = document.getElementById('matrixTableBody');
             matrixBody.innerHTML = '';
             TABLE_POSITIONS.forEach(pos => {
@@ -1532,13 +1803,12 @@
                 document.getElementById(`matrixBench-${q}`).innerText = bench.length ? bench.join(', ') : 'Geen wissel';
             }
 
-            // 5. Update Read-Only status styling & Live Speeltijd Monitor
             applyReadOnlyUIState();
             renderLiveMatchMonitor();
         }
 
         // =========================================================
-        // 8. EERLIJKE OPSTELLING MET VRAAG OVER POSITIES NEGEREN
+        // 9. EERLIJKE OPSTELLING MET VRAAG OVER POSITIES NEGEREN
         // =========================================================
         function askFairLineupConfirmation() {
             if (isReadOnlyMode) return;
@@ -1554,7 +1824,6 @@
             document.getElementById('fairLineupModal').classList.add('hidden');
         }
 
-        // Bereken historische statistieken (excl. de eventueel geopende wedstrijd die we nu aan het bewerken zijn)
         function getSeasonHistoryStats(excludeMatchId = null) {
             const stats = {};
             BASE_PLAYERS.forEach(p => {
@@ -1620,7 +1889,7 @@
                 totalOutfieldPlayerQuartersAvailable += (4 - kCount);
             });
 
-            const totalFieldSlots = 28; // 4 blokken x 7 veldposities
+            const totalFieldSlots = 28;
             const hist = getSeasonHistoryStats(loadedMatchId);
             const outfieldCandidates = active.filter(p => maxOutfieldQuarters[p.name] > 0);
             const idealQuartersRatio = totalFieldSlots / totalOutfieldPlayerQuartersAvailable;
@@ -1684,7 +1953,6 @@
                 }
             }
 
-            // Vul voor elk blok de keeper + 7 veldposities in
             lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
             const fieldSlotIds = ["LV", "CV", "RV", "LM", "CM", "RM", "SP"];
 
@@ -1693,9 +1961,7 @@
                 const sevenFieldPlayers = active.filter(p => keepersPerQ[q] !== p.name && !benchPerQ[q].includes(p.name));
 
                 if (ignorePositions) {
-                    // Posities negeren (behalve keeper): puur rouleren over de 7 veldposities
                     const rotated = [...sevenFieldPlayers];
-                    // Kleine verschuiving per kwartier zodat iedereen ook op verschillende plekken staat
                     for (let r = 1; r < q; r++) {
                         rotated.push(rotated.shift());
                     }
@@ -1703,13 +1969,13 @@
                         if (rotated[idx]) lineup[q][slotId] = rotated[idx].name;
                     });
                 } else {
-                    // Houd wél rekening met voorkeursposities
                     const tacticalBlock = assignPositionsTactically(sevenFieldPlayers);
                     Object.assign(lineup[q], tacticalBlock);
                 }
             }
 
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         function assignPositionsTactically(playersPool) {
@@ -1764,35 +2030,32 @@
             emergencySubs = [];
             renderEmergencyBanner();
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         // =========================================================
-        // 9. OPGESLAGEN WEDSTRIJDEN INZIEN (READ-ONLY) & BEWERKEN
+        // 10. OPGESLAGEN WEDSTRIJDEN INZIEN (READ-ONLY) & BEWERKEN
         // =========================================================
         function openSavedMatch(matchId) {
             const m = savedMatches.find(x => x.id === matchId);
             if (!m) return;
 
             loadedMatchId = m.id;
-            isReadOnlyMode = true; // Start altijd in Read-Only modus zoals gevraagd
+            isReadOnlyMode = true;
 
-            // Herstel alle wedstrijdgegevens
             selectedOpponent = m.opponent || "avc Heracles O11-2JM";
             document.getElementById('matchDate').value = m.date || new Date().toISOString().slice(0, 10);
 
-            // Aanwezigheid herstellen
             BASE_PLAYERS.forEach(p => {
                 attendance[p.name] = (m.attendance && m.attendance[p.name] !== undefined) ? m.attendance[p.name] : true;
             });
 
-            // Gastspelers herstellen
             guestPlayers = m.guestPlayers ? JSON.parse(JSON.stringify(m.guestPlayers)) : [];
             const hasGuests = guestPlayers.length > 0;
             document.getElementById('guestToggleCheck').checked = hasGuests;
             document.getElementById('guestPanel').classList.toggle('hidden', !hasGuests);
             renderGuestRows();
 
-            // Keeper instellingen herstellen
             isFixedKeeper = m.isFixedKeeper !== undefined ? m.isFixedKeeper : true;
             fixedKeeperName = m.fixedKeeperName || "Sep";
             quarterKeepers = m.quarterKeepers ? { ...m.quarterKeepers } : { 1: fixedKeeperName, 2: fixedKeeperName, 3: fixedKeeperName, 4: fixedKeeperName };
@@ -1800,14 +2063,12 @@
             document.getElementById('fixedKeeperBox').classList.toggle('hidden', !isFixedKeeper);
             document.getElementById('splitKeeperBox').classList.toggle('hidden', isFixedKeeper);
 
-            // Opstelling per blok herstellen (of reconstrueren voor oudere opgeslagen wedstrijden)
             if (m.lineup) {
                 lineup = JSON.parse(JSON.stringify(m.lineup));
             } else {
                 lineup = { 1: { GK: fixedKeeperName }, 2: { GK: fixedKeeperName }, 3: { GK: fixedKeeperName }, 4: { GK: fixedKeeperName } };
             }
 
-            // Noodwissels herstellen
             emergencySubs = m.emergencySubs ? JSON.parse(JSON.stringify(m.emergencySubs)) : [];
 
             renderOpponentDropdown();
@@ -1864,7 +2125,7 @@
             if (loadedMatchId === null) {
                 banner.classList.add('hidden');
                 badge.className = "text-[11px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full border border-emerald-200";
-                badge.innerText = "Nieuwe Wedstrijd";
+                badge.innerText = "Nieuwe Wedstrijd (Live Concept)";
                 saveBtn.innerHTML = "💾 Wedstrijd Opslaan in Seizoen";
                 saveBtn.classList.remove('hidden');
             } else {
@@ -1924,7 +2185,6 @@
                 }
             }
 
-            // Schakel alle .editable-control elementen in of uit op basis van isReadOnlyMode
             document.querySelectorAll('.editable-control').forEach(el => {
                 el.disabled = isReadOnlyMode;
                 if (isReadOnlyMode) {
@@ -1936,7 +2196,7 @@
         }
 
         // =========================================================
-        // 10. NOODWISSEL / BLESSURE LOGICA
+        // 11. NOODWISSEL / BLESSURE LOGICA
         // =========================================================
         function openEmergencyModal() {
             if (isReadOnlyMode) return;
@@ -2013,6 +2273,7 @@
             renderEmergencyBanner();
             renderAllViews();
             closeEmergencyModal();
+            syncLiveDraftToCloud();
         }
 
         function removeEmergencySub(id) {
@@ -2020,6 +2281,7 @@
             emergencySubs = emergencySubs.filter(e => e.id !== id);
             renderEmergencyBanner();
             renderAllViews();
+            syncLiveDraftToCloud();
         }
 
         function renderEmergencyBanner() {
@@ -2046,7 +2308,7 @@
         }
 
         // =========================================================
-        // 11. BEREKENING SPEELTIJD & OPSLAAN IN SEIZOEN
+        // 12. BEREKENING SPEELTIJD & OPSLAAN IN SEIZOEN (LOKAAL + CLOUD)
         // =========================================================
         function calculateMatchMinutes() {
             const active = getActivePlayers();
@@ -2169,17 +2431,14 @@
             if (loadedMatchId !== null) {
                 const idx = savedMatches.findIndex(x => x.id === loadedMatchId);
                 if (idx !== -1) savedMatches[idx] = matchPayload;
-                isReadOnlyMode = true; // Zet na opslaan van bewerking weer netjes in Read-Only modus
-                alert(`Wijzigingen voor de wedstrijd tegen ${opponent} zijn opgeslagen!`);
+                isReadOnlyMode = true;
+                alert(`Wijzigingen voor de wedstrijd tegen ${opponent} zijn centraal opgeslagen!`);
             } else {
                 savedMatches.push(matchPayload);
-                // Vergrendel / verberg deze tegenstander automatisch in het pull-down menu (met slotje)
                 const oppEntry = opponentsList.find(o => o.name === opponent);
                 if (oppEntry) {
                     oppEntry.locked = true;
-                    saveOpponentsToStorage();
                 }
-                // Selecteer direct de volgende nog niet gespeelde tegenstander voor een volgende keer
                 const nextAvailable = opponentsList.find(o => !o.locked);
                 if (nextAvailable) selectedOpponent = nextAvailable.name;
 
@@ -2187,7 +2446,10 @@
             }
 
             localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
+            localStorage.setItem('ona_jo11_4_opponents_v4', JSON.stringify(opponentsList));
             document.getElementById('savedCountBadge').innerText = savedMatches.length;
+
+            pushFullStateToCloud();
             renderOpponentDropdown();
             renderAllViews();
             renderSeasonOverview();
@@ -2271,6 +2533,7 @@
                 }
                 savedMatches.splice(idx, 1);
                 localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
+                pushFullStateToCloud();
                 renderSeasonOverview();
                 renderAllViews();
             }
@@ -2280,6 +2543,7 @@
             if (confirm("Weet je zeker dat je alle opgeslagen wedstrijden van het seizoen wilt wissen?")) {
                 savedMatches = [];
                 localStorage.removeItem('ona_jo11_4_season_v3');
+                pushFullStateToCloud();
                 startNewMatchMode();
                 renderSeasonOverview();
                 renderAllViews();
@@ -2287,11 +2551,11 @@
         }
 
         // =========================================================
-        // 12. BACKUP, EXPORT & IMPORT (JSON + CSV)
+        // 13. BACKUP, EXPORT & IMPORT (JSON + CSV)
         // =========================================================
         function getFullBackupObject() {
             return {
-                version: 4,
+                version: 5,
                 exportedAt: new Date().toISOString(),
                 team: "Oranje Nassau JO11-4",
                 opponentsList,
@@ -2360,15 +2624,16 @@
             savedMatches = parsed.savedMatches;
             if (Array.isArray(parsed.opponentsList)) {
                 opponentsList = parsed.opponentsList;
-                saveOpponentsToStorage();
+                localStorage.setItem('ona_jo11_4_opponents_v4', JSON.stringify(opponentsList));
             }
             localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
+            pushFullStateToCloud();
             startNewMatchMode();
             renderOpponentDropdown();
             renderSeasonOverview();
             renderAllViews();
             closeBackupModal();
-            alert(`Backup succesvol ingeladen! (${savedMatches.length} opgeslagen wedstrijden hersteld)`);
+            alert(`Backup succesvol ingeladen én gesynchroniseerd! (${savedMatches.length} opgeslagen wedstrijden hersteld)`);
         }
 
         function importJsonFromFile(event) {
