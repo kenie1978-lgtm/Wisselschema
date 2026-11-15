@@ -113,8 +113,8 @@
                 </button>
             </div>
 
-            <!-- Periode Timer Knop (Start/Stop) -->
-            <div class="flex items-center gap-3 bg-slate-950/70 p-2.5 rounded-xl border border-slate-700 w-full md:w-auto justify-between md:justify-end">
+            <!-- Periode Timer & Handmatige Volgende Periode Knop -->
+            <div class="flex flex-wrap items-center gap-2.5 bg-slate-950/70 p-2.5 rounded-xl border border-slate-700 w-full md:w-auto justify-between md:justify-end">
                 <div class="text-left">
                     <div class="flex items-center gap-1.5">
                         <span id="timerPulse" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
@@ -122,10 +122,18 @@
                     </div>
                     <div id="timerDisplay" class="text-lg font-mono font-black text-orange-400">00:00</div>
                 </div>
-                <button id="toggleTimerBtn" onclick="toggleMatchTimer()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2 rounded-lg text-xs shadow transition cursor-pointer">
+                
+                <!-- Start/Stop Knop -->
+                <button id="toggleTimerBtn" onclick="toggleMatchTimer()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer">
                     ▶ Start Periode 1
                 </button>
-                <button onclick="resetMatchTimer()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-2.5 py-2 rounded-lg text-xs transition cursor-pointer" title="Reset klok">
+
+                <!-- Handmatig volgende periode starten knop -->
+                <button id="nextPeriodManualBtn" onclick="skipToNextPeriodManual()" class="bg-slate-700 hover:bg-slate-600 text-white font-extrabold px-3 py-2 rounded-lg text-xs transition cursor-pointer flex items-center gap-1" title="Zet direct door naar de volgende periode">
+                    Volgende Periode ▶|
+                </button>
+
+                <button onclick="resetMatchTimer()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-2 py-2 rounded-lg text-xs transition cursor-pointer" title="Reset klok">
                     ↺
                 </button>
             </div>
@@ -137,11 +145,11 @@
             <div id="goalsBadgesList" class="flex flex-wrap gap-1.5"></div>
         </div>
 
-        <!-- Waarschuwing 2x achter elkaar wissel beginnen -->
+        <!-- Waarschuwing 2x achter elkaar wissel beginnen (gebaseerd op meest recente speeldatum) -->
         <div id="consecutiveBenchWarningBox" class="hidden bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl flex items-start gap-3 shadow-xs">
             <span class="text-2xl">⚠️</span>
             <div>
-                <h4 class="text-xs font-black uppercase tracking-wider text-amber-900">Let op: Wissel-rotatie waarschuwing</h4>
+                <h4 class="text-xs font-black uppercase tracking-wider text-amber-900">Let op: Wissel-rotatie waarschuwing (Vorige Speeldatum)</h4>
                 <p id="consecutiveBenchWarningText" class="text-xs text-amber-800 mt-0.5 font-medium"></p>
             </div>
         </div>
@@ -190,7 +198,7 @@
 
                             <div class="sm:col-span-5">
                                 <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Speeldatum</label>
-                                <input type="date" id="matchDate" onchange="syncLiveDraftToCloud()" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none editable-control">
+                                <input type="date" id="matchDate" onchange="checkConsecutiveBenchWarning(); syncLiveDraftToCloud();" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none editable-control">
                             </div>
                         </div>
                     </div>
@@ -472,7 +480,7 @@
                             ⏱ Speeltijd & 5%-Regel Monitor (Tot en met deze wedstrijd)
                         </h3>
                         <p class="text-xs text-slate-500">
-                            Spelers met ≥ 5% achterstand moeten bij voorkeur 60 min spelen. Spelers met ≥ 5% voorsprong moeten bij voorkeur wisselen.
+                            Spelers met ≥ 5% achterstand spelen bij voorkeur 60 min. Spelers met ≥ 5% voorsprong wisselen als eerste.
                         </p>
                     </div>
                     <div id="matchTargetPill" class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold px-3 py-1.5 rounded-xl">
@@ -555,12 +563,12 @@
     </main>
 
     <!-- ========================================================= -->
-    <!-- MODAL: DOELPUNT TOEVOEGEN                                 -->
+    <!-- MODAL: DOELPUNT TOEVOEGEN / BEWERKEN                      -->
     <!-- ========================================================= -->
     <div id="goalModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-4">
             <div class="flex justify-between items-center">
-                <h3 class="font-extrabold text-base text-slate-800 flex items-center gap-2">
+                <h3 id="goalModalTitle" class="font-extrabold text-base text-slate-800 flex items-center gap-2">
                     ⚽ Doelpunt Oranje Nassau
                 </h3>
                 <button onclick="closeGoalModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer">✕</button>
@@ -570,23 +578,22 @@
                 <select id="goalScorerSelect" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-white"></select>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Minuut (Optioneel)</label>
-                <input type="number" id="goalMinuteInput" min="1" max="60" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-bold bg-slate-50">
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Minuut in de wedstrijd (Automatisch bepaald)</label>
+                <input type="number" id="goalMinuteInput" min="1" max="60" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-extrabold bg-slate-50">
+                <span class="text-[10px] text-slate-400 mt-1 block">Wordt automatisch berekend als de timer loopt, maar kan worden aangepast.</span>
             </div>
             <div class="flex gap-2 pt-2">
                 <button onclick="closeGoalModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs cursor-pointer">
                     Annuleren
                 </button>
-                <button onclick="confirmAddGoal()" class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow cursor-pointer">
+                <button onclick="confirmSaveGoal()" class="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow cursor-pointer">
                     Doelpunt Opslaan
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- MODAL: SPELERSROLLEN BEHEREN                              -->
-    <!-- ========================================================= -->
+    <!-- MODAL: SPELERSROLLEN BEHEREN -->
     <div id="roleManagerModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 space-y-4">
             <div class="flex justify-between items-center">
@@ -596,7 +603,7 @@
                 <button onclick="closeRoleManagerModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer">✕</button>
             </div>
             <p class="text-xs text-slate-500">
-                Wijs spelers een andere rol of positie toe (bijvoorbeeld een verdediger die nu ook aanvaller is). Dit beïnvloedt direct de tactische pull-downs.
+                Wijs spelers een andere rol of positie toe. Dit beïnvloedt direct de tactische pull-downs.
             </p>
             <div id="roleManagerList" class="max-h-72 overflow-y-auto space-y-2.5 pr-1"></div>
             <div class="flex justify-end gap-2 pt-2">
@@ -787,8 +794,9 @@
         let fixedKeeperName = "Sep";
         let quarterKeepers = { 1: "Sep", 2: "Sep", 3: "Sep", 4: "Sep" };
         let lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
-        let emergencySubs = []; // [{ id, minute, quarter, out, in, posId }]
+        let emergencySubs = [];
         let matchGoals = []; // [{ id, scorer, minute }]
+        let editingGoalId = null; // Als we een goal aan het bewerken zijn
         let opponentGoals = 0;
         let activeQuarterView = 1;
         let displayMode = "pitch";
@@ -850,7 +858,7 @@
         }
 
         // =========================================================
-        // 3. LIVE MATCH TIMER (START / STOP PERIODE)
+        // 3. LIVE MATCH TIMER & HANDMATIG VOLGENDE PERIODE STARTEN
         // =========================================================
         function toggleMatchTimer() {
             if (isReadOnlyMode) return;
@@ -860,7 +868,7 @@
             const dot = document.getElementById('timerPulse');
 
             if (isTimerRunning) {
-                btn.className = "bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-4 py-2 rounded-lg text-xs shadow transition cursor-pointer";
+                btn.className = "bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer";
                 btn.innerText = `⏸ Pauzeer Periode ${timerActiveQuarter}`;
                 dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
 
@@ -868,7 +876,6 @@
                     timerSeconds++;
                     updateTimerDisplay();
 
-                    // Na 15 min (900 sec) automatisch naar de volgende periode gaan
                     if (timerSeconds >= 900) {
                         clearInterval(timerInterval);
                         isTimerRunning = false;
@@ -876,11 +883,11 @@
                             timerActiveQuarter++;
                             timerSeconds = 0;
                             selectActiveQuarter(timerActiveQuarter);
-                            btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2 rounded-lg text-xs shadow transition cursor-pointer";
+                            btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer";
                             btn.innerText = `▶ Start Periode ${timerActiveQuarter}`;
                             dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
                         } else {
-                            btn.className = "bg-slate-700 text-slate-400 font-extrabold px-4 py-2 rounded-lg text-xs cursor-not-allowed";
+                            btn.className = "bg-slate-700 text-slate-400 font-extrabold px-3.5 py-2 rounded-lg text-xs cursor-not-allowed";
                             btn.innerText = "Wedstrijd Afgelopen";
                             dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
                         }
@@ -891,11 +898,34 @@
                 selectActiveQuarter(timerActiveQuarter);
             } else {
                 clearInterval(timerInterval);
-                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2 rounded-lg text-xs shadow transition cursor-pointer";
+                btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer";
                 btn.innerText = `▶ Hervat Periode ${timerActiveQuarter}`;
                 dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
                 syncLiveDraftToCloud();
             }
+        }
+
+        // HANDMATIG VOLGENDE PERIODE STARTEN
+        function skipToNextPeriodManual() {
+            if (isReadOnlyMode) return;
+            if (timerActiveQuarter >= 4) {
+                alert("Periode 4 is al de laatste periode van de wedstrijd.");
+                return;
+            }
+
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerActiveQuarter++;
+            timerSeconds = 0;
+
+            const btn = document.getElementById('toggleTimerBtn');
+            btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer";
+            btn.innerText = `▶ Start Periode ${timerActiveQuarter}`;
+            document.getElementById('timerPulse').className = "w-2.5 h-2.5 rounded-full bg-slate-500";
+
+            updateTimerDisplay();
+            selectActiveQuarter(timerActiveQuarter);
+            syncLiveDraftToCloud();
         }
 
         function resetMatchTimer() {
@@ -905,7 +935,7 @@
             timerSeconds = 0;
             timerActiveQuarter = 1;
             const btn = document.getElementById('toggleTimerBtn');
-            btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2 rounded-lg text-xs shadow transition cursor-pointer";
+            btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer";
             btn.innerText = "▶ Start Periode 1";
             document.getElementById('timerPulse').className = "w-2.5 h-2.5 rounded-full bg-slate-500";
             updateTimerDisplay();
@@ -921,7 +951,7 @@
         }
 
         // =========================================================
-        // 4. DOELPUNTENMAKERS & SCOREBORD
+        // 4. DOELPUNTENMAKERS (MET AUTOMATISCHE MINUUT & BEWERKEN)
         // =========================================================
         function renderScoreboard() {
             document.getElementById('scoreON').innerText = matchGoals.length;
@@ -936,12 +966,15 @@
             } else {
                 container.classList.remove('hidden');
                 badgesList.innerHTML = '';
-                matchGoals.forEach((g, idx) => {
+                matchGoals.forEach((g) => {
                     const badge = document.createElement('span');
                     badge.className = "bg-orange-100 text-orange-900 border border-orange-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1";
                     badge.innerHTML = `
                         <span>${g.scorer}${g.minute ? ` (${g.minute}')` : ''}</span>
-                        ${!isReadOnlyMode ? `<button onclick="removeGoal(${idx})" class="text-rose-500 hover:text-rose-700 ml-1 font-bold">✕</button>` : ''}
+                        ${!isReadOnlyMode ? `
+                            <button onclick="editGoal(${g.id})" class="text-slate-500 hover:text-slate-800 ml-1 font-bold" title="Doelpunt bewerken">✏️</button>
+                            <button onclick="removeGoalById(${g.id})" class="text-rose-500 hover:text-rose-700 ml-0.5 font-bold" title="Verwijderen">✕</button>
+                        ` : ''}
                     `;
                     badgesList.appendChild(badge);
                 });
@@ -955,8 +988,12 @@
             syncLiveDraftToCloud();
         }
 
+        // Open modal voor nieuw doelpunt (automatische minuut ingevuld!)
         function openGoalModal() {
             if (isReadOnlyMode) return;
+            editingGoalId = null;
+            document.getElementById('goalModalTitle').innerText = "⚽ Doelpunt Oranje Nassau Toevoegen";
+
             const sel = document.getElementById('goalScorerSelect');
             sel.innerHTML = '';
             getActivePlayers().forEach(p => {
@@ -964,33 +1001,71 @@
             });
             sel.innerHTML += `<option value="Eigen doelpunt tegenstander">Eigen doelpunt tegenstander</option>`;
 
-            const currentMin = (timerActiveQuarter - 1) * 15 + Math.floor(timerSeconds / 60);
+            // Automatische minuut berekenen vanuit lopende wedstrijdklok
+            let currentMin = (timerActiveQuarter - 1) * 15 + Math.floor(timerSeconds / 60);
+            if (currentMin === 0 && isTimerRunning) currentMin = 1;
             document.getElementById('goalMinuteInput').value = currentMin > 0 ? currentMin : "";
+
+            document.getElementById('goalModal').classList.remove('hidden');
+        }
+
+        // Open modal om een bestaand doelpunt te bewerken
+        function editGoal(goalId) {
+            if (isReadOnlyMode) return;
+            const g = matchGoals.find(x => x.id === goalId);
+            if (!g) return;
+
+            editingGoalId = goalId;
+            document.getElementById('goalModalTitle').innerText = "✏️ Doelpunt Bewerken";
+
+            const sel = document.getElementById('goalScorerSelect');
+            sel.innerHTML = '';
+            getActivePlayers().forEach(p => {
+                const isSel = (p.name === g.scorer) ? "selected" : "";
+                sel.innerHTML += `<option value="${p.name}" ${isSel}>${p.name}</option>`;
+            });
+            const isOwnSel = (g.scorer === "Eigen doelpunt tegenstander") ? "selected" : "";
+            sel.innerHTML += `<option value="Eigen doelpunt tegenstander" ${isOwnSel}>Eigen doelpunt tegenstander</option>`;
+
+            document.getElementById('goalMinuteInput').value = g.minute || "";
             document.getElementById('goalModal').classList.remove('hidden');
         }
 
         function closeGoalModal() {
+            editingGoalId = null;
             document.getElementById('goalModal').classList.add('hidden');
         }
 
-        function confirmAddGoal() {
+        function confirmSaveGoal() {
             const scorer = document.getElementById('goalScorerSelect').value;
             const min = parseInt(document.getElementById('goalMinuteInput').value, 10) || null;
-            matchGoals.push({ id: Date.now(), scorer, minute: min });
+
+            if (editingGoalId !== null) {
+                // Bewerken van bestaand doelpunt
+                const g = matchGoals.find(x => x.id === editingGoalId);
+                if (g) {
+                    g.scorer = scorer;
+                    g.minute = min;
+                }
+            } else {
+                // Nieuw doelpunt toevoegen
+                matchGoals.push({ id: Date.now(), scorer, minute: min });
+            }
+
             closeGoalModal();
             renderScoreboard();
             syncLiveDraftToCloud();
         }
 
-        function removeGoal(idx) {
+        function removeGoalById(goalId) {
             if (isReadOnlyMode) return;
-            matchGoals.splice(idx, 1);
+            matchGoals = matchGoals.filter(g => g.id !== goalId);
             renderScoreboard();
             syncLiveDraftToCloud();
         }
 
         // =========================================================
-        // 5. SPELERSROLLEN BEHEREN MODAL
+        // 5. SPELERSROLLEN BEHEREN
         // =========================================================
         function openRoleManagerModal() {
             const list = document.getElementById('roleManagerList');
@@ -1694,7 +1769,6 @@
             const playerObj = getActivePlayers().find(p => p.name === selectedName);
             const roleSub = playerObj ? playerObj.badge : posObj.line;
 
-            // Controleer of er in DIT kwartier op DEZE positie een noodwissel heeft plaatsgevonden
             const relevantEmergencySub = emergencySubs.find(e => e.quarter === quarter && (e.posId === posId || e.out === selectedName));
             let emergencyBadgeHtml = "";
 
@@ -1953,8 +2027,22 @@
         }
 
         // =========================================================
-        // 11. WISSELROTATIE WAARSCHUWING (2X ACHTER ELKAAR WISSEL)
+        // 11. WISSELROTATIE WAARSCHUWING (MEEST RECENTE SPEELDATUM)
         // =========================================================
+        function getMostRecentPastMatch(currentDateStr) {
+            if (savedMatches.length === 0) return null;
+
+            // Sorteer op datum van nieuw naar oud
+            const sorted = [...savedMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Zoek de wedstrijd met de speeldatum die het kortst geleden is ten opzichte van currentDateStr
+            const currentObj = new Date(currentDateStr);
+            const priorMatches = sorted.filter(m => new Date(m.date) < currentObj);
+
+            if (priorMatches.length > 0) return priorMatches[0];
+            return sorted[0]; // Fallback: de meest recente in de lijst
+        }
+
         function checkConsecutiveBenchWarning() {
             const warningBox = document.getElementById('consecutiveBenchWarningBox');
             const warningText = document.getElementById('consecutiveBenchWarningText');
@@ -1964,29 +2052,27 @@
                 return;
             }
 
-            // Zoek de meest recente eerdere wedstrijd
-            const lastMatch = savedMatches[savedMatches.length - 1];
+            const currentDate = document.getElementById('matchDate').value || new Date().toISOString().slice(0, 10);
+            const lastMatch = getMostRecentPastMatch(currentDate);
+
             if (!lastMatch || !lastMatch.lineup || !lastMatch.lineup[1]) {
                 warningBox.classList.add('hidden');
                 return;
             }
 
-            // Wie stond er in de vorige wedstrijd in Blok 1 wissel?
             const lastMatchPresent = Object.keys(lastMatch.attendance || {}).filter(k => lastMatch.attendance[k]);
             const lastPitchB1 = Object.values(lastMatch.lineup[1]).filter(Boolean);
             const startedBenchLastTime = lastMatchPresent.filter(name => !lastPitchB1.includes(name));
 
-            // Wie staat er VANDAAG in Blok 1 wissel?
             const currentActive = getActivePlayers().map(p => p.name);
             const currentPitchB1 = Object.values(lineup[1] || {}).filter(Boolean);
             const startingBenchToday = currentActive.filter(name => !currentPitchB1.includes(name));
 
-            // Overlap: wie begint er nu wéér als wissel?
             const violators = startingBenchToday.filter(name => startedBenchLastTime.includes(name));
 
             if (violators.length > 0) {
                 warningBox.classList.remove('hidden');
-                warningText.innerHTML = `<strong>${violators.join(', ')}</strong> is de vorige wedstrijd tegen <em>${lastMatch.opponent}</em> ook al begonnen als wissel in Blok 1! Volgens de afspraak mag een speler niet twee wedstrijden achter elkaar als wissel starten.`;
+                warningText.innerHTML = `<strong>${violators.join(', ')}</strong> is de vorige wedstrijd op zaterdag <em>${lastMatch.date} (tegen ${lastMatch.opponent})</em> ook al begonnen als wissel in Blok 1! Volgens de afspraak mag een speler niet twee wedstrijden achter elkaar als wissel starten.`;
             } else {
                 warningBox.classList.add('hidden');
             }
@@ -2027,7 +2113,6 @@
                 if (excludeMatchId && m.id === excludeMatchId) return;
                 const matchFieldTarget = m.targetFieldMinutesPerOutfielder || 52.5;
 
-                // Tel doelpunten
                 if (Array.isArray(m.goals)) {
                     m.goals.forEach(g => {
                         if (stats[g.scorer]) stats[g.scorer].goals++;
@@ -2083,30 +2168,29 @@
                 totalOutfieldPlayerQuartersAvailable += (4 - kCount);
             });
 
-            const totalFieldSlots = 28; // 4 blokken x 7 veldposities
+            const totalFieldSlots = 28;
             const hist = getSeasonHistoryStats(loadedMatchId);
             const outfieldCandidates = active.filter(p => maxOutfieldQuarters[p.name] > 0);
 
-            // Bepaal wie er vorige wedstrijd in Blok 1 wissel begon
+            // Bepaal wie er op de meest recente speeldatum in Blok 1 wissel begon
+            const currentDate = document.getElementById('matchDate').value || new Date().toISOString().slice(0, 10);
+            const lastMatch = getMostRecentPastMatch(currentDate);
             let startedBenchLastTime = [];
-            if (savedMatches.length > 0) {
-                const lastM = savedMatches[savedMatches.length - 1];
-                if (lastM && lastM.lineup && lastM.lineup[1]) {
-                    const lastPres = Object.keys(lastM.attendance || {}).filter(k => lastM.attendance[k]);
-                    const lastB1 = Object.values(lastM.lineup[1]).filter(Boolean);
-                    startedBenchLastTime = lastPres.filter(n => !lastB1.includes(n));
-                }
+
+            if (lastMatch && lastMatch.lineup && lastMatch.lineup[1]) {
+                const lastPres = Object.keys(lastMatch.attendance || {}).filter(k => lastMatch.attendance[k]);
+                const lastB1 = Object.values(lastMatch.lineup[1]).filter(Boolean);
+                startedBenchLastTime = lastPres.filter(n => !lastB1.includes(n));
             }
 
-            // BEREKEN 5% AFWIJKING EN PRIORITEIT
             const ranked = outfieldCandidates.map(p => {
                 const h = hist[p.name] || { fieldMinutes: 0, targetFieldMinutesSum: 0 };
                 const streeftijd = h.targetFieldMinutesSum || 52.5;
                 const gespeeld = h.fieldMinutes;
                 const percentageDiff = streeftijd > 0 ? ((gespeeld - streeftijd) / streeftijd) * 100 : 0;
 
-                let forceFullMatch = false; // Als >= 5% achterstand -> hele wedstrijd (4 kwartieren)
-                let mustBenchFirst = false; // Als >= 5% voorsprong -> als eerste wisselen
+                let forceFullMatch = false;
+                let mustBenchFirst = false;
 
                 if (percentageDiff <= -5.0 && h.targetFieldMinutesSum > 0) {
                     forceFullMatch = true;
@@ -2124,13 +2208,11 @@
                 };
             });
 
-            // Sorteer op grootste achterstand eerst
             ranked.sort((a, b) => a.balance - b.balance);
 
             const targetQuartersToday = {};
             let assignedSum = 0;
 
-            // 1. Spelers met >= 5% achterstand krijgen direct 4 kwartieren (als ze niet keepen)
             ranked.forEach(item => {
                 const maxQ = maxOutfieldQuarters[item.player.name];
                 if (item.forceFullMatch) {
@@ -2141,7 +2223,6 @@
                 assignedSum += targetQuartersToday[item.player.name];
             });
 
-            // 2. Verdeel overige kwartieren tot 28 veldposities
             let remainder = totalFieldSlots - assignedSum;
             while (remainder > 0) {
                 let progressed = false;
@@ -2156,7 +2237,6 @@
                 if (!progressed) break;
             }
 
-            // Bepaal wie er per blok wissel staat
             const benchTurnsNeeded = {};
             outfieldCandidates.forEach(p => {
                 benchTurnsNeeded[p.name] = maxOutfieldQuarters[p.name] - targetQuartersToday[p.name];
@@ -2168,8 +2248,6 @@
                 const availableOutfieldInQ = active.filter(p => keepersPerQ[q] !== p.name);
                 const neededBenchInQ = Math.max(0, availableOutfieldInQ.length - 7);
 
-                // Kandidaten sorteren: wie moet wisselen?
-                // In Blok 1: bescherm degene die de vorige wedstrijd ook in Blok 1 wissel begon!
                 let candidates = availableOutfieldInQ
                     .filter(p => (benchTurnsNeeded[p.name] || 0) > 0)
                     .sort((a, b) => {
@@ -2824,8 +2902,9 @@
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            const dateStamp = new Date().toISOString().slice(0, 10);
             a.href = url;
-            a.download = `ONA-JO11-4-Backup-${new Date().toISOString().slice(0, 10)}.json`;
+            a.download = `ONA-JO11-4-Backup-${dateStamp}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
