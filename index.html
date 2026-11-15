@@ -41,7 +41,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen pb-20">
+<body id="appBody" class="bg-slate-100 text-slate-800 min-h-screen pb-20 transition-colors duration-300">
 
     <!-- Top Hero Header (Standaard Modus) -->
     <header id="mainHeader" class="bg-gradient-to-r from-slate-900 via-slate-800 to-orange-950 text-white shadow-lg border-b-4 border-orange-500">
@@ -63,14 +63,15 @@
 
             <!-- Header Bediening: Grote Knop Wedstrijd Modus + Tabs -->
             <div class="flex flex-wrap items-center justify-center gap-3">
-                <button onclick="toggleMatchMode()" id="matchModeLaunchBtn" class="bg-gradient-to-r from-rose-600 via-red-500 to-orange-500 hover:from-rose-700 hover:to-orange-600 text-white px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2.5 shadow-lg border-2 border-rose-300 animate-pulse transform hover:scale-105">
-                    <span class="w-3 h-3 rounded-full bg-white shadow-xs"></span>
-                    <span>🔴 START WEDSTRIJD MODUS</span>
+                <!-- WEDSTRIJD MODUS KNOP (Geen gekipper) -->
+                <button onclick="toggleMatchMode()" id="matchModeLaunchBtn" class="bg-gradient-to-r from-rose-700 via-rose-600 to-orange-600 hover:from-rose-800 hover:to-orange-700 text-white px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2.5 shadow-md border border-rose-400">
+                    <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
+                    <span>START WEDSTRIJD MODUS</span>
                 </button>
 
                 <div id="fullNavGroup" class="flex items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700">
                     <button onclick="switchMainTab('match')" id="mainTab-match" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow">
-                        ⚽ Planner & Veld
+                        ⚽ Invoer & Veld
                     </button>
                     <button onclick="switchMainTab('season')" id="mainTab-season" class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-300 hover:text-white">
                         📊 Seizoensmonitor (<span id="savedCountBadge">0</span>)
@@ -78,7 +79,7 @@
                 </div>
 
                 <div id="cloudStatusBtn" class="bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm select-none">
-                    <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
                     <span id="cloudStatusText" class="text-[11px]">🟢 Cloud Live</span>
                 </div>
 
@@ -89,14 +90,11 @@
         </div>
     </header>
 
-    <!-- ========================================================= -->
-    <!-- DEDICATED WEDSTRIJD MODUS VIEW (Donkere Stadion Cockpit) -->
-    <!-- ========================================================= -->
+    <!-- DEDICATED WEDSTRIJD MODUS COCKPIT -->
     <div id="dedicatedMatchModeContainer" class="hidden min-h-screen bg-slate-950 text-white p-3 sm:p-6 space-y-4">
-        <!-- Top Bar van Wedstrijd Modus -->
         <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 p-3 sm:p-4 rounded-3xl shadow-xl">
             <div class="flex items-center gap-3">
-                <span class="bg-rose-600 text-white font-black text-xs px-3 py-1 rounded-xl flex items-center gap-1.5 animate-pulse">
+                <span class="bg-rose-600 text-white font-black text-xs px-3 py-1 rounded-xl flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-white"></span> LIVE WEDSTRIJD
                 </span>
                 <div>
@@ -105,7 +103,6 @@
                 </div>
             </div>
 
-            <!-- Scorebord & Timer in Cockpit Header -->
             <div class="flex items-center gap-4 bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800">
                 <div class="text-center font-black">
                     <span id="matchModeScoreHome" class="text-2xl text-white">0</span>
@@ -123,10 +120,7 @@
             </button>
         </div>
 
-        <!-- Cockpit Body: Links Menubalk, Midden Grote Relevante Info -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            
-            <!-- Linker Zijmenu (Tabs) -->
             <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-3xl p-3 sm:p-4 space-y-2">
                 <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 px-2 py-1">Wedstrijd Cockpit</div>
                 
@@ -149,7 +143,6 @@
                     <span>🚨</span> Noodwissel (Blessure)
                 </button>
 
-                <!-- Periodeselector in zijmenu: bladeren door de blokken ter weergave -->
                 <div class="pt-3 border-t border-slate-800 space-y-1.5">
                     <div class="flex justify-between items-center px-2">
                         <span class="text-[10px] font-black uppercase text-slate-400">Bekijk Periode</span>
@@ -170,10 +163,7 @@
                 </div>
             </div>
 
-            <!-- Midden Inhoudsgedeelte -->
             <div class="lg:col-span-9 space-y-4">
-                
-                <!-- Periode Bedieningsbalk in Cockpit -->
                 <div class="bg-slate-900 border border-slate-800 p-3 sm:p-4 rounded-3xl flex flex-wrap items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-black text-white">Weergave: Periode <span id="mmActivePeriodNum">1</span></span>
@@ -184,19 +174,16 @@
                         <button id="mmToggleTimerBtn" onclick="toggleMatchTimer()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2 rounded-xl text-xs shadow-md transition cursor-pointer">
                             ▶ Start Periode 1
                         </button>
-                        <!-- In Blok 1-3: Volgende Periode knop, in Blok 4: Wedstrijd Beëindigen knop -->
                         <button id="mmNextPeriodBtn" onclick="handlePeriodProgressButton()" class="bg-slate-800 hover:bg-slate-700 text-white font-black px-3.5 py-2 rounded-xl text-xs transition cursor-pointer">
                             Volgende Periode ▶|
                         </button>
                     </div>
                 </div>
 
-                <!-- TAB 1 IN COCKPIT: VELD & OPSTELLING -->
                 <div id="mmTabContent-pitch" class="space-y-4">
                     <div id="mmSinglePitchContainer"></div>
                 </div>
 
-                <!-- TAB 2 IN COCKPIT: WISSELCOACH OVERZICHT -->
                 <div id="mmTabContent-sub" class="hidden bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
                     <h3 class="text-sm font-black text-orange-400 uppercase tracking-wider">📋 Wisselplan voor volgend kwartier</h3>
                     <div id="mmSubInstructionsBig" class="space-y-3"></div>
@@ -206,12 +193,11 @@
                     </div>
                 </div>
 
-                <!-- TAB 3 IN COCKPIT: SCORE & SNEL GOALS REGISTREREN -->
                 <div id="mmTabContent-goals" class="hidden bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
                         <div>
                             <h3 class="text-sm font-black text-orange-400 uppercase tracking-wider">⚽ Snelle Doelpuntenregistratie</h3>
-                            <p class="text-xs text-slate-400">Tik op de speler die scoorde om direct een doelpunt met de huidige speelminuut vast te leggen.</p>
+                            <p class="text-xs text-slate-400">Tik op de speler die scoorde om direct een doelpunt vast te leggen.</p>
                         </div>
                         <button onclick="openGoalModal()" class="bg-orange-600 hover:bg-orange-700 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow">
                             + Handmatige Goal
@@ -228,18 +214,15 @@
                         <div id="mmGoalsListContainer" class="space-y-1.5"></div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- STANDAARD MODUS (Planner, Seizoen, Volledig Dashboard)    -->
-    <!-- ========================================================= -->
+    <!-- STANDAARD MODUS (INVOER & SEIZOEN) -->
     <div id="standardAppContainer">
         <main class="max-w-7xl mx-auto px-4 py-4 sm:py-6 space-y-6">
 
-            <!-- LIVE SCOREBORD & CENTRALE TIMESTAMP-TIMER (STANDAARD) -->
+            <!-- LIVE SCOREBORD -->
             <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-4 sm:p-5 shadow-md border border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-4 sm:gap-6" id="scoreboardContainer">
                     <div class="text-center" id="scoreLeftTeamBlock">
@@ -303,7 +286,7 @@
                 </div>
             </div>
 
-            <!-- TAB 1: WEDSTRIJD & PLANNER -->
+            <!-- TAB 1: WEDSTRIJD & INVOER PLANNER (Lichte stijl) -->
             <div id="view-match" class="space-y-6">
 
                 <!-- Details & Keeper -->
@@ -362,8 +345,9 @@
                         </div>
 
                         <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-2">
-                            <button id="primarySaveBtn" onclick="saveMatchToSeason()" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm transition cursor-pointer flex items-center justify-center gap-1.5 editable-control">
-                                💾 Wedstrijd Opslaan in Seizoen
+                            <!-- Hernoemd naar Wedstrijd opslaan -->
+                            <button id="primarySaveBtn" onclick="saveMatchToSeason(true)" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-black py-2.5 px-4 rounded-xl text-xs shadow-sm transition cursor-pointer flex items-center justify-center gap-1.5 editable-control">
+                                💾 Wedstrijd opslaan
                             </button>
                             <button onclick="copyWhatsApp()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-3.5 rounded-xl text-xs transition cursor-pointer" title="Deel opstelling via WhatsApp">
                                 💬 WhatsApp
@@ -551,11 +535,11 @@
 
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                                 <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-orange-600 flex items-center gap-1.5">
-                                    🔄 Wisselbank in Blok <span id="sideBenchQuarterNum">1</span>
-                                </h4>
-                                <span class="text-[11px] font-bold bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full">Rust</span>
-                            </div>
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-orange-600 flex items-center gap-1.5">
+                                        🔄 Wisselbank in Blok <span id="sideBenchQuarterNum">1</span>
+                                    </h4>
+                                    <span class="text-[11px] font-bold bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full">Rust</span>
+                                </div>
                                 <div id="sideBenchPlayersList" class="space-y-2"></div>
                             </div>
 
@@ -637,11 +621,11 @@
                                 ⏱ Speeltijd & 5%-Regel Monitor (Tot en met deze wedstrijd)
                             </h3>
                             <p class="text-xs text-slate-500">
-                                Gastspelers tellen NIET mee in de streefpercentages. Spelers met ≥ 5% achterstand spelen bij voorkeur 60 min.
+                                Gastspelers worden afgetrokken van het totaal en verlagen het streefpercentage van de vaste selectie niet.
                             </p>
                         </div>
                         <div id="matchTargetPill" class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold px-3 py-1.5 rounded-xl">
-                            Streefgemiddelde Vandaag: 52.5 min
+                            Streefgemiddelde Vaste Spelers: 52.5 min
                         </div>
                     </div>
 
@@ -666,22 +650,23 @@
 
             </div>
 
-            <!-- TAB 2: SEIZOENSMONITOR, POSITIERAPPORTAGE & HISTORIE -->
-            <div id="view-season" class="hidden space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-5">
+            <!-- TAB 2: SEIZOENSMONITOR (Duidelijk afwijkend uiterlijk met donkere marineblauwe stijl) -->
+            <div id="view-season" class="hidden space-y-6 bg-slate-900 -mx-4 -my-4 sm:-my-6 p-4 sm:p-8 rounded-3xl shadow-2xl border-4 border-slate-800">
+                <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-6 text-white">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-5 border-b border-slate-700 pb-4">
                         <div>
-                            <h2 class="text-lg font-extrabold text-slate-800">📊 Seizoensoverzicht O.N. Almelo JO11-4</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">
+                            <span class="text-xs font-bold uppercase tracking-wider text-orange-400">Archief & Monitor</span>
+                            <h2 class="text-xl sm:text-2xl font-black text-white">📊 Seizoensoverzicht O.N. Almelo JO11-4</h2>
+                            <p class="text-xs text-slate-300 mt-1">
                                 • Alleen wedstrijden waarin een speler <strong>aanwezig</strong> was tellen mee voor zijn gemiddelde.<br>
-                                • Minuten als keeper en gastspelers tellen <strong>niet</strong> mee bij de veldspeler-gemiddelden.
+                                • Gastspelers en keeperstijd verlagen het streefgemiddelde van de vaste spelers niet.
                             </p>
                         </div>
                         <div class="flex flex-wrap gap-2 self-start">
-                            <button onclick="openBackupModal()" class="text-xs bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-2 rounded-xl cursor-pointer">
+                            <button onclick="openBackupModal()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-bold px-3.5 py-2 rounded-xl cursor-pointer border border-slate-600">
                                 📦 Exporteren / Backuppen
                             </button>
-                            <button onclick="clearSeasonHistory()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3.5 py-2 rounded-xl border border-rose-200 cursor-pointer">
+                            <button onclick="clearSeasonHistory()" class="text-xs bg-rose-950/80 hover:bg-rose-900 text-rose-200 font-bold px-3.5 py-2 rounded-xl border border-rose-800 cursor-pointer">
                                 🗑 Alle Seizoensdata Wissen (Tegenstanders Resetten)
                             </button>
                         </div>
@@ -690,7 +675,7 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse min-w-[760px] text-xs">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-600 uppercase border-b border-slate-200">
+                                <tr class="bg-slate-950 text-slate-400 uppercase border-b border-slate-700">
                                     <th class="p-3">Speler</th>
                                     <th class="p-3 text-center">Aanwezig</th>
                                     <th class="p-3 text-center">Afwezig</th>
@@ -702,23 +687,24 @@
                                     <th class="p-3 text-center">Keepermin.</th>
                                 </tr>
                             </thead>
-                            <tbody id="seasonOverviewBody" class="divide-y divide-slate-100"></tbody>
+                            <tbody id="seasonOverviewBody" class="divide-y divide-slate-700/60"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- POSITIERAPPORTAGE -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                <!-- POSITIERAPPORTAGE (In de donkere monitor stijl) -->
+                <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-6 space-y-4 text-white">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-700 pb-3">
                         <div>
-                            <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">
+                            <span class="text-xs font-bold uppercase tracking-wider text-orange-400">Veldbezettingshistorie</span>
+                            <h3 class="text-base sm:text-lg font-black text-white">
                                 🗺️ Positierapportage: Waar & wanneer heeft wie gespeeld?
                             </h3>
-                            <p class="text-xs text-slate-500">Bekijk per speler op welke posities hij over het seizoen heeft gestaan en in welke duels.</p>
+                            <p class="text-xs text-slate-300">Bekijk per speler op welke posities hij over het seizoen heeft gestaan en in welke duels.</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <label class="text-xs font-bold text-slate-500">Kies speler:</label>
-                            <select id="positionReportPlayerSelect" onchange="renderPositionReport()" class="border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-extrabold bg-slate-50"></select>
+                            <label class="text-xs font-bold text-slate-400">Kies speler:</label>
+                            <select id="positionReportPlayerSelect" onchange="renderPositionReport()" class="border border-slate-600 rounded-xl px-3 py-1.5 text-xs font-extrabold bg-slate-900 text-white outline-none focus:ring-2 focus:ring-orange-500"></select>
                         </div>
                     </div>
 
@@ -727,7 +713,7 @@
                     <div class="overflow-x-auto pt-2">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead>
-                                <tr class="bg-slate-100 text-slate-600 uppercase border-b border-slate-200">
+                                <tr class="bg-slate-950 text-slate-400 uppercase border-b border-slate-700">
                                     <th class="p-2.5">Datum & Wedstrijd</th>
                                     <th class="p-2.5 text-center">Blok 1 (0-15m)</th>
                                     <th class="p-2.5 text-center">Blok 2 (15-30m)</th>
@@ -736,15 +722,15 @@
                                     <th class="p-2.5 text-center">Totaal Gespeeld</th>
                                 </tr>
                             </thead>
-                            <tbody id="positionReportTimelineBody" class="divide-y divide-slate-100"></tbody>
+                            <tbody id="positionReportTimelineBody" class="divide-y divide-slate-700/60"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Opgeslagen wedstrijden lijst (Met duidelijke W/G/V resultaat badges) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
-                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-700">📁 Opgeslagen Wedstrijden</h3>
+                <!-- Opgeslagen wedstrijden lijst -->
+                <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-6 text-white">
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4 border-b border-slate-700 pb-3">
+                        <h3 class="text-base font-black uppercase tracking-wider text-white">📁 Opgeslagen Wedstrijden</h3>
                     </div>
                     <div id="savedMatchesList" class="space-y-2.5"></div>
                 </div>
@@ -753,9 +739,7 @@
         </main>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- ZWEVENDE DATA & AI CHAT ASSISTENT                        -->
-    <!-- ========================================================= -->
+    <!-- ZWEVENDE DATA & AI CHAT ASSISTENT -->
     <div id="chatWidgetContainer" class="fixed bottom-4 right-4 z-50">
         <button onclick="toggleChatWindow()" id="chatFloatingBtn" class="bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white p-3.5 rounded-full shadow-2xl border-2 border-white flex items-center gap-2 cursor-pointer transition transform hover:scale-105">
             <span class="text-xl">💬</span>
@@ -774,7 +758,6 @@
                 <button onclick="toggleChatWindow()" class="text-slate-400 hover:text-white font-bold text-lg p-1">✕</button>
             </div>
 
-            <!-- Snelle Vraag Chips -->
             <div class="bg-slate-50 p-2.5 border-b border-slate-200 flex flex-wrap gap-1.5 overflow-x-auto text-[11px]">
                 <button onclick="askPresetQuery('Wie heeft de meeste doelpunten gescoord?')" class="bg-white border border-slate-300 hover:border-orange-500 hover:text-orange-600 px-2 py-1 rounded-lg font-bold transition">⚽ Topscorers</button>
                 <button onclick="askPresetQuery('Laat de speeltijdgrafiek zien')" class="bg-white border border-slate-300 hover:border-orange-500 hover:text-orange-600 px-2 py-1 rounded-lg font-bold transition">📊 Grafiek Speeltijd</button>
@@ -808,9 +791,7 @@
         </div>
     </div>
 
-    <!-- MODALS: DOELPUNTEN, ROLLEN, OPSTELLING, NOODWISSEL, BACKUP, FINISH POPUP -->
-
-    <!-- FINISH WEDSTRIJD POPUP (OVERWINNING / NEDERLAAG / GELIJKSPEL) -->
+    <!-- FINISH WEDSTRIJD POPUP -->
     <div id="matchFinishModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4">
             <div id="finishModalIcon" class="text-5xl">🏆</div>
@@ -886,7 +867,7 @@
                 <p class="font-bold">Strikte & rustige rotatie:</p>
                 <p>
                     • Wissels worden met <strong>zo min mogelijk verschuivingen</strong> in de rest van de opstelling doorgevoerd.<br>
-                    • Gastspelers tellen <strong>niet mee</strong> in het streefpercentage.<br>
+                    • Gastspelers tellen <strong>niet mee</strong> in het streefpercentage van de vaste spelers.<br>
                     • Spelers met ≥ 5% achterstand spelen de <strong>volle 60 minuten</strong>.
                 </p>
                 <p class="font-bold">Is het akkoord om de vaste posities van de spelers te negeren (behalve keeper)?</p>
@@ -1074,7 +1055,7 @@
         let timerAccumulatedSeconds = 0;
         let timerHeartbeatInterval = null;
 
-        // Opslag-lock om dubbele wedstrijden te voorkomen
+        // Opslag lock
         let isSavingMatchLock = false;
 
         let savedMatches = JSON.parse(localStorage.getItem('ona_jo11_4_season_v3') || '[]');
@@ -1271,7 +1252,7 @@
         }
 
         // =========================================================
-        // 4. WEDSTRIJD MODUS (STADION COCKPIT)
+        // 4. HERONTWORPEN WEDSTRIJD MODUS (STADION COCKPIT)
         // =========================================================
         function toggleMatchMode() {
             isMatchMode = !isMatchMode;
@@ -1290,7 +1271,6 @@
                 mainHeader.classList.add('hidden');
                 dedicatedContainer.classList.remove('hidden');
 
-                // Zet bij openen van de cockpit de weergave standaard op het actieve kwartier van de timer
                 activeQuarterView = timerActiveQuarter;
 
                 renderScoreboard();
@@ -1302,8 +1282,8 @@
                 standardContainer.classList.remove('hidden');
 
                 if (launchBtn) {
-                    launchBtn.className = "bg-gradient-to-r from-rose-600 via-red-500 to-orange-500 hover:from-rose-700 hover:to-orange-600 text-white px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2.5 shadow-lg border-2 border-rose-300 animate-pulse transform hover:scale-105";
-                    launchBtn.innerHTML = `<span class="w-3 h-3 rounded-full bg-white shadow-xs"></span><span>🔴 START WEDSTRIJD MODUS</span>`;
+                    launchBtn.className = "bg-gradient-to-r from-rose-700 via-rose-600 to-orange-600 hover:from-rose-800 hover:to-orange-700 text-white px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2.5 shadow-md border border-rose-400";
+                    launchBtn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-white"></span><span>START WEDSTRIJD MODUS</span>`;
                 }
 
                 renderAllViews();
@@ -1331,14 +1311,10 @@
         function renderMatchModeCockpit() {
             if (!isMatchMode) return;
 
-            // Header toont altijd de timer-periode
             document.getElementById('matchModeCurrentQuarterBadge').innerText = `Klok: Blok ${timerActiveQuarter} (${(timerActiveQuarter - 1) * 15}-${timerActiveQuarter * 15}m)`;
-            
-            // Cockpit balk toont het blok dat de gebruiker momenteel BEKIJKT (activeQuarterView)
             document.getElementById('mmActivePeriodNum').innerText = activeQuarterView;
             document.getElementById('mmActivePeriodMins').innerText = `(${(activeQuarterView - 1) * 15} - ${activeQuarterView * 15}m)`;
 
-            // Update de knoppen onder 'Kies Periode' in de sidebar
             for (let q = 1; q <= 4; q++) {
                 const b = document.getElementById(`mmQBtn-${q}`);
                 if (b) {
@@ -1348,10 +1324,8 @@
                 }
             }
 
-            // Render veld voor het geselecteerde weergaveblok (activeQuarterView)
             document.getElementById('mmSinglePitchContainer').innerHTML = generatePitchHTMLForQuarter(activeQuarterView, false);
 
-            // Render Wisselcoach voor het geselecteerde weergaveblok
             const subContainer = document.getElementById('mmSubInstructionsBig');
             const benchContainer = document.getElementById('mmBenchPlayersListBig');
             if (activeQuarterView < 4) {
@@ -1377,7 +1351,6 @@
                 });
             }
 
-            // Snelle Goal Knoppen
             const quickGoalContainer = document.getElementById('mmQuickScorerButtons');
             quickGoalContainer.innerHTML = '';
             active.forEach(p => {
@@ -1389,7 +1362,6 @@
                 `;
             });
 
-            // Doelpuntenlijst
             const goalsList = document.getElementById('mmGoalsListContainer');
             document.getElementById('mmGoalsCountBadge').innerText = matchGoals.length;
             goalsList.innerHTML = '';
@@ -1491,27 +1463,31 @@
 
         function finishMatchAction() {
             if (isSavingMatchLock) return;
-            isSavingMatchLock = true;
 
+            // Valideer eerst of de opstelling compleet is
+            const validation = validateLineupForSaving();
+            if (!validation.valid) {
+                alert(`Kan de wedstrijd nog niet beëindigen en opslaan:\n\n${validation.error}`);
+                return;
+            }
+
+            isSavingMatchLock = true;
             isTimerRunning = false;
             timerStartedAt = null;
             updateTimerDisplay();
             syncLiveDraftToCloud();
 
-            // Sla de wedstrijd definitief éénmalig op (zonder storende alert)
+            // Sla op (zonder storende alert)
             saveMatchToSeason(false);
 
-            // Bepaal uitslag voor de popup
             const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
 
-            // Sluit de wedstrijdmodus direct af
             if (isMatchMode) {
                 isMatchMode = false;
                 localStorage.setItem('ona_jo11_4_match_mode', 'false');
                 applyMatchModeUI();
             }
 
-            // Toon de feestelijke of bemoedigende popup
             showMatchFinishModal(res);
 
             setTimeout(() => {
@@ -1762,7 +1738,7 @@
 
             if (state === 'live') {
                 btn.className = "bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm select-none";
-                dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400";
             } else if (state === 'error') {
                 btn.className = "bg-rose-500/20 border border-rose-400/50 text-rose-200 px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm select-none";
                 dot.className = "w-2 h-2 rounded-full bg-rose-400";
@@ -1924,16 +1900,20 @@
             document.getElementById('view-match').classList.toggle('hidden', tab !== 'match');
             document.getElementById('view-season').classList.toggle('hidden', tab !== 'season');
 
-            document.getElementById('mainTab-match').className = tab === 'match'
-                ? "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow"
-                : "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-300 hover:text-white";
-            document.getElementById('mainTab-season').className = tab === 'season'
-                ? "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow"
-                : "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-300 hover:text-white";
+            const body = document.getElementById('appBody');
 
             if (tab === 'season') {
+                // Seizoensoverzicht heeft duidelijk donkere achtergrond
+                body.className = "bg-slate-950 text-slate-100 min-h-screen pb-20 transition-colors duration-300";
+                document.getElementById('mainTab-season').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow";
+                document.getElementById('mainTab-match').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-300 hover:text-white";
                 renderSeasonOverview();
                 renderPositionReport();
+            } else {
+                // Invoer heeft lichte achtergrond
+                body.className = "bg-slate-100 text-slate-800 min-h-screen pb-20 transition-colors duration-300";
+                document.getElementById('mainTab-match').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow";
+                document.getElementById('mainTab-season').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer text-slate-300 hover:text-white";
             }
         }
 
@@ -2539,7 +2519,6 @@
             renderAllViews();
         }
 
-        // HIERDOOR BLADER JE VRIJ DOOR PERIODES ZONDER DE KLOK TE STOREN
         function selectActiveQuarter(q) {
             activeQuarterView = q;
             for (let i = 1; i <= 4; i++) {
@@ -3062,7 +3041,161 @@
         }
 
         // =========================================================
-        // 15. OPGESLAGEN WEDSTRIJDEN INZIEN & BEWERKEN
+        // 15. VALIDATIE, OPSLAAN & VOLLEDIGE RESET NA OPSLAAN
+        // =========================================================
+        function validateLineupForSaving() {
+            for (let q = 1; q <= 4; q++) {
+                for (let pos of POSITIONS) {
+                    const assigned = lineup[q]?.[pos.id];
+                    if (!assigned || assigned.trim() === "") {
+                        return {
+                            valid: false,
+                            error: `Blok ${q} heeft nog een lege plek op positie: ${pos.label}. Vul alle 8 posities in voordat je de wedstrijd opslaat!`
+                        };
+                    }
+                }
+            }
+            return { valid: true };
+        }
+
+        function clearAllInputFieldsAfterSave() {
+            // Leegmaken van opstelling
+            lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
+            for (let q = 1; q <= 4; q++) {
+                lineup[q]["GK"] = fixedKeeperName;
+            }
+
+            // Gastspelers volledig resetten
+            guestPlayers = [];
+            const guestToggle = document.getElementById('guestToggleCheck');
+            if (guestToggle) guestToggle.checked = false;
+            const guestPanel = document.getElementById('guestPanel');
+            if (guestPanel) guestPanel.classList.add('hidden');
+            renderGuestRows();
+
+            // Doelpunten & scorebord resetten
+            matchGoals = [];
+            opponentGoals = 0;
+            editingGoalId = null;
+
+            // Noodwissels resetten
+            emergencySubs = [];
+            renderEmergencyBanner();
+
+            // Timer resetten
+            isTimerRunning = false;
+            timerStartedAt = null;
+            timerAccumulatedSeconds = 0;
+            timerSeconds = 0;
+            timerActiveQuarter = 1;
+            activeQuarterView = 1;
+            updateTimerDisplay();
+
+            // Datum weer op vandaag zetten
+            document.getElementById('matchDate').valueAsDate = new Date();
+
+            // Iedereen weer standaard op aanwezig zetten
+            basePlayers.forEach(p => attendance[p.name] = true);
+            renderAttendancePills();
+
+            renderAllViews();
+            renderScoreboard();
+            checkConsecutiveBenchWarning();
+            renderPositionReport();
+            renderMatchModeCockpit();
+        }
+
+        function saveMatchToSeason(showManualAlert = true) {
+            if (isReadOnlyMode) return;
+
+            // Controleer op lege plekken in de opstelling
+            const validation = validateLineupForSaving();
+            if (!validation.valid) {
+                alert(`Kan de wedstrijd niet opslaan:\n\n${validation.error}`);
+                return;
+            }
+
+            const opponent = selectedOpponent || "avc Heracles O11-2JM";
+            const date = document.getElementById('matchDate').value || new Date().toISOString().slice(0, 10);
+            const active = getActivePlayers();
+            const todayMins = calculateMatchMinutes();
+
+            // CORRIGEER HET STREEFPERCENTAGE: GASTSPELERS MINUTEN WORDEN AFGETROKKEN VAN HET VELD-TOTAAL!
+            // 420 veldminuten min de minuten die gastspelers hebben gespeeld
+            let guestFieldMinutesTotal = 0;
+            active.filter(p => p.isGuest).forEach(g => {
+                guestFieldMinutesTotal += (todayMins[g.name]?.field || 0);
+            });
+
+            const fixedActive = active.filter(p => !p.isGuest);
+            let totalFixedOutfieldShares = 0;
+            fixedActive.forEach(p => {
+                const kMin = todayMins[p.name]?.keeper || 0;
+                totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
+            });
+
+            // Beschikbare veldminuten voor vaste spelers
+            const netFieldMinutesForFixed = Math.max(0, 420 - guestFieldMinutesTotal);
+            const targetFieldMinutesPerOutfielder = totalFixedOutfieldShares > 0 ? (netFieldMinutesForFixed / totalFixedOutfieldShares) : 52.5;
+
+            const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
+
+            const matchPayload = {
+                id: loadedMatchId || Date.now(),
+                opponent,
+                isHomeMatch,
+                date,
+                attendance: { ...attendance },
+                guestPlayers: JSON.parse(JSON.stringify(guestPlayers)),
+                isFixedKeeper,
+                fixedKeeperName,
+                quarterKeepers: { ...quarterKeepers },
+                lineup: JSON.parse(JSON.stringify(lineup)),
+                minutes: todayMins,
+                targetFieldMinutesPerOutfielder,
+                emergencySubs: JSON.parse(JSON.stringify(emergencySubs)),
+                goals: JSON.parse(JSON.stringify(matchGoals)),
+                opponentGoals,
+                resultStatus: res.resultStatus,
+                scoreString: res.scoreString
+            };
+
+            if (loadedMatchId !== null) {
+                const idx = savedMatches.findIndex(x => x.id === loadedMatchId);
+                if (idx !== -1) savedMatches[idx] = matchPayload;
+                isReadOnlyMode = true;
+                if (showManualAlert) alert(`Wijzigingen voor de wedstrijd zijn opgeslagen!`);
+            } else {
+                savedMatches.push(matchPayload);
+                const oppEntry = opponentsList.find(o => o.name === opponent);
+                if (oppEntry) oppEntry.locked = true;
+                const nextAvailable = opponentsList.find(o => !o.locked);
+                if (nextAvailable) selectedOpponent = nextAvailable.name;
+
+                if (showManualAlert) {
+                    alert(`Wedstrijd tegen ${opponent} (${matchGoals.length} - ${opponentGoals}) is succesvol opgeslagen!\n\nAlle invoervelden zijn nu leeggemaakt voor de volgende wedstrijd.`);
+                }
+
+                // MAAK ALLE VELDEN LEEG NA OPSLAAN!
+                clearAllInputFieldsAfterSave();
+            }
+
+            localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
+            localStorage.setItem('ona_jo11_4_opponents_v4', JSON.stringify(opponentsList));
+            document.getElementById('savedCountBadge').innerText = savedMatches.length;
+
+            pushFullStateToCloud();
+            renderOpponentDropdown();
+            renderAllViews();
+            renderSeasonOverview();
+            renderScoreboard();
+            checkConsecutiveBenchWarning();
+            renderPositionReport();
+            renderMatchModeCockpit();
+        }
+
+        // =========================================================
+        // 16. OPGESLAGEN WEDSTRIJDEN INZIEN & BEWERKEN
         // =========================================================
         function openSavedMatch(matchId) {
             const m = savedMatches.find(x => x.id === matchId);
@@ -3120,39 +3253,7 @@
         function startNewMatchMode() {
             loadedMatchId = null;
             isReadOnlyMode = false;
-
-            const firstUnlocked = opponentsList.find(o => !o.locked) || opponentsList[0];
-            selectedOpponent = firstUnlocked ? firstUnlocked.name : "avc Heracles O11-2JM";
-            isHomeMatch = true;
-            document.getElementById('matchDate').valueAsDate = new Date();
-
-            basePlayers.forEach(p => attendance[p.name] = true);
-            guestPlayers = [];
-            document.getElementById('guestToggleCheck').checked = false;
-            document.getElementById('guestPanel').classList.add('hidden');
-            renderGuestRows();
-
-            isFixedKeeper = true;
-            fixedKeeperName = "Sep";
-            quarterKeepers = { 1: "Sep", 2: "Sep", 3: "Sep", 4: "Sep" };
-            document.getElementById('fixedKeeperCheck').checked = true;
-            document.getElementById('fixedKeeperBox').classList.remove('hidden');
-            document.getElementById('splitKeeperBox').classList.add('hidden');
-
-            emergencySubs = [];
-            matchGoals = [];
-            opponentGoals = 0;
-            resetMatchTimer();
-
-            setHomeAway(true);
-            renderOpponentDropdown();
-            renderAttendancePills();
-            renderKeeperControls();
-            renderEmergencyBanner();
-            renderScoreboard();
-            executeFairLineup(false);
-            renderAllViews();
-            checkConsecutiveBenchWarning();
+            clearAllInputFieldsAfterSave();
         }
 
         function applyReadOnlyUIState() {
@@ -3167,7 +3268,7 @@
                     badge.innerText = "Nieuwe Wedstrijd (Live Concept)";
                 }
                 if (saveBtn) {
-                    saveBtn.innerHTML = "💾 Wedstrijd Opslaan in Seizoen";
+                    saveBtn.innerHTML = "💾 Wedstrijd opslaan";
                     saveBtn.classList.remove('hidden');
                 }
             } else {
@@ -3245,7 +3346,7 @@
         }
 
         // =========================================================
-        // 16. NOODWISSEL LOGICA
+        // 17. NOODWISSEL LOGICA
         // =========================================================
         function openEmergencyModal() {
             if (isReadOnlyMode) return;
@@ -3359,7 +3460,7 @@
         }
 
         // =========================================================
-        // 17. LIVE SPEELTIJD MONITOR
+        // 18. LIVE SPEELTIJD MONITOR (GASTSPELERS REKENMETHODE)
         // =========================================================
         function calculateMatchMinutes() {
             const active = getActivePlayers();
@@ -3401,13 +3502,21 @@
             const todayMins = calculateMatchMinutes();
             const hist = getSeasonHistoryStats(loadedMatchId);
 
+            // Trek de gastspelersminuten af van het totaal (420 min)
+            let guestFieldMinutesToday = 0;
+            active.filter(p => p.isGuest).forEach(g => {
+                guestFieldMinutesToday += (todayMins[g.name]?.field || 0);
+            });
+
             const fixedActive = active.filter(p => !p.isGuest);
             let totalFixedOutfieldShares = 0;
             fixedActive.forEach(p => {
                 const kMin = todayMins[p.name]?.keeper || 0;
                 totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
-            const todayTargetPerFixedOutfielder = totalFixedOutfieldShares > 0 ? (420 / totalFixedOutfieldShares) : 52.5;
+
+            const netFieldForFixed = Math.max(0, 420 - guestFieldMinutesToday);
+            const todayTargetPerFixedOutfielder = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : 52.5;
 
             document.getElementById('matchTargetPill').innerText = `Streefgemiddelde vaste spelers: ${todayTargetPerFixedOutfielder.toFixed(1)} min`;
 
@@ -3460,7 +3569,7 @@
         }
 
         // =========================================================
-        // 18. POSITIERAPPORTAGE
+        // 19. POSITIERAPPORTAGE
         // =========================================================
         function renderPositionReportPlayerDropdown() {
             const sel = document.getElementById('positionReportPlayerSelect');
@@ -3501,11 +3610,11 @@
                 const wasPresent = m.attendance && m.attendance[playerName] !== false;
                 if (!wasPresent) {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 text-slate-400 bg-slate-50/50";
+                    tr.className = "hover:bg-slate-800 text-slate-400 bg-slate-950/40";
                     tr.innerHTML = `
-                        <td class="p-2.5 font-bold">${matchTitle} <span class="font-normal text-[10px]">(${m.date})</span></td>
-                        <td colspan="4" class="p-2.5 text-center font-bold text-rose-500">❌ Afwezig gemeld</td>
-                        <td class="p-2.5 text-center font-semibold">0 min</td>
+                        <td class="p-2.5 font-bold text-slate-300">${matchTitle} <span class="font-normal text-[10px] text-slate-400">(${m.date})</span></td>
+                        <td colspan="4" class="p-2.5 text-center font-bold text-rose-400">❌ Afwezig gemeld</td>
+                        <td class="p-2.5 text-center font-semibold text-slate-400">0 min</td>
                     `;
                     timelineTbody.appendChild(tr);
                     return;
@@ -3530,25 +3639,25 @@
                     if (foundPos) {
                         posCounts[foundPos] = (posCounts[foundPos] || 0) + 1;
                         matchQuarters++;
-                        let badgeColor = "bg-slate-100 text-slate-800";
-                        if (foundPos === "GK") badgeColor = "bg-amber-100 text-amber-900 border border-amber-300";
-                        else if (["LV", "CV", "RV"].includes(foundPos)) badgeColor = "bg-blue-100 text-blue-900 border border-blue-200";
-                        else if (["LM", "CM", "RM"].includes(foundPos)) badgeColor = "bg-emerald-100 text-emerald-900 border border-emerald-200";
-                        else if (foundPos === "SP") badgeColor = "bg-rose-100 text-rose-900 border border-rose-200";
+                        let badgeColor = "bg-slate-700 text-slate-200";
+                        if (foundPos === "GK") badgeColor = "bg-amber-950 text-amber-300 border border-amber-600";
+                        else if (["LV", "CV", "RV"].includes(foundPos)) badgeColor = "bg-blue-950 text-blue-300 border border-blue-600";
+                        else if (["LM", "CM", "RM"].includes(foundPos)) badgeColor = "bg-emerald-950 text-emerald-300 border border-emerald-600";
+                        else if (foundPos === "SP") badgeColor = "bg-rose-950 text-rose-300 border border-rose-600";
 
                         qCells.push(`<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-md font-extrabold text-[11px] ${badgeColor}">${foundPos}</span></td>`);
                     } else {
                         posCounts["Wissel"] = (posCounts["Wissel"] || 0) + 1;
-                        qCells.push(`<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-md font-bold text-[11px] bg-orange-50 text-orange-700 border border-orange-200">Wissel</span></td>`);
+                        qCells.push(`<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-md font-bold text-[11px] bg-orange-950 text-orange-300 border border-orange-700">Wissel</span></td>`);
                     }
                 }
 
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50";
+                tr.className = "hover:bg-slate-800";
                 tr.innerHTML = `
-                    <td class="p-2.5 font-bold text-slate-800">${matchTitle} <span class="font-normal text-slate-400 text-[10px]">(${m.date})</span></td>
+                    <td class="p-2.5 font-bold text-slate-200">${matchTitle} <span class="font-normal text-slate-400 text-[10px]">(${m.date})</span></td>
                     ${qCells.join('')}
-                    <td class="p-2.5 text-center font-extrabold text-orange-600">${matchQuarters * 15} min</td>
+                    <td class="p-2.5 text-center font-extrabold text-orange-400">${matchQuarters * 15} min</td>
                 `;
                 timelineTbody.appendChild(tr);
             });
@@ -3556,12 +3665,12 @@
             for (let posKey in posCounts) {
                 if (posCounts[posKey] > 0) {
                     const badge = document.createElement('span');
-                    let badgeClass = "bg-slate-100 text-slate-800 border-slate-200";
-                    if (posKey === "GK") badgeClass = "bg-amber-100 text-amber-900 border-amber-300";
-                    else if (["LV", "CV", "RV"].includes(posKey)) badgeClass = "bg-blue-100 text-blue-900 border-blue-200";
-                    else if (["LM", "CM", "RM"].includes(posKey)) badgeClass = "bg-emerald-100 text-emerald-900 border-emerald-200";
-                    else if (posKey === "SP") badgeClass = "bg-rose-100 text-rose-900 border-rose-200";
-                    else if (posKey === "Wissel") badgeClass = "bg-orange-100 text-orange-900 border-orange-200";
+                    let badgeClass = "bg-slate-800 text-slate-200 border-slate-700";
+                    if (posKey === "GK") badgeClass = "bg-amber-950 text-amber-300 border-amber-600";
+                    else if (["LV", "CV", "RV"].includes(posKey)) badgeClass = "bg-blue-950 text-blue-300 border-blue-600";
+                    else if (["LM", "CM", "RM"].includes(posKey)) badgeClass = "bg-emerald-950 text-emerald-300 border-emerald-600";
+                    else if (posKey === "SP") badgeClass = "bg-rose-950 text-rose-300 border-rose-600";
+                    else if (posKey === "Wissel") badgeClass = "bg-orange-950 text-orange-300 border-orange-700";
 
                     badge.className = `px-2.5 py-1 rounded-xl text-xs font-black border ${badgeClass}`;
                     badge.innerHTML = `${posKey}: ${posCounts[posKey]}x <span class="font-normal text-[10px]">(${posCounts[posKey] * 15}m)</span>`;
@@ -3571,7 +3680,7 @@
         }
 
         // =========================================================
-        // 19. AI / DATA CHAT & ANALYTICS ENGINE
+        // 20. AI / DATA CHAT & ANALYTICS ENGINE
         // =========================================================
         function toggleChatWindow() {
             const win = document.getElementById('chatWindow');
@@ -3820,72 +3929,8 @@
         }
 
         // =========================================================
-        // 20. OPSLAAN & SEIZOENSOVERZICHT MET THUIS/UIT & W/G/V
+        // 21. SEIZOENSOVERZICHT MET THUIS/UIT & W/G/V
         // =========================================================
-        function saveMatchToSeason(showManualAlert = true) {
-            if (isReadOnlyMode) return;
-            const opponent = selectedOpponent || "avc Heracles O11-2JM";
-            const date = document.getElementById('matchDate').value || new Date().toISOString().slice(0, 10);
-            const active = getActivePlayers();
-            const todayMins = calculateMatchMinutes();
-
-            const fixedActive = active.filter(p => !p.isGuest);
-            let totalFixedOutfieldShares = 0;
-            fixedActive.forEach(p => {
-                const kMin = todayMins[p.name]?.keeper || 0;
-                totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
-            });
-            const targetFieldMinutesPerOutfielder = totalFixedOutfieldShares > 0 ? (420 / totalFixedOutfieldShares) : 52.5;
-
-            const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
-
-            const matchPayload = {
-                id: loadedMatchId || Date.now(),
-                opponent,
-                isHomeMatch,
-                date,
-                attendance: { ...attendance },
-                guestPlayers: JSON.parse(JSON.stringify(guestPlayers)),
-                isFixedKeeper,
-                fixedKeeperName,
-                quarterKeepers: { ...quarterKeepers },
-                lineup: JSON.parse(JSON.stringify(lineup)),
-                minutes: todayMins,
-                targetFieldMinutesPerOutfielder,
-                emergencySubs: JSON.parse(JSON.stringify(emergencySubs)),
-                goals: JSON.parse(JSON.stringify(matchGoals)),
-                opponentGoals,
-                resultStatus: res.resultStatus,
-                scoreString: res.scoreString
-            };
-
-            if (loadedMatchId !== null) {
-                const idx = savedMatches.findIndex(x => x.id === loadedMatchId);
-                if (idx !== -1) savedMatches[idx] = matchPayload;
-                isReadOnlyMode = true;
-                if (showManualAlert) alert(`Wijzigingen voor de wedstrijd zijn opgeslagen!`);
-            } else {
-                savedMatches.push(matchPayload);
-                const oppEntry = opponentsList.find(o => o.name === opponent);
-                if (oppEntry) oppEntry.locked = true;
-                const nextAvailable = opponentsList.find(o => !o.locked);
-                if (nextAvailable) selectedOpponent = nextAvailable.name;
-            }
-
-            localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
-            localStorage.setItem('ona_jo11_4_opponents_v4', JSON.stringify(opponentsList));
-            document.getElementById('savedCountBadge').innerText = savedMatches.length;
-
-            pushFullStateToCloud();
-            renderOpponentDropdown();
-            renderAllViews();
-            renderSeasonOverview();
-            renderScoreboard();
-            checkConsecutiveBenchWarning();
-            renderPositionReport();
-            renderMatchModeCockpit();
-        }
-
         function renderSeasonOverview() {
             document.getElementById('savedCountBadge').innerText = savedMatches.length;
             const hist = getSeasonHistoryStats(null);
@@ -3901,26 +3946,26 @@
                 let diffHtml = `<span class="text-slate-400">0.0%</span>`;
                 if (h.outfieldMatches > 0) {
                     if (percentDiff <= -5.0) {
-                        diffHtml = `<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">${percentDiff.toFixed(1)}%</span>`;
+                        diffHtml = `<span class="bg-rose-950 text-rose-300 border border-rose-700 px-2 py-0.5 rounded-full font-bold">${percentDiff.toFixed(1)}%</span>`;
                     } else if (percentDiff >= 5.0) {
-                        diffHtml = `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">+${percentDiff.toFixed(1)}%</span>`;
+                        diffHtml = `<span class="bg-emerald-950 text-emerald-300 border border-emerald-700 px-2 py-0.5 rounded-full font-bold">+${percentDiff.toFixed(1)}%</span>`;
                     } else {
-                        diffHtml = `<span class="text-slate-500 font-semibold">${percentDiff > 0 ? '+' : ''}${percentDiff.toFixed(1)}%</span>`;
+                        diffHtml = `<span class="text-slate-300 font-semibold">${percentDiff > 0 ? '+' : ''}${percentDiff.toFixed(1)}%</span>`;
                     }
                 }
 
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50";
+                tr.className = "hover:bg-slate-800/80 transition";
                 tr.innerHTML = `
-                    <td class="p-3 font-extrabold text-slate-800">${p.name} <span class="text-[10px] font-normal text-slate-400">(${p.role})</span></td>
-                    <td class="p-3 text-center font-bold text-emerald-600">${h.presentMatches}</td>
-                    <td class="p-3 text-center font-bold text-rose-500">${h.absentMatches}</td>
-                    <td class="p-3 text-center font-extrabold">${h.fieldMinutes} min</td>
-                    <td class="p-3 text-center font-extrabold text-orange-600">${h.outfieldMatches > 0 ? avgField.toFixed(1) + 'm' : '-'}</td>
-                    <td class="p-3 text-center font-semibold text-slate-600">${h.outfieldMatches > 0 ? targetAvg.toFixed(1) + 'm' : '-'}</td>
-                    <td class="p-3 text-center">${h.outfieldMatches > 0 ? diffHtml : '<span class="text-amber-700 font-bold">Vaste Keeper</span>'}</td>
-                    <td class="p-3 text-center font-black text-orange-600">${h.goals > 0 ? '⚽ ' + h.goals : '-'}</td>
-                    <td class="p-3 text-center font-bold text-amber-700">${h.keeperMinutes} min</td>
+                    <td class="p-3 font-extrabold text-white">${p.name} <span class="text-[10px] font-normal text-slate-400">(${p.role})</span></td>
+                    <td class="p-3 text-center font-bold text-emerald-400">${h.presentMatches}</td>
+                    <td class="p-3 text-center font-bold text-rose-400">${h.absentMatches}</td>
+                    <td class="p-3 text-center font-extrabold text-white">${h.fieldMinutes} min</td>
+                    <td class="p-3 text-center font-extrabold text-orange-400">${h.outfieldMatches > 0 ? avgField.toFixed(1) + 'm' : '-'}</td>
+                    <td class="p-3 text-center font-semibold text-slate-300">${h.outfieldMatches > 0 ? targetAvg.toFixed(1) + 'm' : '-'}</td>
+                    <td class="p-3 text-center">${h.outfieldMatches > 0 ? diffHtml : '<span class="text-amber-400 font-bold">Vaste Keeper</span>'}</td>
+                    <td class="p-3 text-center font-black text-orange-400">${h.goals > 0 ? '⚽ ' + h.goals : '-'}</td>
+                    <td class="p-3 text-center font-bold text-amber-400">${h.keeperMinutes} min</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -3940,27 +3985,27 @@
 
                 const res = getMatchResultDetails(onGoals, oppGoals, isHome);
                 const matchTitle = isHome ? `Oranje Nassau vs ${m.opponent}` : `${m.opponent} vs Oranje Nassau`;
-                const locationBadge = isHome ? `<span class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[10px] font-extrabold">🏠 Thuis</span>` : `<span class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[10px] font-extrabold">🚗 Uit</span>`;
+                const locationBadge = isHome ? `<span class="bg-slate-700 text-slate-200 px-2 py-0.5 rounded text-[10px] font-extrabold">🏠 Thuis</span>` : `<span class="bg-slate-700 text-slate-200 px-2 py-0.5 rounded text-[10px] font-extrabold">🚗 Uit</span>`;
 
                 const div = document.createElement('div');
                 div.className = `flex flex-wrap justify-between items-center gap-3 p-4 rounded-xl border text-xs transition ${
-                    isCurrentlyOpen ? 'bg-sky-50 border-sky-300' : 'bg-slate-50 border-slate-200 hover:border-orange-300'
+                    isCurrentlyOpen ? 'bg-sky-950/80 border-sky-600' : 'bg-slate-950/60 border-slate-700/80 hover:border-orange-500'
                 }`;
                 div.innerHTML = `
                     <div class="space-y-1">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="px-2 py-0.5 rounded font-black text-xs ${res.badgeClass}">${res.resultStatus}</span>
-                            <strong class="text-slate-800 text-sm">${matchTitle}</strong>
-                            <span class="bg-orange-100 text-orange-900 px-2 py-0.5 rounded font-black">[ ${res.scoreString} ]</span>
+                            <strong class="text-white text-sm">${matchTitle}</strong>
+                            <span class="bg-orange-500/20 text-orange-300 border border-orange-500/40 px-2 py-0.5 rounded font-black">[ ${res.scoreString} ]</span>
                             ${locationBadge}
                             <span class="text-slate-400 font-semibold text-[11px]">(${m.date})</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="openSavedMatch(${m.id})" class="bg-slate-800 hover:bg-slate-900 text-white font-extrabold px-3.5 py-2 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-2xs">
+                        <button onclick="openSavedMatch(${m.id})" class="bg-slate-700 hover:bg-slate-600 text-white font-extrabold px-3.5 py-2 rounded-xl cursor-pointer transition flex items-center gap-1.5 shadow-2xs border border-slate-600">
                             👁️ Bekijken (Read-Only)
                         </button>
-                        <button onclick="deleteSavedMatch(${idx})" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold px-3 py-2 rounded-xl cursor-pointer transition">
+                        <button onclick="deleteSavedMatch(${idx})" class="bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-800 font-bold px-3 py-2 rounded-xl cursor-pointer transition">
                             Verwijderen
                         </button>
                     </div>
@@ -4002,11 +4047,11 @@
         }
 
         // =========================================================
-        // 21. BACKUP, EXPORT & WHATSAPP
+        // 22. BACKUP, EXPORT & WHATSAPP
         // =========================================================
         function getFullBackupObject() {
             return {
-                version: 11,
+                version: 12,
                 exportedAt: new Date().toISOString(),
                 team: "Oranje Nassau JO11-4",
                 basePlayers,
@@ -4128,7 +4173,7 @@
             for (let q = 1; q <= 4; q++) {
                 txt += `*Blok ${q} (${(q - 1) * 15} - ${q * 15} min):*\n`;
                 TABLE_POSITIONS.forEach(pos => {
-                    txt += `• ${pos.short}: ${lineup[q][pos.id] || '-'}\n`;
+                    txt += `• ${pos.short}: ${lineup[q]?.[pos.id] || '-'}\n`;
                 });
                 const onPitch = Object.values(lineup[q] || {}).filter(Boolean);
                 const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
