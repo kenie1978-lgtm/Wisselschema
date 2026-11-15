@@ -3,234 +3,457 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>O.N. Almelo JO11-4 - Speeltijd & Opstelling</title>
+    <title>O.N. Almelo JO11-4 - Wedstrijd & Speeltijd App</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Sticky eerste kolom in de tabelweergave */
         .sticky-col {
             position: sticky;
             left: 0;
-            background-color: #ffffff;
             z-index: 20;
-            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.1);
+            background-color: #ffffff;
+            box-shadow: 3px 0 8px -3px rgba(0, 0, 0, 0.12);
         }
         tr:hover .sticky-col {
-            background-color: #f8fafc;
+            background-color: #fff7ed;
+        }
+        /* Voetbalveld graspatroon */
+        .soccer-pitch {
+            background: repeating-linear-gradient(
+                0deg,
+                #15803d 0px,
+                #15803d 36px,
+                #166534 36px,
+                #166534 72px
+            );
+            position: relative;
+            border: 3px solid rgba(255, 255, 255, 0.85);
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.25);
+        }
+        .pitch-line {
+            border-color: rgba(255, 255, 255, 0.65);
+            pointer-events: none;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen pb-16 font-sans">
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-16">
 
-    <!-- Header -->
-    <header class="bg-orange-600 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <div class="flex items-center gap-3">
-                <div class="bg-white text-orange-600 font-black px-2.5 py-1 rounded text-lg shadow-sm">ON</div>
+    <!-- Top Hero Header (Grafisch Oranje-Zwart O.N. Almelo stijl) -->
+    <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-orange-950 text-white shadow-lg border-b-4 border-orange-500">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md border-2 border-orange-300 font-black text-xl tracking-tighter text-white">
+                    ON
+                </div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-bold leading-tight">Oranje Nassau JO11-4</h1>
-                    <p class="text-orange-100 text-xs">Speeltijdmonitor, 4x 15m Wisselschema & Streefgemiddelde</p>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">Oranje Nassau JO11-4</h1>
+                        <span class="bg-orange-500/20 border border-orange-400/40 text-orange-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                            8v8 • 4x 15 min
+                        </span>
+                    </div>
+                    <p class="text-slate-300 text-xs mt-0.5">Interactieve Veldopstelling, Wisselplanner & Streefgemiddelde Monitor</p>
                 </div>
             </div>
-            <div class="text-xs bg-orange-700 px-3 py-1.5 rounded-full font-semibold">
-                3e klasse (2e fase)
+
+            <!-- Hoofdnavigatie Knoppen -->
+            <div class="flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-xl border border-slate-700">
+                <button onclick="switchMainTab('match')" id="mainTab-match" class="px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow">
+                    ⚽ Wedstrijd & Veld
+                </button>
+                <button onclick="switchMainTab('season')" id="mainTab-season" class="px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer text-slate-300 hover:text-white">
+                    📊 Seizoensmonitor (<span id="savedCountBadge">0</span>)
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Navigatie -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 flex gap-6">
-            <button onclick="switchTab('wedstrijd')" id="tabBtn-wedstrijd" class="py-3.5 px-2 font-bold text-sm text-orange-600 border-b-2 border-orange-600 cursor-pointer">
-                ⚽ Wedstrijd & Opstelling
-            </button>
-            <button onclick="switchTab('seizoen')" id="tabBtn-seizoen" class="py-3.5 px-2 font-bold text-sm text-slate-500 hover:text-slate-800 cursor-pointer">
-                📊 Seizoensoverzicht & Gemiddelden
-            </button>
-        </div>
-    </nav>
-
     <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- TAB 1: WEDSTRIJD & OPSTELLING -->
-        <div id="tab-wedstrijd" class="space-y-6">
+        <!-- ========================================== -->
+        <!-- TAB 1: WEDSTRIJD & VELDPLANNER             -->
+        <!-- ========================================== -->
+        <div id="view-match" class="space-y-6">
 
-            <!-- 1. Wedstrijdgegevens & Keeper -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tegenstander (Competitie)</label>
-                    <select id="opponentSelect" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-slate-50 font-semibold focus:ring-2 focus:ring-orange-500 outline-none">
-                        <option value="avc Heracles O11-2JM">avc Heracles O11-2JM</option>
-                        <option value="Luctor Et Emergo O11-2JM">Luctor Et Emergo O11-2JM</option>
-                        <option value="ASV '57 O11-1JM">ASV '57 O11-1JM</option>
-                        <option value="Langeveen O11-1JM">Langeveen O11-1JM</option>
-                        <option value="TVC '28 O11-2">TVC '28 O11-2</option>
-                        <option value="DETO O11-2JM">DETO O11-2JM</option>
-                        <option value="DOS '37 O11-2">DOS '37 O11-2</option>
-                        <option value="Oefenwedstrijd / Beker">Oefenwedstrijd / Beker</option>
-                    </select>
+            <!-- Bovenste rij: Wedstrijdgegevens & Keeper Configuratie -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                
+                <!-- Kaart 1: Tegenstander & Datum (5 kolommen) -->
+                <div class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> Wedstrijd Details
+                            </h2>
+                            <span class="text-[11px] font-semibold text-slate-400">3e klasse (2e fase)</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Tegenstander</label>
+                                <select id="opponentSelect" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none">
+                                    <option value="avc Heracles O11-2JM">avc Heracles O11-2JM</option>
+                                    <option value="Luctor Et Emergo O11-2JM">Luctor Et Emergo O11-2JM</option>
+                                    <option value="ASV '57 O11-1JM">ASV '57 O11-1JM</option>
+                                    <option value="Langeveen O11-1JM">Langeveen O11-1JM</option>
+                                    <option value="TVC '28 O11-2">TVC '28 O11-2</option>
+                                    <option value="DETO O11-2JM">DETO O11-2JM</option>
+                                    <option value="DOS '37 O11-2">DOS '37 O11-2</option>
+                                    <option value="Oefenwedstrijd / Beker">Oefenwedstrijd / Beker</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Speeldatum</label>
+                                <input type="date" id="matchDate" class="w-full border border-slate-300 rounded-xl p-2 text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex gap-2">
+                        <button onclick="saveMatchToSeason()" class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm transition cursor-pointer flex items-center justify-center gap-1.5">
+                            💾 Wedstrijd Opslaan in Seizoen
+                        </button>
+                        <button onclick="copyWhatsApp()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-3.5 rounded-xl text-xs transition cursor-pointer" title="Deel opstelling via WhatsApp">
+                            💬 WhatsApp
+                        </button>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Datum</label>
-                    <input type="date" id="matchDate" class="w-full border border-slate-300 rounded-lg p-2 text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500">
+
+                <!-- Kaart 2: Keeper Instellingen (Vast of per Periode) (7 kolommen) -->
+                <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            🧤 Keeper Instelling
+                        </h2>
+                        <!-- Vinkje Vaste Keeper -->
+                        <label class="inline-flex items-center cursor-pointer bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                            <input type="checkbox" id="fixedKeeperCheck" checked onchange="toggleFixedKeeperMode()" class="w-4 h-4 text-orange-600 rounded focus:ring-orange-500 cursor-pointer">
+                            <span class="ml-2 text-xs font-bold text-amber-900">Vaste keeper hele wedstrijd (60 min)</span>
+                        </label>
+                    </div>
+
+                    <!-- Modus A: Vaste keeper voor alle 4 de blokken -->
+                    <div id="fixedKeeperBox" class="bg-amber-50/60 border border-amber-200/80 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="text-xs text-amber-900">
+                            <p class="font-bold">1 Vaste Keeper (wisselt niet)</p>
+                            <p class="text-[11px] text-amber-700">Deze speler staat alle 4 de periodes (0-60 min) op doel. Zijn keeperstijd telt niet mee als veldspeler-tijd.</p>
+                        </div>
+                        <div class="sm:w-56">
+                            <select id="singleKeeperSelect" onchange="applyFixedKeeper(this.value)" class="w-full border border-amber-300 rounded-xl p-2.5 text-xs font-extrabold bg-white text-slate-800 shadow-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                                <!-- Dynamisch gevuld, standaard Sep -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Modus B: Niet aangevinkt -> Kies wie vanaf welke periode / hoe lang keept -->
+                    <div id="splitKeeperBox" class="hidden space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
+                            <span class="text-xs font-bold text-slate-700">Snel kiezen (Hoe lang keept men?):</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button onclick="setKeeperSplitPreset('half')" class="text-[11px] bg-white hover:bg-orange-50 border border-slate-300 font-bold px-2.5 py-1 rounded-lg cursor-pointer transition">
+                                    2x 30 min (Wissel in de rust vanaf Periode 3)
+                                </button>
+                                <button onclick="setKeeperSplitPreset('lastQuarter')" class="text-[11px] bg-white hover:bg-orange-50 border border-slate-300 font-bold px-2.5 py-1 rounded-lg cursor-pointer transition">
+                                    45m / 15m (Wissel vanaf Periode 4)
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200">
+                                <label class="block text-[10px] font-extrabold uppercase text-amber-800 mb-1">Periode 1 (0-15m)</label>
+                                <select id="keeperQ1" onchange="setQuarterKeeper(1, this.value)" class="w-full border border-amber-300 rounded-lg p-1.5 text-xs font-bold bg-white"></select>
+                            </div>
+                            <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200">
+                                <label class="block text-[10px] font-extrabold uppercase text-amber-800 mb-1">Periode 2 (15-30m)</label>
+                                <select id="keeperQ2" onchange="setQuarterKeeper(2, this.value)" class="w-full border border-amber-300 rounded-lg p-1.5 text-xs font-bold bg-white"></select>
+                            </div>
+                            <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200">
+                                <label class="block text-[10px] font-extrabold uppercase text-amber-800 mb-1">Periode 3 (30-45m)</label>
+                                <select id="keeperQ3" onchange="setQuarterKeeper(3, this.value)" class="w-full border border-amber-300 rounded-lg p-1.5 text-xs font-bold bg-white"></select>
+                            </div>
+                            <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200">
+                                <label class="block text-[10px] font-extrabold uppercase text-amber-800 mb-1">Periode 4 (45-60m)</label>
+                                <select id="keeperQ4" onchange="setQuarterKeeper(4, this.value)" class="w-full border border-amber-300 rounded-lg p-1.5 text-xs font-bold bg-white"></select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Vaste Keeper Vandaag</label>
-                    <select id="defaultKeeperSelect" onchange="changeDefaultKeeper(this.value)" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-amber-50 font-semibold text-amber-900 focus:ring-2 focus:ring-orange-500 outline-none">
-                        <!-- Dynamisch gevuld met aanwezige spelers, standaard Sep -->
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button onclick="saveMatchToSeason()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 px-4 rounded-lg text-sm shadow transition cursor-pointer">
-                        💾 Wedstrijd Opslaan
-                    </button>
-                </div>
+
             </div>
 
-            <!-- 2. Aanwezigheid & Gastspelers -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 space-y-5">
+            <!-- Tweede rij: Aanwezigheid & Gastspelers -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
                 <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-slate-800 text-sm">👥 Aanwezigheid Vaste Selectie (9 spelers)</h3>
-                        <span class="text-xs text-slate-500">Klik op een naam om speler <strong class="text-rose-600">afwezig</strong> te zetten (telt dan niet mee voor zijn gemiddelde)</span>
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-2.5">
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            👥 Selectie Aanwezigheid (Vandaag)
+                        </h3>
+                        <span class="text-xs text-slate-400">Klik op een speler om hem <strong class="text-rose-600">afwezig</strong> te zetten (telt dan niet mee voor zijn seizoensgemiddelde)</span>
                     </div>
-                    <div id="attendanceList" class="flex flex-wrap gap-2"></div>
+                    <div id="attendancePills" class="flex flex-wrap gap-2"></div>
                 </div>
 
-                <!-- Gastspelers sectie -->
-                <div class="border-t border-slate-200 pt-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <!-- Gastspelers Toevoegen -->
+                <div class="border-t border-slate-100 pt-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
                         <div class="flex items-center gap-3">
-                            <h3 class="font-bold text-slate-800 text-sm">➕ Gastspeler(s) deze wedstrijd</h3>
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">➕ Gastspeler(s) meenemen?</span>
                             <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="hasGuestToggle" onchange="toggleGuestSection()" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-orange-600"></div>
-                                <span class="ml-2 text-xs font-semibold text-slate-600">Gastspeler meenemen</span>
+                                <input type="checkbox" id="guestToggleCheck" onchange="toggleGuestPanel()" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all relative peer-checked:bg-orange-500"></div>
+                                <span class="ml-2 text-xs font-semibold text-slate-600">Ja, voeg gastspeler(s) toe</span>
                             </label>
                         </div>
                     </div>
 
-                    <div id="guestSectionBody" class="hidden space-y-3 bg-slate-50 p-3.5 rounded-lg border border-slate-200">
-                        <div id="guestRowsContainer" class="space-y-2"></div>
-                        <div class="pt-1">
-                            <button onclick="addGuestRow()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition cursor-pointer">
-                                + Nog een gastspeler toevoegen
-                            </button>
-                        </div>
+                    <div id="guestPanel" class="hidden mt-3 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <div id="guestRowsList" class="space-y-2"></div>
+                        <button onclick="addGuestPlayerRow()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition cursor-pointer">
+                            + Nog een extra gastspeler toevoegen
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. Actieknoppen: Eerlijke Opstelling & Noodwissel -->
-            <div class="flex flex-wrap gap-3 items-center justify-between">
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="generateFairLineup()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow transition cursor-pointer flex items-center gap-2">
-                        ⚡ Genereer Eerlijke Opstelling (Streefgemiddelde)
+            <!-- Derde rij: Generator Balk, Weergave Switch (Veld vs Tabel) & Noodwissel -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
+                
+                <!-- Links: Slimme Generator & Reset -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="generateFairLineup()" class="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition cursor-pointer flex items-center gap-2">
+                        ⚡ Stel Eerlijke Opstelling Voor (Streefgemiddelde)
                     </button>
-                    <button onclick="clearCurrentLineup()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm px-3.5 py-2.5 rounded-lg transition cursor-pointer">
-                        Schema Leegmaken
+                    <button onclick="openEmergencyModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl shadow-sm transition cursor-pointer flex items-center gap-1.5">
+                        🚨 Noodwissel (Blessure)
+                    </button>
+                    <button onclick="resetMatchLineup()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs px-3 py-2.5 rounded-xl transition cursor-pointer">
+                        Leegmaken
                     </button>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="openEmergencyModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow transition cursor-pointer flex items-center gap-1.5">
-                        🚨 Noodwissel / Blessure Invoeren
+
+                <!-- Rechts: Schakelen tussen Veldplattegrond en Tabel -->
+                <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button onclick="setDisplayMode('pitch')" id="modeBtn-pitch" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer bg-white text-orange-600 shadow-sm">
+                        🏟️ Veldplattegrond (Per Blok)
                     </button>
-                    <button onclick="copyWhatsApp()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-sm px-3.5 py-2.5 rounded-lg transition cursor-pointer">
-                        💬 Kopieer voor WhatsApp
+                    <button onclick="setDisplayMode('pitchAll')" id="modeBtn-pitchAll" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                        🏟️ 4 Veldjes Overzicht
+                    </button>
+                    <button onclick="setDisplayMode('table')" id="modeBtn-table" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer text-slate-600 hover:text-slate-900">
+                        📋 Matrix Tabel
                     </button>
                 </div>
             </div>
 
             <!-- Actieve Noodwissels Melding -->
-            <div id="emergencyBanner" class="hidden bg-rose-50 border border-rose-200 p-4 rounded-xl">
-                <div class="flex justify-between items-center mb-2">
-                    <h4 class="font-bold text-rose-800 text-xs uppercase">🚨 Geregistreerde Noodwissels (buiten de kwartierwissels om):</h4>
+            <div id="emergencyAlertBox" class="hidden bg-rose-50 border-2 border-rose-200 p-4 rounded-2xl">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-extrabold uppercase text-rose-800 flex items-center gap-1.5">
+                        🚨 Tussentijdse Noodwissels / Blessures (Speeltijd wordt automatisch op de minuut gecorrigeerd)
+                    </h4>
                 </div>
-                <div id="emergencyItemsList" class="space-y-1.5 text-xs text-rose-900"></div>
+                <div id="emergencyItemsContainer" class="space-y-1.5 text-xs text-rose-900"></div>
             </div>
 
-            <!-- 4. Opstelling Tabel (Met Sticky Linkerkolom) -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                    <h3 class="font-bold text-slate-800 text-sm">Opstelling Schema (4 x 15 minuten)</h3>
-                    <span class="text-xs text-slate-500">Scroll horizontaal op je telefoon — de positiekolom links blijft vast staan</span>
+            <!-- ========================================================= -->
+            <!-- WEERGAVE 1: INTERACTIEVE VELDPLATTEGROND PER BLOK         -->
+            <!-- ========================================================= -->
+            <div id="display-pitch" class="space-y-4">
+                
+                <!-- Blok Selector Tabs (Periode 1 t/m 4) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <button onclick="selectActiveQuarter(1)" id="qTab-1" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-orange-600 text-white border-orange-600 shadow-md">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-black uppercase tracking-wider">Blok 1</span>
+                            <span class="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-bold">0 - 15 min</span>
+                        </div>
+                        <div id="qTabSub-1" class="text-[11px] mt-1 font-medium text-orange-100 truncate">Wissel: -</div>
+                    </button>
+                    <button onclick="selectActiveQuarter(2)" id="qTab-2" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-white text-slate-700 border-slate-200 hover:border-orange-300">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-black uppercase tracking-wider">Blok 2</span>
+                            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">15 - 30 min</span>
+                        </div>
+                        <div id="qTabSub-2" class="text-[11px] mt-1 font-medium text-slate-400 truncate">Wissel: -</div>
+                    </button>
+                    <button onclick="selectActiveQuarter(3)" id="qTab-3" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-white text-slate-700 border-slate-200 hover:border-orange-300">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-black uppercase tracking-wider">Blok 3</span>
+                            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">30 - 45 min</span>
+                        </div>
+                        <div id="qTabSub-3" class="text-[11px] mt-1 font-medium text-slate-400 truncate">Wissel: -</div>
+                    </button>
+                    <button onclick="selectActiveQuarter(4)" id="qTab-4" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-white text-slate-700 border-slate-200 hover:border-orange-300">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-black uppercase tracking-wider">Blok 4</span>
+                            <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">45 - 60 min</span>
+                        </div>
+                        <div id="qTabSub-4" class="text-[11px] mt-1 font-medium text-slate-400 truncate">Wissel: -</div>
+                    </button>
+                </div>
+
+                <!-- Het Veld + Zijpaneel voor het Geselecteerde Blok -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <!-- Links: Het 2D Voetbalveld met Pull-down Menu's op de Posities (8 kolommen) -->
+                    <div class="lg:col-span-8">
+                        <div id="singlePitchContainer"></div>
+                    </div>
+
+                    <!-- Rechts: Wisselbank & Wissel-instructies voor dit blok (4 kolommen) -->
+                    <div class="lg:col-span-4 space-y-4">
+                        
+                        <!-- Wisselbank Kaart van dit kwartier -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-orange-600 flex items-center gap-1.5">
+                                    🔄 Wisselbank in Blok <span id="sideBenchQuarterNum">1</span>
+                                </h4>
+                                <span class="text-[11px] font-bold bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full">15 min rust</span>
+                            </div>
+                            <div id="sideBenchPlayersList" class="space-y-2"></div>
+                        </div>
+
+                        <!-- Wat verandert er bij deze wissel? -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-3">
+                                📋 Wissel-instructies voor Blok <span id="sideInstrQuarterNum">1</span>
+                            </h4>
+                            <div id="sideQuarterInstructions" class="text-xs text-slate-600 space-y-2"></div>
+                        </div>
+
+                        <!-- Positie Legenda -->
+                        <div class="bg-slate-800 text-slate-200 rounded-2xl p-4 text-xs space-y-1.5">
+                            <div class="font-bold text-orange-400 uppercase tracking-wider text-[11px] mb-1">Team Afspraken JO11-4</div>
+                            <div>• <strong>Keeper:</strong> Sep (of ingestelde periode-keeper)</div>
+                            <div>• <strong>Achterin (LV-CV-RV):</strong> Jonathan, Vince, Mika (+ Jesper)</div>
+                            <div>• <strong>Midden (LM-CM-RM):</strong> Kerem (CVM), Jesper, Bodi, Noud</div>
+                            <div>• <strong>Spits (SP):</strong> Arthur (+ Noud)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- WEERGAVE 2: ALLE 4 DE VELDJES NAAST ELKAAR (2x2 GRID)     -->
+            <!-- ========================================================= -->
+            <div id="display-pitchAll" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Wordt dynamisch gevuld met alle 4 de blok-veldjes -->
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- WEERGAVE 3: MATRIX TABEL MET VASTE LINKERKOLOM            -->
+            <!-- ========================================================= -->
+            <div id="display-table" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
+                    <h3 class="font-extrabold text-slate-800 text-sm">📋 Complete 4x 15 Minuten Matrix</h3>
+                    <span class="text-xs text-slate-500">De linker kolom met de positienaam blijft altijd vast in beeld bij horizontaal scrollen</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[760px]">
                         <thead>
                             <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b border-slate-200">
-                                <th class="p-3 sticky-col w-48 border-r border-slate-200">Positie</th>
-                                <th class="p-3 w-1/4">Periode 1 (0 - 15m)</th>
-                                <th class="p-3 w-1/4">Periode 2 (15 - 30m)</th>
-                                <th class="p-3 w-1/4">Periode 3 (30 - 45m)</th>
-                                <th class="p-3 w-1/4">Periode 4 (45 - 60m)</th>
+                                <th class="p-3.5 sticky-col w-48 border-r border-slate-200 font-extrabold">Positie</th>
+                                <th class="p-3.5 w-1/4 font-extrabold">Blok 1 (0 - 15m)</th>
+                                <th class="p-3.5 w-1/4 font-extrabold">Blok 2 (15 - 30m)</th>
+                                <th class="p-3.5 w-1/4 font-extrabold">Blok 3 (30 - 45m)</th>
+                                <th class="p-3.5 w-1/4 font-extrabold">Blok 4 (45 - 60m)</th>
                             </tr>
                         </thead>
-                        <tbody id="lineupTableBody" class="divide-y divide-slate-100 text-xs">
-                            <!-- Wordt dynamisch opgebouwd -->
-                        </tbody>
+                        <tbody id="matrixTableBody" class="divide-y divide-slate-100 text-xs"></tbody>
                         <tfoot>
-                            <tr class="bg-orange-50/70 border-t-2 border-orange-200">
-                                <td class="p-3 sticky-col font-bold text-orange-900 text-xs border-r border-orange-200 bg-orange-50">
+                            <tr class="bg-orange-50/90 border-t-2 border-orange-200">
+                                <td class="p-3.5 sticky-col font-extrabold text-orange-900 text-xs border-r border-orange-200 bg-orange-50">
                                     🔄 Wisselbank (15m)
                                 </td>
-                                <td id="bench-q1" class="p-3 text-xs font-bold text-orange-800"></td>
-                                <td id="bench-q2" class="p-3 text-xs font-bold text-orange-800"></td>
-                                <td id="bench-q3" class="p-3 text-xs font-bold text-orange-800"></td>
-                                <td id="bench-q4" class="p-3 text-xs font-bold text-orange-800"></td>
+                                <td id="matrixBench-1" class="p-3.5 text-xs font-bold text-orange-800"></td>
+                                <td id="matrixBench-2" class="p-3.5 text-xs font-bold text-orange-800"></td>
+                                <td id="matrixBench-3" class="p-3.5 text-xs font-bold text-orange-800"></td>
+                                <td id="matrixBench-4" class="p-3.5 text-xs font-bold text-orange-800"></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
 
-            <!-- 5. Live Speeltijd Monitor van DEZE wedstrijd + Nieuwe Seizoensstand -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-3">
-                        <h4 class="font-bold text-slate-800 text-sm">⏱ Speeltijd Vandaag & Effect op Streefgemiddelde</h4>
-                        <span id="todayTargetBadge" class="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded font-bold"></span>
+            <!-- ========================================================= -->
+            <!-- ONDERSTE SECTIE: LIVE SPEELTIJD & STREEFGEMIDDELDE MONITOR -->
+            <!-- ========================================================= -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">
+                            ⏱ Speeltijd Monitor (Deze Wedstrijd + Nieuw Seizoensgemiddelde)
+                        </h3>
+                        <p class="text-xs text-slate-500">
+                            Keeperstijd staat los van de veldspeeltijd. Het streefgemiddelde toont de exacte gelijke verdeling over alle aanwezige veldspelers.
+                        </p>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-200 text-slate-500 uppercase">
-                                    <th class="py-2">Speler</th>
-                                    <th class="py-2 text-center">Veldmin. Vandaag</th>
-                                    <th class="py-2 text-center">Keeper Vandaag</th>
-                                    <th class="py-2 text-center">Nieuw Seizoensgem.</th>
-                                    <th class="py-2 text-center">Streefdoel</th>
-                                </tr>
-                            </thead>
-                            <tbody id="liveMatchMinutesBody" class="divide-y divide-slate-100"></tbody>
-                        </table>
+                    <div id="matchTargetPill" class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold px-3 py-1.5 rounded-xl">
+                        Streefgemiddelde Vandaag: 52.5 min
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <h4 class="font-bold text-slate-800 text-sm mb-3">📋 Wisseloverzicht per Periode (Langs de lijn)</h4>
-                    <div id="subInstructionsBox" class="space-y-2.5 text-xs text-slate-700"></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs min-w-[640px]">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 uppercase border-b border-slate-200">
+                                <th class="p-2.5">Speler</th>
+                                <th class="p-2.5 text-center">Veldminuten Vandaag</th>
+                                <th class="p-2.5 text-center">Keeper Vandaag</th>
+                                <th class="p-2.5 text-center">Wisselbeurten</th>
+                                <th class="p-2.5 text-center">Nieuw Gemiddelde (Seizoen)</th>
+                                <th class="p-2.5 text-center">Persoonlijk Streefgem.</th>
+                                <th class="p-2.5 text-center">Balans t.o.v. Streef</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveMonitorBody" class="divide-y divide-slate-100"></tbody>
+                    </table>
                 </div>
             </div>
 
         </div>
 
-        <!-- TAB 2: SEIZOENSOVERZICHT -->
-        <div id="tab-seizoen" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+        <!-- ========================================== -->
+        <!-- TAB 2: SEIZOENSMONITOR & HISTORIE          -->
+        <!-- ========================================== -->
+        <div id="view-season" class="hidden space-y-6">
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-5">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800">📊 Seizoensoverzicht & Streefgemiddelden</h3>
-                        <p class="text-xs text-slate-500">
-                            • Alleen wedstrijden waarin een speler <strong>aanwezig</strong> was tellen mee voor zijn gemiddelde.<br>
-                            • Keeperstijd telt <strong>niet</strong> mee in het veldspelers-streefgemiddelde.
+                        <h2 class="text-lg font-extrabold text-slate-800">📊 Seizoensoverzicht O.N. Almelo JO11-4</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            • Ben je afwezig, dan telt die wedstrijd <strong>niet</strong> mee voor jouw gemiddelde.<br>
+                            • Minuten als keeper tellen <strong>niet</strong> mee bij de veldspeler-gemiddelden.
                         </p>
                     </div>
-                    <button onclick="resetAllSeasonData()" class="text-xs text-rose-600 hover:underline font-semibold self-start">
-                        Seizoensdata volledig wissen
+                    <button onclick="clearSeasonHistory()" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3.5 py-2 rounded-xl border border-rose-200 cursor-pointer self-start">
+                        🗑 Alle Seizoensdata Wissen
                     </button>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[680px] text-xs">
+                    <table class="w-full text-left border-collapse min-w-[700px] text-xs">
                         <thead>
                             <tr class="bg-slate-100 text-slate-600 uppercase border-b border-slate-200">
                                 <th class="p-3">Speler</th>
@@ -238,414 +461,770 @@
                                 <th class="p-3 text-center">Afwezig</th>
                                 <th class="p-3 text-center">Totaal Veldmin.</th>
                                 <th class="p-3 text-center">Gem. Veldmin / Duel</th>
-                                <th class="p-3 text-center">Persoonlijk Streefgem.</th>
+                                <th class="p-3 text-center">Streefgemiddelde</th>
                                 <th class="p-3 text-center">Verschil t.o.v. Streef</th>
-                                <th class="p-3 text-center">Keepermin.</th>
+                                <th class="p-3 text-center">Keeperminuten</th>
                             </tr>
                         </thead>
-                        <tbody id="seasonTableBody" class="divide-y divide-slate-100"></tbody>
+                        <tbody id="seasonOverviewBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h4 class="font-bold text-slate-800 text-sm mb-3">📁 Opgeslagen Wedstrijden in dit Seizoen</h4>
-                <div id="savedMatchesList" class="space-y-2"></div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 mb-3">📁 Opgeslagen Wedstrijden</h3>
+                <div id="savedMatchesList" class="space-y-2.5"></div>
             </div>
         </div>
 
     </main>
 
-    <!-- MODAL: NOODWISSEL / BLESSURE -->
-    <div id="emergencyModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+    <!-- ========================================== -->
+    <!-- MODAL: NOODWISSEL / BLESSURE               -->
+    <!-- ========================================== -->
+    <div id="emergencyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div class="flex justify-between items-center">
-                <h3 class="font-bold text-slate-800 text-base text-rose-600 flex items-center gap-1.5">
-                    🚨 Noodwissel (Blessure / Tussentijds)
+                <h3 class="font-extrabold text-base text-rose-600 flex items-center gap-2">
+                    🚨 Tussentijdse Noodwissel (Blessure)
                 </h3>
-                <button onclick="closeEmergencyModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+                <button onclick="closeEmergencyModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer">✕</button>
             </div>
             <p class="text-xs text-slate-500">
-                Kies de minuut waarin gewisseld wordt. De app toont automatisch wie er in dat kwartier in het veld staan en wie er op de bank zit, en berekent de exacte speelminuten.
+                Geef aan wie voor wie wisselt en in welke minuut. De app berekent direct de exacte speelminuten voor beide spelers in die periode.
             </p>
             <div>
-                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tijdstip in de wedstrijd (Minuut 1 - 60)</label>
-                <input type="number" id="emMinuteInput" min="1" max="59" value="20" onchange="populateEmergencyPlayers()" onkeyup="populateEmergencyPlayers()" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm font-bold">
-                <span id="emQuarterHint" class="text-[11px] text-orange-600 font-semibold mt-1 block">Valt in Periode 2 (15 - 30m)</span>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">In welke minuut wordt er gewisseld? (1 - 59)</label>
+                <input type="number" id="emMinute" min="1" max="59" value="22" oninput="refreshEmergencyDropdowns()" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm font-extrabold text-slate-800 outline-none focus:ring-2 focus:ring-rose-500">
+                <span id="emPeriodInfo" class="block text-[11px] font-bold text-orange-600 mt-1">Valt in Blok 2 (15 - 30 min)</span>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Speler die uitvalt (Uit het veld)</label>
-                <select id="emPlayerOut" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white"></select>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Speler die eruit gaat (Op het veld)</label>
+                <select id="emOutSelect" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-bold bg-white"></select>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Vervanger (Vanaf de wisselbank)</label>
-                <select id="emPlayerIn" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm bg-white"></select>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Speler die erin komt (Van de wisselbank)</label>
+                <select id="emInSelect" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-bold bg-white"></select>
             </div>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeEmergencyModal()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg text-xs cursor-pointer">Annuleren</button>
-                <button onclick="saveEmergencySub()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-lg text-xs cursor-pointer">NoodwisselVastleggen</button>
+                <button onclick="closeEmergencyModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs cursor-pointer">
+                    Annuleren
+                </button>
+                <button onclick="confirmEmergencySub()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs shadow cursor-pointer">
+                    Noodwissel Opslaan
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // 1. VASTE TEAMDATA O.N. ALMELO JO11-4
-        // ==========================================
-        const BASE_SQUAD = [
-            { name: "Sep", roleLabel: "Keeper", pos1: "Keeper", pos2: "", specific: ["GK"] },
-            { name: "Jonathan", roleLabel: "Verdediger", pos1: "Verdediging", pos2: "", specific: ["LV", "CV", "RV"] },
-            { name: "Vince", roleLabel: "Verdediger", pos1: "Verdediging", pos2: "", specific: ["LV", "CV", "RV"] },
-            { name: "Mika", roleLabel: "Verdediger", pos1: "Verdediging", pos2: "", specific: ["LV", "CV", "RV"] },
-            { name: "Jesper", roleLabel: "Middenveld / Verdediger", pos1: "Middenveld", pos2: "Verdediging", specific: ["LM", "RM", "LV", "CV", "RV"] },
-            { name: "Kerem", roleLabel: "Verdedigend Middenveld (CVM)", pos1: "Middenveld", pos2: "", specific: ["CM"] },
-            { name: "Bodi", roleLabel: "Middenvelder", pos1: "Middenveld", pos2: "", specific: ["LM", "RM", "CM"] },
-            { name: "Noud", roleLabel: "Middenveld / Spits", pos1: "Middenveld", pos2: "Aanval", specific: ["LM", "RM", "SP"] },
-            { name: "Arthur", roleLabel: "Spits", pos1: "Aanval", pos2: "", specific: ["SP"] }
+        // =========================================================
+        // 1. TEAM DATA & POSITIES (O.N. ALMELO JO11-4)
+        // =========================================================
+        const BASE_PLAYERS = [
+            { name: "Sep", role: "Keeper", pos1: "Keeper", pos2: "", badge: "GK", color: "amber" },
+            { name: "Jonathan", role: "Verdediger", pos1: "Verdediging", pos2: "", badge: "VER", color: "blue" },
+            { name: "Vince", role: "Verdediger", pos1: "Verdediging", pos2: "", badge: "VER", color: "blue" },
+            { name: "Mika", role: "Verdediger", pos1: "Verdediging", pos2: "", badge: "VER", color: "blue" },
+            { name: "Jesper", role: "Middenveld / Verdediger", pos1: "Middenveld", pos2: "Verdediging", badge: "MID/VER", color: "emerald" },
+            { name: "Kerem", role: "Verdedigend Middenveld", pos1: "Middenveld", pos2: "", badge: "CVM", color: "emerald" },
+            { name: "Bodi", role: "Middenvelder", pos1: "Middenveld", pos2: "", badge: "MID", color: "emerald" },
+            { name: "Noud", role: "Middenveld / Spits", pos1: "Middenveld", pos2: "Aanval", badge: "MID/SP", color: "purple" },
+            { name: "Arthur", role: "Spits", pos1: "Aanval", pos2: "", badge: "SP", color: "rose" }
         ];
 
         const POSITIONS = [
-            { id: "GK", label: "Keeper (GK)", line: "Keeper" },
-            { id: "LV", label: "Linksachter (LV)", line: "Verdediging" },
-            { id: "CV", label: "Centraal Achter (CV)", line: "Verdediging" },
-            { id: "RV", label: "Rechtsachter (RV)", line: "Verdediging" },
-            { id: "LM", label: "Linkermidden (LM)", line: "Middenveld" },
-            { id: "CM", label: "Centraal / CVM (CM)", line: "Middenveld" },
-            { id: "RM", label: "Rechtermidden (RM)", line: "Middenveld" },
-            { id: "SP", label: "Spits (SP)", line: "Aanval" }
+            { id: "SP", short: "SP", label: "Spits (SP)", line: "Aanval", hint: "Arthur / Noud" },
+            { id: "LM", short: "LM", label: "Linkermidden (LM)", line: "Middenveld", hint: "Jesper / Bodi / Noud" },
+            { id: "CM", short: "CM (CVM)", label: "Centraal / CVM (CM)", line: "Middenveld", hint: "Kerem" },
+            { id: "RM", short: "RM", label: "Rechtermidden (RM)", line: "Middenveld", hint: "Jesper / Bodi / Noud" },
+            { id: "LV", short: "LV", label: "Linksachter (LV)", line: "Verdediging", hint: "Jonathan / Vince / Mika / Jesper" },
+            { id: "CV", short: "CV", label: "Centraal Achter (CV)", line: "Verdediging", hint: "Jonathan / Vince / Mika / Jesper" },
+            { id: "RV", short: "RV", label: "Rechtsachter (RV)", line: "Verdediging", hint: "Jonathan / Vince / Mika / Jesper" },
+            { id: "GK", short: "GK", label: "Keeper (GK)", line: "Keeper", hint: "Sep" }
         ];
 
-        // State
+        // Volgorde voor de tabel (van Keeper naar Spits)
+        const TABLE_POSITIONS = [
+            POSITIONS[7], // GK
+            POSITIONS[4], // LV
+            POSITIONS[5], // CV
+            POSITIONS[6], // RV
+            POSITIONS[1], // LM
+            POSITIONS[2], // CM
+            POSITIONS[3], // RM
+            POSITIONS[0]  // SP
+        ];
+
+        // Applicatie State
         let attendance = {};
-        let defaultKeeper = "Sep";
         let guestPlayers = []; // [{ id, name, pos1, pos2 }]
+        let isFixedKeeper = true;
+        let fixedKeeperName = "Sep";
+        let quarterKeepers = { 1: "Sep", 2: "Sep", 3: "Sep", 4: "Sep" };
         let lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
         let emergencySubs = []; // [{ id, minute, quarter, out, in, posId }]
-        let savedMatches = JSON.parse(localStorage.getItem('ona_jo11_4_season_v2') || '[]');
+        let activeQuarterView = 1; // 1, 2, 3 of 4
+        let displayMode = "pitch"; // 'pitch' | 'pitchAll' | 'table'
+        let savedMatches = JSON.parse(localStorage.getItem('ona_jo11_4_season_v3') || '[]');
 
-        // Init
-        BASE_SQUAD.forEach(p => attendance[p.name] = true);
+        // Initieel iedereen aanwezig zetten
+        BASE_PLAYERS.forEach(p => attendance[p.name] = true);
         document.getElementById('matchDate').valueAsDate = new Date();
 
-        function init() {
-            renderAttendance();
-            renderKeeperSelector();
-            // Zet standaard keeper op GK in alle 4 blokken
-            for (let q = 1; q <= 4; q++) lineup[q]["GK"] = defaultKeeper;
-            renderLineupTable();
-            updateLiveMatchCalculations();
-            renderSeasonTable();
+        function initApp() {
+            // Zet standaard keeper in alle 4 de blokken
+            for (let q = 1; q <= 4; q++) {
+                lineup[q]["GK"] = fixedKeeperName;
+            }
+            renderAttendancePills();
+            renderKeeperControls();
+            // Vul direct bij de start alvast een slimme eerlijke basisopstelling in zodat het veld direct mooi gevuld is
+            generateFairLineup();
+            renderSeasonOverview();
         }
 
-        function switchTab(tab) {
-            document.getElementById('tab-wedstrijd').classList.toggle('hidden', tab !== 'wedstrijd');
-            document.getElementById('tab-seizoen').classList.toggle('hidden', tab !== 'seizoen');
-            document.getElementById('tabBtn-wedstrijd').className = tab === 'wedstrijd'
-                ? "py-3.5 px-2 font-bold text-sm text-orange-600 border-b-2 border-orange-600 cursor-pointer"
-                : "py-3.5 px-2 font-bold text-sm text-slate-500 hover:text-slate-800 cursor-pointer";
-            document.getElementById('tabBtn-seizoen').className = tab === 'seizoen'
-                ? "py-3.5 px-2 font-bold text-sm text-orange-600 border-b-2 border-orange-600 cursor-pointer"
-                : "py-3.5 px-2 font-bold text-sm text-slate-500 hover:text-slate-800 cursor-pointer";
-            if (tab === 'seizoen') renderSeasonTable();
+        function switchMainTab(tab) {
+            document.getElementById('view-match').classList.toggle('hidden', tab !== 'match');
+            document.getElementById('view-season').classList.toggle('hidden', tab !== 'season');
+
+            document.getElementById('mainTab-match').className = tab === 'match'
+                ? "px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow"
+                : "px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer text-slate-300 hover:text-white";
+            document.getElementById('mainTab-season').className = tab === 'season'
+                ? "px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer bg-orange-500 text-white shadow"
+                : "px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer text-slate-300 hover:text-white";
+
+            if (tab === 'season') renderSeasonOverview();
         }
 
-        // ==========================================
-        // 2. AANWEZIGHEID, KEEPER & GASTSPELERS
-        // ==========================================
+        function setDisplayMode(mode) {
+            displayMode = mode;
+            document.getElementById('display-pitch').classList.toggle('hidden', mode !== 'pitch');
+            document.getElementById('display-pitchAll').classList.toggle('hidden', mode !== 'pitchAll');
+            document.getElementById('display-table').classList.toggle('hidden', mode !== 'table');
+
+            ['pitch', 'pitchAll', 'table'].forEach(m => {
+                const btn = document.getElementById(`modeBtn-${m}`);
+                btn.className = (m === mode)
+                    ? "px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer bg-white text-orange-600 shadow-sm"
+                    : "px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition cursor-pointer text-slate-600 hover:text-slate-900";
+            });
+
+            renderAllViews();
+        }
+
+        function selectActiveQuarter(q) {
+            activeQuarterView = q;
+            for (let i = 1; i <= 4; i++) {
+                const tab = document.getElementById(`qTab-${i}`);
+                const sub = document.getElementById(`qTabSub-${i}`);
+                if (i === q) {
+                    tab.className = "p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-orange-600 text-white border-orange-600 shadow-md";
+                    sub.className = "text-[11px] mt-1 font-medium text-orange-100 truncate";
+                } else {
+                    tab.className = "p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-white text-slate-700 border-slate-200 hover:border-orange-300";
+                    sub.className = "text-[11px] mt-1 font-medium text-slate-400 truncate";
+                }
+            }
+            renderAllViews();
+        }
+
+        // =========================================================
+        // 2. SPELERS, AANWEZIGHEID & GASTSPELERS
+        // =========================================================
         function getActivePlayers() {
-            const base = BASE_SQUAD.filter(p => attendance[p.name]);
+            const base = BASE_PLAYERS.filter(p => attendance[p.name]);
             const guests = guestPlayers
                 .filter(g => g.name.trim() !== "")
                 .map(g => ({
                     name: `${g.name.trim()} (Gast)`,
-                    roleLabel: `Gast (${g.pos1}${g.pos2 ? '/' + g.pos2 : ''})`,
+                    role: `Gast (${g.pos1}${g.pos2 ? '/' + g.pos2 : ''})`,
                     pos1: g.pos1,
                     pos2: g.pos2,
-                    specific: [],
+                    badge: "GAST",
+                    color: "orange",
                     isGuest: true
                 }));
             return [...base, ...guests];
         }
 
-        function renderAttendance() {
-            const container = document.getElementById('attendanceList');
+        function renderAttendancePills() {
+            const container = document.getElementById('attendancePills');
             container.innerHTML = '';
-            BASE_SQUAD.forEach(p => {
-                const present = attendance[p.name];
+            BASE_PLAYERS.forEach(p => {
+                const isPresent = attendance[p.name];
                 const btn = document.createElement('button');
-                btn.className = `px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
-                    present 
-                    ? 'bg-orange-50 border-orange-300 text-orange-900 hover:bg-orange-100' 
-                    : 'bg-slate-100 border-slate-300 text-slate-400 line-through'
+                btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                    isPresent
+                        ? 'bg-slate-50 border-slate-300 text-slate-800 hover:border-orange-400 shadow-2xs'
+                        : 'bg-rose-50/60 border-rose-200 text-slate-400 line-through'
                 }`;
-                btn.innerHTML = `<span>${p.name}</span> <span class="text-[10px] font-normal text-slate-500">(${p.roleLabel})</span> <span>${present ? '✅' : '❌'}</span>`;
+                btn.innerHTML = `
+                    <span>${p.name}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-600 font-extrabold">${p.badge}</span>
+                    <span>${isPresent ? '✅' : '❌'}</span>
+                `;
                 btn.onclick = () => {
-                    attendance[p.name] = !present;
-                    // Verwijder afwezige speler uit opstelling
+                    attendance[p.name] = !isPresent;
                     if (!attendance[p.name]) {
+                        // Haal afwezige speler uit opstelling
                         for (let q = 1; q <= 4; q++) {
                             for (let pos in lineup[q]) {
                                 if (lineup[q][pos] === p.name) delete lineup[q][pos];
                             }
                         }
                     }
-                    renderAttendance();
-                    renderKeeperSelector();
-                    renderLineupTable();
-                    updateLiveMatchCalculations();
+                    renderAttendancePills();
+                    renderKeeperControls();
+                    renderAllViews();
                 };
                 container.appendChild(btn);
             });
         }
 
-        function renderKeeperSelector() {
-            const sel = document.getElementById('defaultKeeperSelect');
-            const active = getActivePlayers();
-            sel.innerHTML = '';
-            if (!active.some(p => p.name === defaultKeeper) && active.length > 0) {
-                defaultKeeper = active[0].name;
-            }
-            active.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.name;
-                opt.innerText = `${p.name} (60m Keeper)`;
-                if (p.name === defaultKeeper) opt.selected = true;
-                sel.appendChild(opt);
-            });
-        }
-
-        function changeDefaultKeeper(newKeeper) {
-            defaultKeeper = newKeeper;
-            for (let q = 1; q <= 4; q++) {
-                // Als de nieuwe keeper al ergens in het veld stond in blok q, maak die plek vrij
-                for (let posId in lineup[q]) {
-                    if (lineup[q][posId] === newKeeper) delete lineup[q][posId];
-                }
-                lineup[q]["GK"] = newKeeper;
-            }
-            renderLineupTable();
-            updateLiveMatchCalculations();
-        }
-
-        function toggleGuestSection() {
-            const enabled = document.getElementById('hasGuestToggle').checked;
-            const body = document.getElementById('guestSectionBody');
-            body.classList.toggle('hidden', !enabled);
-            if (enabled && guestPlayers.length === 0) {
-                addGuestRow();
-            } else if (!enabled) {
+        function toggleGuestPanel() {
+            const checked = document.getElementById('guestToggleCheck').checked;
+            const panel = document.getElementById('guestPanel');
+            panel.classList.toggle('hidden', !checked);
+            if (checked && guestPlayers.length === 0) {
+                addGuestPlayerRow();
+            } else if (!checked) {
+                // Verwijder gastspelers uit opstelling
+                guestPlayers.forEach(g => {
+                    const gName = `${g.name.trim()} (Gast)`;
+                    for (let q = 1; q <= 4; q++) {
+                        for (let pos in lineup[q]) {
+                            if (lineup[q][pos] === gName) delete lineup[q][pos];
+                        }
+                    }
+                });
                 guestPlayers = [];
-                document.getElementById('guestRowsContainer').innerHTML = '';
-                renderKeeperSelector();
-                renderLineupTable();
-                updateLiveMatchCalculations();
+                document.getElementById('guestRowsList').innerHTML = '';
+                renderKeeperControls();
+                renderAllViews();
             }
         }
 
-        function addGuestRow() {
-            const id = Date.now() + Math.random();
-            guestPlayers.push({ id, name: "", pos1: "Middenveld", pos2: "" });
+        function addGuestPlayerRow() {
+            guestPlayers.push({
+                id: Date.now() + Math.random(),
+                name: "",
+                pos1: "Middenveld",
+                pos2: ""
+            });
             renderGuestRows();
         }
 
-        function removeGuestRow(id) {
-            guestPlayers = guestPlayers.filter(g => g.id !== id);
-            renderGuestRows();
-            renderKeeperSelector();
-            renderLineupTable();
-            updateLiveMatchCalculations();
-        }
-
-        function updateGuestData(id, field, value) {
+        function removeGuestPlayerRow(id) {
             const g = guestPlayers.find(x => x.id === id);
-            if (g) g[field] = value;
-            renderKeeperSelector();
-            renderLineupTable();
-            updateLiveMatchCalculations();
+            if (g && g.name.trim()) {
+                const gName = `${g.name.trim()} (Gast)`;
+                for (let q = 1; q <= 4; q++) {
+                    for (let pos in lineup[q]) {
+                        if (lineup[q][pos] === gName) delete lineup[q][pos];
+                    }
+                }
+            }
+            guestPlayers = guestPlayers.filter(x => x.id !== id);
+            renderGuestRows();
+            renderKeeperControls();
+            renderAllViews();
+        }
+
+        function updateGuestRow(id, field, val) {
+            const g = guestPlayers.find(x => x.id === id);
+            if (!g) return;
+            const oldName = `${g.name.trim()} (Gast)`;
+            g[field] = val;
+            const newName = `${g.name.trim()} (Gast)`;
+
+            // Als naam wijzigt, update in lineup
+            if (field === 'name' && oldName !== newName) {
+                for (let q = 1; q <= 4; q++) {
+                    for (let pos in lineup[q]) {
+                        if (lineup[q][pos] === oldName) {
+                            if (val.trim() === "") delete lineup[q][pos];
+                            else lineup[q][pos] = newName;
+                        }
+                    }
+                }
+            }
+            renderKeeperControls();
+            renderAllViews();
         }
 
         function renderGuestRows() {
-            const container = document.getElementById('guestRowsContainer');
+            const container = document.getElementById('guestRowsList');
             container.innerHTML = '';
             guestPlayers.forEach((g, idx) => {
                 const row = document.createElement('div');
-                row.className = "grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200";
+                row.className = "grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center bg-white p-3 rounded-xl border border-slate-200 shadow-2xs";
                 row.innerHTML = `
                     <div class="sm:col-span-4">
-                        <label class="block text-[10px] font-bold uppercase text-slate-400">Naam Gastspeler ${idx + 1}</label>
-                        <input type="text" value="${g.name}" placeholder="Vul naam in..." 
-                            oninput="updateGuestData(${g.id}, 'name', this.value)"
-                            class="w-full border border-slate-300 rounded p-1.5 text-xs font-semibold focus:ring-1 focus:ring-orange-500 outline-none">
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">Naam Gastspeler ${idx + 1}</label>
+                        <input type="text" value="${g.name}" placeholder="Bijv. Sem..."
+                            oninput="updateGuestRow(${g.id}, 'name', this.value)"
+                            class="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-orange-500">
                     </div>
                     <div class="sm:col-span-3">
-                        <label class="block text-[10px] font-bold uppercase text-slate-400">1e Positie (Verplicht)</label>
-                        <select onchange="updateGuestData(${g.id}, 'pos1', this.value)" class="w-full border border-slate-300 rounded p-1.5 text-xs bg-white">
-                            <option value="Verdediging" ${g.pos1 === 'Verdediging' ? 'selected' : ''}>Verdediging</option>
-                            <option value="Middenveld" ${g.pos1 === 'Middenveld' ? 'selected' : ''}>Middenveld</option>
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">1e Positie (Keuzemenu)</label>
+                        <select onchange="updateGuestRow(${g.id}, 'pos1', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold bg-slate-50">
                             <option value="Aanval" ${g.pos1 === 'Aanval' ? 'selected' : ''}>Aanval</option>
+                            <option value="Middenveld" ${g.pos1 === 'Middenveld' ? 'selected' : ''}>Middenveld</option>
+                            <option value="Verdediging" ${g.pos1 === 'Verdediging' ? 'selected' : ''}>Verdediging</option>
                         </select>
                     </div>
                     <div class="sm:col-span-4">
-                        <label class="block text-[10px] font-bold uppercase text-slate-400">2e Positie (Optioneel)</label>
-                        <select onchange="updateGuestData(${g.id}, 'pos2', this.value)" class="w-full border border-slate-300 rounded p-1.5 text-xs bg-white">
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">Optionele 2e Positie</label>
+                        <select onchange="updateGuestRow(${g.id}, 'pos2', this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs font-semibold bg-slate-50">
                             <option value="" ${g.pos2 === '' ? 'selected' : ''}>-- Geen 2e positie --</option>
-                            <option value="Verdediging" ${g.pos2 === 'Verdediging' ? 'selected' : ''}>Verdediging</option>
-                            <option value="Middenveld" ${g.pos2 === 'Middenveld' ? 'selected' : ''}>Middenveld</option>
                             <option value="Aanval" ${g.pos2 === 'Aanval' ? 'selected' : ''}>Aanval</option>
+                            <option value="Middenveld" ${g.pos2 === 'Middenveld' ? 'selected' : ''}>Middenveld</option>
+                            <option value="Verdediging" ${g.pos2 === 'Verdediging' ? 'selected' : ''}>Verdediging</option>
                         </select>
                     </div>
                     <div class="sm:col-span-1 flex justify-end sm:pt-4">
-                        <button onclick="removeGuestRow(${g.id})" class="text-rose-500 hover:text-rose-700 font-bold text-xs px-2 py-1">✕</button>
+                        <button onclick="removeGuestPlayerRow(${g.id})" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg font-bold text-xs cursor-pointer" title="Verwijder gastspeler">✕</button>
                     </div>
                 `;
                 container.appendChild(row);
             });
         }
 
-        // ==========================================
-        // 3. OPSTELLING TABEL & PULL-DOWN MENU'S
-        // ==========================================
-        function isPreferredForPosition(player, pos) {
-            if (pos.id === "GK") return player.pos1 === "Keeper";
-            if (pos.id === "CM" && player.name === "Kerem") return true;
-            if (player.specific && player.specific.includes(pos.id)) return true;
-            return player.pos1 === pos.line || player.pos2 === pos.line;
+        // =========================================================
+        // 3. KEEPER LOGICA (VAST VINKJE OF PERIODE KEUZE)
+        // =========================================================
+        function toggleFixedKeeperMode() {
+            isFixedKeeper = document.getElementById('fixedKeeperCheck').checked;
+            document.getElementById('fixedKeeperBox').classList.toggle('hidden', !isFixedKeeper);
+            document.getElementById('splitKeeperBox').classList.toggle('hidden', isFixedKeeper);
+
+            if (isFixedKeeper) {
+                applyFixedKeeper(fixedKeeperName);
+            } else {
+                // Synchroniseer de 4 periode-selectors met de huidige keepers
+                for (let q = 1; q <= 4; q++) {
+                    quarterKeepers[q] = lineup[q]["GK"] || fixedKeeperName;
+                }
+                renderKeeperControls();
+                renderAllViews();
+            }
         }
 
-        function renderLineupTable() {
-            const tbody = document.getElementById('lineupTableBody');
-            tbody.innerHTML = '';
-            const activePlayers = getActivePlayers();
+        function renderKeeperControls() {
+            const active = getActivePlayers();
+            if (active.length === 0) return;
 
-            POSITIONS.forEach(pos => {
+            if (!active.some(p => p.name === fixedKeeperName)) {
+                fixedKeeperName = active[0].name;
+            }
+
+            // 1. Vaste keeper dropdown
+            const singleSel = document.getElementById('singleKeeperSelect');
+            singleSel.innerHTML = '';
+            active.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.name;
+                opt.innerText = `${p.name} (Hele wedstrijd - 60m)`;
+                if (p.name === fixedKeeperName) opt.selected = true;
+                singleSel.appendChild(opt);
+            });
+
+            // 2. Periode 1 t/m 4 keeper dropdowns
+            for (let q = 1; q <= 4; q++) {
+                const qSel = document.getElementById(`keeperQ${q}`);
+                if (!qSel) continue;
+                qSel.innerHTML = '';
+                const currentK = lineup[q]["GK"] || quarterKeepers[q] || fixedKeeperName;
+                active.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.innerText = p.name;
+                    if (p.name === currentK) opt.selected = true;
+                    qSel.appendChild(opt);
+                });
+            }
+        }
+
+        function applyFixedKeeper(keeperName) {
+            fixedKeeperName = keeperName;
+            for (let q = 1; q <= 4; q++) {
+                quarterKeepers[q] = keeperName;
+                // Als deze speler al ergens op het veld stond in blok q, maak die veldpositie vrij
+                for (let pos in lineup[q]) {
+                    if (pos !== "GK" && lineup[q][pos] === keeperName) {
+                        delete lineup[q][pos];
+                    }
+                }
+                lineup[q]["GK"] = keeperName;
+            }
+            renderKeeperControls();
+            renderAllViews();
+        }
+
+        function setQuarterKeeper(q, keeperName) {
+            quarterKeepers[q] = keeperName;
+            for (let pos in lineup[q]) {
+                if (pos !== "GK" && lineup[q][pos] === keeperName) {
+                    delete lineup[q][pos];
+                }
+            }
+            lineup[q]["GK"] = keeperName;
+            renderKeeperControls();
+            renderAllViews();
+        }
+
+        function setKeeperSplitPreset(type) {
+            const active = getActivePlayers();
+            if (active.length < 2) return;
+            const k1 = fixedKeeperName || active[0].name;
+            const k2 = active.find(p => p.name !== k1)?.name || k1;
+
+            if (type === 'half') {
+                // Keeper 1 keept P1 & P2, Keeper 2 keept vanaf P3 (P3 & P4)
+                setQuarterKeeper(1, k1);
+                setQuarterKeeper(2, k1);
+                setQuarterKeeper(3, k2);
+                setQuarterKeeper(4, k2);
+            } else if (type === 'lastQuarter') {
+                // Keeper 1 keept P1-P3 (45m), Keeper 2 keept P4 (15m)
+                setQuarterKeeper(1, k1);
+                setQuarterKeeper(2, k1);
+                setQuarterKeeper(3, k1);
+                setQuarterKeeper(4, k2);
+            }
+        }
+
+        // =========================================================
+        // 4. POSITIE TOEWIJZING & DROPDOWN BUILDER (GEDEELD)
+        // =========================================================
+        function isPlayerPreferredForPos(player, posObj) {
+            if (posObj.id === "GK") return player.pos1 === "Keeper";
+            if (posObj.id === "CM") return player.name === "Kerem";
+            if (posObj.id === "SP") return player.name === "Arthur" || player.name === "Noud" || player.pos1 === "Aanval" || player.pos2 === "Aanval";
+            if (["LV", "CV", "RV"].includes(posObj.id)) {
+                return ["Jonathan", "Vince", "Mika", "Jesper"].includes(player.name) || player.pos1 === "Verdediging" || player.pos2 === "Verdediging";
+            }
+            if (["LM", "RM"].includes(posObj.id)) {
+                return ["Jesper", "Bodi", "Noud", "Kerem"].includes(player.name) || player.pos1 === "Middenveld" || player.pos2 === "Middenveld";
+            }
+            return false;
+        }
+
+        function handlePositionChange(quarter, posId, playerName) {
+            if (!playerName) {
+                delete lineup[quarter][posId];
+            } else {
+                lineup[quarter][posId] = playerName;
+                if (posId === "GK") {
+                    quarterKeepers[quarter] = playerName;
+                    if (isFixedKeeper) {
+                        // Als vaste keeper aan staat en gebruiker wijzigt GK op het veld, vraag of dit voor alle blokken geldt of zet op alle blokken
+                        fixedKeeperName = playerName;
+                        for (let q = 1; q <= 4; q++) {
+                            for (let p in lineup[q]) {
+                                if (p !== "GK" && lineup[q][p] === playerName) delete lineup[q][p];
+                            }
+                            lineup[q]["GK"] = playerName;
+                        }
+                    }
+                }
+            }
+            renderKeeperControls();
+            renderAllViews();
+        }
+
+        function buildPositionSelectHTML(quarter, posObj, extraClasses = "") {
+            const active = getActivePlayers();
+            const currentVal = lineup[quarter][posObj.id] || "";
+
+            // Wie zijn er in DIT kwartier al bezet op een ANDERE positie?
+            const usedElsewhere = Object.entries(lineup[quarter])
+                .filter(([keyPos]) => keyPos !== posObj.id)
+                .map(([, name]) => name);
+
+            const available = active.filter(p => !usedElsewhere.includes(p.name) || p.name === currentVal);
+            const preferred = available.filter(p => isPlayerPreferredForPos(p, posObj));
+            const others = available.filter(p => !isPlayerPreferredForPos(p, posObj));
+
+            let optionsHtml = `<option value="">-- Kies --</option>`;
+            if (preferred.length > 0) {
+                optionsHtml += `<optgroup label="★ Voorkeur ${posObj.short}">`;
+                preferred.forEach(p => {
+                    const sel = (p.name === currentVal) ? "selected" : "";
+                    optionsHtml += `<option value="${p.name}" ${sel}>★ ${p.name}</option>`;
+                });
+                optionsHtml += `</optgroup>`;
+            }
+            if (others.length > 0) {
+                optionsHtml += `<optgroup label="Overig beschikbaar">`;
+                others.forEach(p => {
+                    const sel = (p.name === currentVal) ? "selected" : "";
+                    optionsHtml += `<option value="${p.name}" ${sel}>${p.name}</option>`;
+                });
+                optionsHtml += `</optgroup>`;
+            }
+
+            return `
+                <select onchange="handlePositionChange(${quarter}, '${posObj.id}', this.value)" 
+                    class="w-full rounded-lg text-xs font-extrabold outline-none transition cursor-pointer ${extraClasses} ${
+                        currentVal 
+                        ? 'bg-white text-slate-900 border-2 border-slate-800/20 shadow-xs' 
+                        : 'bg-amber-50/90 text-rose-700 border-2 border-dashed border-rose-400'
+                    }">
+                    ${optionsHtml}
+                </select>
+            `;
+        }
+
+        // =========================================================
+        // 5. RENDER VELDPLATTEGROND (2D PITCH) & MATRIX TABEL
+        // =========================================================
+        function createPitchCardHTML(quarter, posId, badgeColorClass) {
+            const posObj = POSITIONS.find(p => p.id === posId);
+            const selectedName = lineup[quarter][posId] || "";
+            const playerObj = getActivePlayers().find(p => p.name === selectedName);
+            const roleSub = playerObj ? playerObj.badge : posObj.hint;
+
+            return `
+                <div class="bg-white/95 backdrop-blur-xs rounded-xl p-2 shadow-lg border-2 ${selectedName ? 'border-white' : 'border-rose-400'} w-full max-w-[175px] mx-auto transition transform hover:scale-[1.02]">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded ${badgeColorClass}">
+                            ${posObj.short}
+                        </span>
+                        <span class="text-[9px] font-bold text-slate-400 truncate ml-1">${roleSub}</span>
+                    </div>
+                    ${buildPositionSelectHTML(quarter, posObj, "p-1.5 text-[11px]")}
+                </div>
+            `;
+        }
+
+        function generatePitchHTMLForQuarter(quarter, compact = false) {
+            const active = getActivePlayers();
+            const onPitch = Object.values(lineup[quarter]).filter(Boolean);
+            const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
+            const qStart = (quarter - 1) * 15;
+            const qEnd = quarter * 15;
+
+            return `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <!-- Veld Header -->
+                    <div class="bg-slate-900 text-white px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-lg">BLOK ${quarter}</span>
+                            <span class="text-xs font-bold text-slate-300">Minuut ${qStart} - ${qEnd} (15 min)</span>
+                        </div>
+                        <div class="text-xs font-bold text-orange-300">
+                            🔄 Wissel: ${bench.length > 0 ? bench.join(', ') : 'Geen'}
+                        </div>
+                    </div>
+
+                    <!-- Het Groene Voetbalveld (3-3-1 + Keeper) -->
+                    <div class="soccer-pitch rounded-b-xl ${compact ? 'p-3 sm:p-4' : 'p-4 sm:p-6'} flex flex-col justify-between gap-5 min-h-[470px]">
+                        
+                        <!-- Belijning Middenlijn & Middencirkel -->
+                        <div class="absolute inset-x-0 top-1/2 border-t-2 pitch-line"></div>
+                        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border-2 pitch-line"></div>
+                        <!-- Strafschopgebied onder (eigen doel) -->
+                        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-56 h-24 border-t-2 border-x-2 pitch-line bg-white/5"></div>
+                        <!-- Strafschopgebied boven (aanval) -->
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-12 border-b-2 border-x-2 pitch-line bg-white/5"></div>
+
+                        <!-- LINIE 1: AANVAL (SPITS) -->
+                        <div class="relative z-10 pt-1">
+                            <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1">⬆ Aanval (Spits) ⬆</div>
+                            <div class="grid grid-cols-1 justify-items-center">
+                                ${createPitchCardHTML(quarter, "SP", "bg-rose-100 text-rose-800")}
+                            </div>
+                        </div>
+
+                        <!-- LINIE 2: MIDDENVELD (LM - CM/CVM - RM) -->
+                        <div class="relative z-10">
+                            <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1.5">Middenveld (LM • CVM • RM)</div>
+                            <div class="grid grid-cols-3 gap-2 sm:gap-4 items-center">
+                                ${createPitchCardHTML(quarter, "LM", "bg-emerald-100 text-emerald-800")}
+                                <div class="transform translate-y-2">
+                                    ${createPitchCardHTML(quarter, "CM", "bg-emerald-200 text-emerald-950")}
+                                </div>
+                                ${createPitchCardHTML(quarter, "RM", "bg-emerald-100 text-emerald-800")}
+                            </div>
+                        </div>
+
+                        <!-- LINIE 3: VERDEDIGING (LV - CV - RV) -->
+                        <div class="relative z-10">
+                            <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1.5">Verdediging (LV • CV • RV)</div>
+                            <div class="grid grid-cols-3 gap-2 sm:gap-4 items-center">
+                                ${createPitchCardHTML(quarter, "LV", "bg-blue-100 text-blue-800")}
+                                ${createPitchCardHTML(quarter, "CV", "bg-blue-100 text-blue-800")}
+                                ${createPitchCardHTML(quarter, "RV", "bg-blue-100 text-blue-800")}
+                            </div>
+                        </div>
+
+                        <!-- LINIE 4: KEEPER (GK) -->
+                        <div class="relative z-10 pb-1">
+                            <div class="grid grid-cols-1 justify-items-center">
+                                ${createPitchCardHTML(quarter, "GK", "bg-amber-200 text-amber-900")}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAllViews() {
+            const active = getActivePlayers();
+
+            // 1. Update de 4 Blok-knoppen boven het veld
+            for (let q = 1; q <= 4; q++) {
+                const onPitch = Object.values(lineup[q]).filter(Boolean);
+                const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
+                const subEl = document.getElementById(`qTabSub-${q}`);
+                if (subEl) {
+                    subEl.innerText = `🔄 Wissel: ${bench.length > 0 ? bench.join(', ') : 'Geen'}`;
+                }
+            }
+
+            // 2. Render Single Pitch View (Geselecteerde Blok)
+            document.getElementById('singlePitchContainer').innerHTML = generatePitchHTMLForQuarter(activeQuarterView, false);
+
+            // Update zijpaneel voor actief blok
+            document.getElementById('sideBenchQuarterNum').innerText = activeQuarterView;
+            document.getElementById('sideInstrQuarterNum').innerText = activeQuarterView;
+
+            const onPitchActive = Object.values(lineup[activeQuarterView]).filter(Boolean);
+            const benchActive = active.filter(p => !onPitchActive.includes(p.name));
+            const sideBenchList = document.getElementById('sideBenchPlayersList');
+            sideBenchList.innerHTML = '';
+
+            if (benchActive.length === 0) {
+                sideBenchList.innerHTML = `<div class="text-xs text-slate-400 italic">Geen wisselspelers in dit blok.</div>`;
+            } else {
+                benchActive.forEach(p => {
+                    sideBenchList.innerHTML += `
+                        <div class="flex items-center justify-between bg-orange-50 border border-orange-200 px-3 py-2 rounded-xl">
+                            <span class="font-extrabold text-xs text-orange-950">${p.name}</span>
+                            <span class="text-[10px] font-bold bg-white text-orange-700 px-2 py-0.5 rounded border border-orange-200">${p.role}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // Wissel-instructies voor het geselecteerde blok
+            const instrDiv = document.getElementById('sideQuarterInstructions');
+            if (activeQuarterView === 1) {
+                instrDiv.innerHTML = `<div class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-medium">Dit is de <strong>basisopstelling</strong> bij de aftrap (0 - 15 min). Klik op Blok 2, 3 of 4 om de wissels te zien.</div>`;
+            } else {
+                const prev = lineup[activeQuarterView - 1];
+                const curr = lineup[activeQuarterView];
+                const prevPitch = Object.values(prev).filter(Boolean);
+                const currPitch = Object.values(curr).filter(Boolean);
+
+                const subIn = currPitch.filter(n => !prevPitch.includes(n));
+                const subOut = prevPitch.filter(n => !currPitch.includes(n));
+                const posMoves = [];
+
+                POSITIONS.forEach(pos => {
+                    if (curr[pos.id] && prev[pos.id] && curr[pos.id] !== prev[pos.id]) {
+                        posMoves.push(`<li><strong>${pos.short}:</strong> ${curr[pos.id]} <em>(was ${prev[pos.id]})</em></li>`);
+                    }
+                });
+
+                instrDiv.innerHTML = `
+                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900">
+                        <strong>▶ Komt erin:</strong> ${subIn.length ? subIn.join(', ') : 'Niemand'}
+                    </div>
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-900">
+                        <strong>◀ Gaat naar de kant:</strong> ${subOut.length ? subOut.join(', ') : 'Niemand'}
+                    </div>
+                    ${posMoves.length ? `
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div class="font-bold text-slate-700 mb-1">Positiewijzigingen op het veld:</div>
+                            <ul class="list-disc pl-4 space-y-0.5 text-[11px]">${posMoves.join('')}</ul>
+                        </div>
+                    ` : ''}
+                `;
+            }
+
+            // 3. Render 4-Veldjes tegelijk overzicht
+            const allPitchesDiv = document.getElementById('display-pitchAll');
+            if (displayMode === 'pitchAll') {
+                allPitchesDiv.innerHTML = [1, 2, 3, 4].map(q => generatePitchHTMLForQuarter(q, true)).join('');
+            }
+
+            // 4. Render Matrix Tabel met vaste linkerkolom
+            const matrixBody = document.getElementById('matrixTableBody');
+            matrixBody.innerHTML = '';
+            TABLE_POSITIONS.forEach(pos => {
                 const tr = document.createElement('tr');
                 tr.className = pos.id === "GK" ? "bg-amber-50/40" : "hover:bg-slate-50";
 
-                // Sticky Linkerkolom met Positienaam
-                const tdPos = document.createElement('td');
-                tdPos.className = "p-3 sticky-col border-r border-slate-200 font-bold text-slate-700";
-                tdPos.innerHTML = `
-                    <div>${pos.label}</div>
-                    <div class="text-[10px] font-normal text-slate-400">${pos.line}</div>
+                const tdLabel = document.createElement('td');
+                tdLabel.className = "p-3 sticky-col border-r border-slate-200 font-bold text-slate-800";
+                tdLabel.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span>${pos.label}</span>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">${pos.line}</span>
+                    </div>
                 `;
-                tr.appendChild(tdPos);
+                tr.appendChild(tdLabel);
 
-                // 4 Periodes van 15 minuten
                 for (let q = 1; q <= 4; q++) {
                     const td = document.createElement('td');
                     td.className = "p-2";
-
-                    const select = document.createElement('select');
-                    const currentVal = lineup[q][pos.id] || "";
-                    select.className = `w-full border rounded-lg p-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-orange-500 ${
-                        currentVal ? 'border-slate-300 bg-white text-slate-800' : 'border-dashed border-slate-300 bg-slate-50 text-slate-400'
-                    }`;
-
-                    const emptyOpt = document.createElement('option');
-                    emptyOpt.value = "";
-                    emptyOpt.innerText = "-- Kies speler --";
-                    select.appendChild(emptyOpt);
-
-                    // Spelers die in DEZE periode (q) al op een ANDERE positie staan zijn niet beschikbaar
-                    const occupiedInQuarter = Object.entries(lineup[q])
-                        .filter(([keyPos]) => keyPos !== pos.id)
-                        .map(([, playerName]) => playerName);
-
-                    // Sorteer opties: voorkeursposities eerst met ★
-                    const availableForDropdown = activePlayers.filter(p => !occupiedInQuarter.includes(p.name) || p.name === currentVal);
-                    const preferred = availableForDropdown.filter(p => isPreferredForPosition(p, pos));
-                    const others = availableForDropdown.filter(p => !isPreferredForPosition(p, pos));
-
-                    if (preferred.length > 0) {
-                        const grp1 = document.createElement('optgroup');
-                        grp1.label = `★ Voorkeur ${pos.line}`;
-                        preferred.forEach(p => {
-                            const opt = document.createElement('option');
-                            opt.value = p.name;
-                            opt.innerText = `★ ${p.name}`;
-                            if (p.name === currentVal) opt.selected = true;
-                            grp1.appendChild(opt);
-                        });
-                        select.appendChild(grp1);
-                    }
-
-                    if (others.length > 0) {
-                        const grp2 = document.createElement('optgroup');
-                        grp2.label = `Overige beschikbare spelers`;
-                        others.forEach(p => {
-                            const opt = document.createElement('option');
-                            opt.value = p.name;
-                            opt.innerText = p.name;
-                            if (p.name === currentVal) opt.selected = true;
-                            grp2.appendChild(opt);
-                        });
-                        select.appendChild(grp2);
-                    }
-
-                    select.onchange = (e) => {
-                        if (e.target.value === "") {
-                            delete lineup[q][pos.id];
-                        } else {
-                            lineup[q][pos.id] = e.target.value;
-                        }
-                        renderLineupTable();
-                        updateLiveMatchCalculations();
-                    };
-
-                    td.appendChild(select);
+                    td.innerHTML = buildPositionSelectHTML(q, pos, "p-2");
                     tr.appendChild(td);
                 }
-
-                tbody.appendChild(tr);
+                matrixBody.appendChild(tr);
             });
+
+            for (let q = 1; q <= 4; q++) {
+                const onPitch = Object.values(lineup[q]).filter(Boolean);
+                const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
+                document.getElementById(`matrixBench-${q}`).innerText = bench.length ? bench.join(', ') : 'Geen wissel';
+            }
+
+            // 5. Update Live Speeltijd Monitor
+            renderLiveMatchMonitor();
         }
 
-        function clearCurrentLineup() {
-            lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
-            for (let q = 1; q <= 4; q++) lineup[q]["GK"] = defaultKeeper;
-            emergencySubs = [];
-            renderEmergencyBanner();
-            renderLineupTable();
-            updateLiveMatchCalculations();
-        }
-
-        // ==========================================
-        // 4. EERLIJKE OPSTELLING GENERATOR (STREEFGEMIDDELDE)
-        // ==========================================
-        function getHistoricalStats() {
+        // =========================================================
+        // 6. EERLIJKE OPSTELLING GENERATOR (STREEFGEMIDDELDE)
+        // =========================================================
+        function getSeasonHistoryStats() {
             const stats = {};
-            BASE_SQUAD.forEach(p => {
+            BASE_PLAYERS.forEach(p => {
                 stats[p.name] = {
-                    playedMatches: 0,
+                    presentMatches: 0,
+                    outfieldMatches: 0,
                     absentMatches: 0,
                     fieldMinutes: 0,
                     keeperMinutes: 0,
-                    cumulativeTargetMinutes: 0
+                    targetFieldMinutesSum: 0
                 };
             });
 
             savedMatches.forEach(m => {
-                // Tel hoeveel veldspelers er die wedstrijd aanwezig waren (excl. keeperuren)
-                // In 60 min zijn er 7 veldposities * 60 = 420 veldminuten te verdelen per wedstrijd
-                const matchTargetPerOutfielder = m.targetAvgThatMatch || 52.5;
-
-                BASE_SQUAD.forEach(p => {
+                const matchFieldTarget = m.targetFieldMinutesPerOutfielder || 52.5;
+                BASE_PLAYERS.forEach(p => {
                     const wasPresent = m.attendance && m.attendance[p.name] !== false;
                     if (!wasPresent) {
                         stats[p.name].absentMatches++;
                     } else {
-                        const pMin = m.minutes ? m.minutes[p.name] : null;
-                        const kMin = pMin ? (pMin.keeper || 0) : 0;
-                        const fMin = pMin ? (pMin.field || 0) : 0;
+                        stats[p.name].presentMatches++;
+                        const pMin = m.minutes ? m.minutes[p.name] : { field: 0, keeper: 0 };
+                        const kMin = pMin.keeper || 0;
+                        const fMin = pMin.field || 0;
 
                         stats[p.name].keeperMinutes += kMin;
-                        // Als een speler de hele wedstrijd (60m) keepte, telde hij die dag niet als veldspeler mee
-                        if (kMin < 60) {
-                            stats[p.name].playedMatches++;
-                            stats[p.name].fieldMinutes += fMin;
-                            // Als hij een deel keepte, schaal zijn veld-streefdoel naar rato
-                            const outfieldShare = (60 - kMin) / 60;
-                            stats[p.name].cumulativeTargetMinutes += (matchTargetPerOutfielder * outfieldShare);
+                        stats[p.name].fieldMinutes += fMin;
+
+                        // Hoeveel deel van de wedstrijd was deze speler beschikbaar als veldspeler (niet-keeper)?
+                        const outfieldFraction = Math.max(0, (60 - kMin) / 60);
+                        if (outfieldFraction > 0) {
+                            stats[p.name].outfieldMatches += outfieldFraction;
+                            stats[p.name].targetFieldMinutesSum += (matchFieldTarget * outfieldFraction);
                         }
                     }
                 });
@@ -657,153 +1236,179 @@
         function generateFairLineup() {
             const active = getActivePlayers();
             if (active.length < 8) {
-                alert("Er zijn minder dan 8 spelers aanwezig. Zet minimaal 8 spelers op aanwezig om een volledige opstelling te genereren.");
+                alert("Zet minimaal 8 spelers op aanwezig om een 8v8 opstelling te maken.");
                 return;
             }
 
-            // 1. Keeper vastzetten (telt niet mee voor veldspelers-streefgemiddelde)
-            const keeperName = defaultKeeper;
-            const outfielders = active.filter(p => p.name !== keeperName);
-            const numOutfielders = outfielders.length; // Normaal 8 (bij 9 spelers)
+            // 1. Bepaal voor elk kwartier wie de ingestelde keeper is
+            const keepersPerQ = {};
+            for (let q = 1; q <= 4; q++) {
+                keepersPerQ[q] = isFixedKeeper ? fixedKeeperName : (quarterKeepers[q] || fixedKeeperName);
+            }
 
-            // 2. Hoeveel kwartieren van 15m zijn er te verdelen op het veld?
-            // 4 blokken * 7 veldposities = 28 kwartieren (420 minuten).
-            const totalFieldQuarters = 28;
-            const todayTargetMinutes = 420 / numOutfielders; // bij 8 veldspelers = 52.5m
+            // 2. Tel voor elke aanwezige speler hoeveel kwartieren hij vandaag beschikbaar is als veldspeler (4 min aantal keeper-kwartieren)
+            const maxOutfieldQuarters = {};
+            let totalOutfieldPlayerQuartersAvailable = 0;
 
-            // 3. Bereken voor elke veldspeler zijn achterstand/voorsprong op het streefgemiddelde
-            const hist = getHistoricalStats();
+            active.forEach(p => {
+                let kCount = 0;
+                for (let q = 1; q <= 4; q++) {
+                    if (keepersPerQ[q] === p.name) kCount++;
+                }
+                maxOutfieldQuarters[p.name] = 4 - kCount;
+                totalOutfieldPlayerQuartersAvailable += (4 - kCount);
+            });
 
-            const rankedOutfielders = outfielders.map(p => {
-                const h = hist[p.name] || { playedMatches: 0, fieldMinutes: 0, cumulativeTargetMinutes: 0 };
-                // Saldo = reeds gespeelde veldminuten minus wat hij volgens het streefgemiddelde had moeten spelen
-                // Negatief getal betekent: heeft MINDER gespeeld dan het streefgemiddelde -> krijgt voorrang!
-                const balance = h.fieldMinutes - h.cumulativeTargetMinutes;
+            // Er zijn altijd 4 blokken * 7 veldposities = 28 veldkwartieren (420 veldminuten) te verdelen
+            const totalFieldSlots = 28;
+            const hist = getSeasonHistoryStats();
+
+            // 3. Bereken voor elke speler die vandaag op het veld kan staan zijn historische achterstand/voorsprong op het streefgemiddelde
+            const outfieldCandidates = active.filter(p => maxOutfieldQuarters[p.name] > 0);
+
+            // Hoeveel kwartieren zou iedereen vandaag spelen bij 100% gelijke verdeling?
+            const idealQuartersRatio = totalFieldSlots / totalOutfieldPlayerQuartersAvailable;
+
+            const ranked = outfieldCandidates.map(p => {
+                const h = hist[p.name] || { fieldMinutes: 0, targetFieldMinutesSum: 0 };
+                // Saldo = gespeelde veldminuten minus streef-veldminuten (negatief = achterstand op streefgemiddelde)
+                const balance = h.fieldMinutes - h.targetFieldMinutesSum;
+                const exactIdealToday = maxOutfieldQuarters[p.name] * idealQuartersRatio;
+                const minQ = Math.floor(exactIdealToday);
                 return {
                     player: p,
                     balance: balance,
-                    playedMatches: h.playedMatches
+                    minQuarters: Math.min(maxOutfieldQuarters[p.name], minQ),
+                    maxQuarters: maxOutfieldQuarters[p.name]
                 };
             });
 
-            // Sorteer: wie het meest onder het streefgemiddelde zit (laagste balance) komt bovenaan
-            rankedOutfielders.sort((a, b) => {
+            // Sorteer op laagste balance eerst (wie het verst onder zijn streefgemiddelde zit krijgt als eerste het extra kwartier)
+            ranked.sort((a, b) => {
                 if (Math.abs(a.balance - b.balance) > 0.1) return a.balance - b.balance;
-                return (Math.random() - 0.5); // Gelijke stand: loten zodat niet altijd dezelfde naam eerst staat
+                return Math.random() - 0.5;
             });
 
-            // 4. Verdeel de 28 kwartieren zo eerlijk mogelijk
-            const baseQuarters = Math.floor(totalFieldQuarters / numOutfielders); // bij 8 spelers = 3 kwartieren (45m)
-            let extraQuarters = totalFieldQuarters % numOutfielders; // bij 8 spelers = 4 spelers krijgen +1 kwartier (60m)
+            const targetQuartersToday = {};
+            let assignedSum = 0;
+            ranked.forEach(item => {
+                targetQuartersToday[item.player.name] = item.minQuarters;
+                assignedSum += item.minQuarters;
+            });
 
-            const quartersToPlay = {};
-            rankedOutfielders.forEach(item => {
-                if (extraQuarters > 0) {
-                    quartersToPlay[item.player.name] = Math.min(4, baseQuarters + 1);
-                    extraQuarters--;
-                } else {
-                    quartersToPlay[item.player.name] = baseQuarters;
+            // Verdeel de resterende kwartieren aan de spelers met de grootste achterstand op het streefgemiddelde
+            let remainder = totalFieldSlots - assignedSum;
+            while (remainder > 0) {
+                let progressed = false;
+                for (let item of ranked) {
+                    if (remainder > 0 && targetQuartersToday[item.player.name] < item.maxQuarters) {
+                        targetQuartersToday[item.player.name]++;
+                        remainder--;
+                        progressed = true;
+                    }
                 }
-            });
+                if (!progressed) break;
+            }
 
-            // Bepaal wie er per kwartier wissel staat (4 - quartersToPlay[name] wisselbeurten)
-            const benchCountPerQuarter = numOutfielders - 7; // bij 8 veldspelers = 1 wissel per kwartier
-            const benchSchedule = { 1: [], 2: [], 3: [], 4: [] };
+            // 4. Bepaal per kwartier wie er wissel staat
+            // In kwartier q heeft een speler die NIET keept en NIET speelt een wisselbeurt.
             const benchTurnsNeeded = {};
-            outfielders.forEach(p => {
-                benchTurnsNeeded[p.name] = 4 - quartersToPlay[p.name];
+            outfieldCandidates.forEach(p => {
+                benchTurnsNeeded[p.name] = maxOutfieldQuarters[p.name] - targetQuartersToday[p.name];
             });
 
-            // Verdeel de wisselbeurten over Kwartier 1 t/m 4 zodat elk kwartier exact (numOutfielders - 7) wissels heeft
-            // en we ook rekening houden met de bezetting per linie!
+            const benchPerQ = { 1: [], 2: [], 3: [], 4: [] };
             for (let q = 1; q <= 4; q++) {
-                // Sorteer kandidaten die nog moeten wisselen op: meeste wisselbeurten over
-                let candidates = outfielders
-                    .filter(p => benchTurnsNeeded[p.name] > 0 && !benchSchedule[q].includes(p.name))
+                const availableOutfieldInQ = active.filter(p => keepersPerQ[q] !== p.name);
+                const neededBenchInQ = Math.max(0, availableOutfieldInQ.length - 7);
+
+                // Kies spelers die nog moeten wisselen, waarbij we voorkomen dat zowel Arthur als Noud tegelijk wisselen of te veel verdedigers tegelijk
+                let candidates = availableOutfieldInQ
+                    .filter(p => (benchTurnsNeeded[p.name] || 0) > 0)
                     .sort((a, b) => benchTurnsNeeded[b.name] - benchTurnsNeeded[a.name]);
 
-                while (benchSchedule[q].length < benchCountPerQuarter && candidates.length > 0) {
+                while (benchPerQ[q].length < neededBenchInQ && candidates.length > 0) {
                     const chosen = candidates.shift();
-                    benchSchedule[q].push(chosen.name);
+                    benchPerQ[q].push(chosen.name);
                     benchTurnsNeeded[chosen.name]--;
                 }
             }
 
-            // 5. Vul voor elk kwartier de 7 posities in met de 7 beschikbare veldspelers volgens jullie teamlogica
+            // 5. Vul voor elk blok de keeper + 7 veldposities tactisch in
             lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
             for (let q = 1; q <= 4; q++) {
-                lineup[q]["GK"] = keeperName;
-                const onPitchPlayers = outfielders.filter(p => !benchSchedule[q].includes(p.name));
-                const assignedBlock = assignTacticalPositions(onPitchPlayers);
-                Object.assign(lineup[q], assignedBlock);
+                lineup[q]["GK"] = keepersPerQ[q];
+                const sevenFieldPlayers = active.filter(p => keepersPerQ[q] !== p.name && !benchPerQ[q].includes(p.name));
+                const tacticalBlock = assignPositionsTactically(sevenFieldPlayers);
+                Object.assign(lineup[q], tacticalBlock);
             }
 
-            renderLineupTable();
-            updateLiveMatchCalculations();
+            renderAllViews();
         }
 
-        // Tactische positietoewijzing volgens O.N. Almelo JO11-4 afspraken:
-        // - Verdedigers: Jonathan, Vince, Mika (en Jesper kan ook verdedigen + gastspelers met Verdediging)
-        // - CVM / CM: Kerem (vaste verdedigende middenvelder)
-        // - Middenveld: Jesper, Bodi, Noud (+ gastspelers Middenveld)
-        // - Spits: Arthur (en Noud kan ook spits + gastspelers Aanval)
-        function assignTacticalPositions(sevenPlayers) {
-            const result = {};
-            let pool = [...sevenPlayers];
+        function assignPositionsTactically(playersPool) {
+            const block = {};
+            let pool = [...playersPool];
 
-            function takePlayer(predicate) {
+            function pick(predicate) {
                 const idx = pool.findIndex(predicate);
-                if (idx !== -1) {
-                    return pool.splice(idx, 1)[0];
-                }
+                if (idx !== -1) return pool.splice(idx, 1)[0];
                 return null;
             }
 
-            // STAP 1: Spits (SP) -> Eerst Arthur, anders Noud, anders Gast met Aanval, anders overig
-            let sp = takePlayer(p => p.name === "Arthur")
-                  || takePlayer(p => p.name === "Noud")
-                  || takePlayer(p => p.pos1 === "Aanval" || p.pos2 === "Aanval");
-            if (sp) result["SP"] = sp.name;
+            // 1. Spits (SP): Arthur -> Noud -> Gast(Aanval)
+            let sp = pick(p => p.name === "Arthur")
+                  || pick(p => p.name === "Noud")
+                  || pick(p => p.pos1 === "Aanval" || p.pos2 === "Aanval");
+            if (sp) block["SP"] = sp.name;
 
-            // STAP 2: Centraal Verdedigend Middenveld (CM) -> Kerem
-            let cm = takePlayer(p => p.name === "Kerem");
-            if (cm) result["CM"] = cm.name;
+            // 2. Centraal Verdedigend Middenveld (CM): Kerem
+            let cm = pick(p => p.name === "Kerem");
+            if (cm) block["CM"] = cm.name;
 
-            // STAP 3: 3 Verdedigers (LV, CV, RV) -> Eerst Jonathan, Vince, Mika, anders Gast(Verdediging), anders Jesper
-            const defSlots = ["LV", "CV", "RV"];
-            defSlots.forEach(slot => {
-                let def = takePlayer(p => ["Jonathan", "Vince", "Mika"].includes(p.name))
-                       || takePlayer(p => p.isGuest && p.pos1 === "Verdediging")
-                       || takePlayer(p => p.name === "Jesper")
-                       || takePlayer(p => p.pos2 === "Verdediging");
-                if (def) result[slot] = def.name;
+            // 3. Verdediging (LV, CV, RV): Jonathan, Vince, Mika -> Gast(Verdediging) -> Jesper
+            ["LV", "CV", "RV"].forEach(slot => {
+                let def = pick(p => ["Jonathan", "Vince", "Mika"].includes(p.name))
+                       || pick(p => p.isGuest && p.pos1 === "Verdediging")
+                       || pick(p => p.name === "Jesper")
+                       || pick(p => p.pos2 === "Verdediging");
+                if (def) block[slot] = def.name;
             });
 
-            // STAP 4: Middenveld flanken (LM, RM) en eventueel CM als Kerem wissel staat
-            const midSlots = ["CM", "LM", "RM"];
-            midSlots.forEach(slot => {
-                if (!result[slot]) {
-                    let mid = takePlayer(p => p.pos1 === "Middenveld" || p.pos2 === "Middenveld")
-                           || takePlayer(() => true);
-                    if (mid) result[slot] = mid.name;
+            // 4. Middenveld (CM, LM, RM)
+            ["CM", "LM", "RM"].forEach(slot => {
+                if (!block[slot]) {
+                    let mid = pick(p => p.pos1 === "Middenveld" || p.pos2 === "Middenveld")
+                           || pick(() => true);
+                    if (mid) block[slot] = mid.name;
                 }
             });
 
-            // STAP 5: Vul eventueel nog openstaande posities met resterende spelers uit de pool
+            // 5. Fallback voor eventuele open plekken
             ["SP", "LV", "CV", "RV", "CM", "LM", "RM"].forEach(slot => {
-                if (!result[slot] && pool.length > 0) {
-                    result[slot] = pool.shift().name;
+                if (!block[slot] && pool.length > 0) {
+                    block[slot] = pool.shift().name;
                 }
             });
 
-            return result;
+            return block;
         }
 
-        // ==========================================
-        // 5. NOODWISSEL / BLESSURE (TUSSENTIJDS)
-        // ==========================================
+        function resetMatchLineup() {
+            lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
+            for (let q = 1; q <= 4; q++) {
+                lineup[q]["GK"] = isFixedKeeper ? fixedKeeperName : (quarterKeepers[q] || fixedKeeperName);
+            }
+            emergencySubs = [];
+            renderEmergencyBanner();
+            renderAllViews();
+        }
+
+        // =========================================================
+        // 7. NOODWISSEL / BLESSURE LOGICA
+        // =========================================================
         function openEmergencyModal() {
-            populateEmergencyPlayers();
+            refreshEmergencyDropdowns();
             document.getElementById('emergencyModal').classList.remove('hidden');
         }
 
@@ -811,62 +1416,54 @@
             document.getElementById('emergencyModal').classList.add('hidden');
         }
 
-        function populateEmergencyPlayers() {
-            let min = parseInt(document.getElementById('emMinuteInput').value, 10);
+        function refreshEmergencyDropdowns() {
+            let min = parseInt(document.getElementById('emMinute').value, 10);
             if (isNaN(min) || min < 1) min = 1;
             if (min > 59) min = 59;
 
             const q = Math.min(4, Math.ceil(min / 15));
             const qStart = (q - 1) * 15;
             const qEnd = q * 15;
-            document.getElementById('emQuarterHint').innerText = `Valt in Periode ${q} (${qStart} - ${qEnd} min). Resterende tijd in deze periode: ${qEnd - min} min.`;
+            document.getElementById('emPeriodInfo').innerText = `Valt in Blok ${q} (${qStart} - ${qEnd} min) • Resterend in dit blok: ${qEnd - min} min`;
 
             const active = getActivePlayers();
             const pitchEntries = Object.entries(lineup[q]).filter(([, name]) => name);
-            const onPitchNames = pitchEntries.map(([, name]) => name);
-            const onBenchPlayers = active.filter(p => !onPitchNames.includes(p.name));
+            const pitchNames = pitchEntries.map(([, name]) => name);
+            const benchPlayers = active.filter(p => !pitchNames.includes(p.name));
 
-            const outSel = document.getElementById('emPlayerOut');
-            const inSel = document.getElementById('emPlayerIn');
+            const outSel = document.getElementById('emOutSelect');
+            const inSel = document.getElementById('emInSelect');
             outSel.innerHTML = '';
             inSel.innerHTML = '';
 
-            if (pitchEntries.length === 0) {
-                outSel.innerHTML = `<option value="">-- Eerst opstelling invullen voor Periode ${q} --</option>`;
-            } else {
-                pitchEntries.forEach(([posId, pName]) => {
-                    outSel.innerHTML += `<option value="${pName}|${posId}">${pName} (staat op ${posId})</option>`;
-                });
-            }
+            pitchEntries.forEach(([posId, pName]) => {
+                outSel.innerHTML += `<option value="${pName}|${posId}">${pName} (Positie: ${posId})</option>`;
+            });
 
-            if (onBenchPlayers.length === 0) {
-                // Fallback: toon alle aanwezige spelers als er niemand op de bank staat
+            if (benchPlayers.length > 0) {
+                benchPlayers.forEach(p => {
+                    inSel.innerHTML += `<option value="${p.name}">${p.name} (Wisselbank)</option>`;
+                });
+            } else {
                 active.forEach(p => {
                     inSel.innerHTML += `<option value="${p.name}">${p.name}</option>`;
-                });
-            } else {
-                onBenchPlayers.forEach(p => {
-                    inSel.innerHTML += `<option value="${p.name}">${p.name} (Wisselbank)</option>`;
                 });
             }
         }
 
-        function saveEmergencySub() {
-            let min = parseInt(document.getElementById('emMinuteInput').value, 10);
+        function confirmEmergencySub() {
+            let min = parseInt(document.getElementById('emMinute').value, 10);
             if (isNaN(min) || min < 1 || min > 59) {
-                alert("Voer een geldige minuut in tussen 1 en 59.");
+                alert("Kies een geldige minuut tussen 1 en 59.");
                 return;
             }
-            const outVal = document.getElementById('emPlayerOut').value;
-            const inName = document.getElementById('emPlayerIn').value;
-            if (!outVal || !inName) {
-                alert("Selecteer zowel de speler die uitvalt als de vervanger.");
-                return;
-            }
+            const outVal = document.getElementById('emOutSelect').value;
+            const inName = document.getElementById('emInSelect').value;
+            if (!outVal || !inName) return;
 
             const [outName, posId] = outVal.split('|');
             if (outName === inName) {
-                alert("De uitvallende speler en vervanger kunnen niet dezelfde speler zijn.");
+                alert("Kies twee verschillende spelers.");
                 return;
             }
 
@@ -881,215 +1478,189 @@
             });
 
             renderEmergencyBanner();
-            updateLiveMatchCalculations();
+            renderAllViews();
             closeEmergencyModal();
         }
 
         function removeEmergencySub(id) {
             emergencySubs = emergencySubs.filter(e => e.id !== id);
             renderEmergencyBanner();
-            updateLiveMatchCalculations();
+            renderAllViews();
         }
 
         function renderEmergencyBanner() {
-            const banner = document.getElementById('emergencyBanner');
-            const list = document.getElementById('emergencyItemsList');
+            const box = document.getElementById('emergencyAlertBox');
+            const list = document.getElementById('emergencyItemsContainer');
             if (emergencySubs.length === 0) {
-                banner.classList.add('hidden');
+                box.classList.add('hidden');
                 return;
             }
-            banner.classList.remove('hidden');
+            box.classList.remove('hidden');
             list.innerHTML = '';
             emergencySubs.forEach(e => {
-                const qEnd = e.quarter * 15;
-                const minsTransferred = qEnd - e.minute;
-                const div = document.createElement('div');
-                div.className = "flex justify-between items-center bg-white/80 px-3 py-1.5 rounded border border-rose-200";
-                div.innerHTML = `
-                    <span>⏱ <strong>Minuut ${e.minute} (Periode ${e.quarter}, pos ${e.posId}):</strong> 
-                    <strong class="text-emerald-700">${e.in}</strong> vervangt <strong class="text-rose-700">${e.out}</strong> 
-                    <em>(${minsTransferred} min overgenomen)</em></span>
-                    <button onclick="removeEmergencySub(${e.id})" class="text-rose-600 hover:text-rose-800 font-bold ml-2">Verwijder ✕</button>
+                const minsLeft = (e.quarter * 15) - e.minute;
+                list.innerHTML += `
+                    <div class="flex justify-between items-center bg-white px-3 py-2 rounded-xl border border-rose-200 shadow-2xs">
+                        <span>⏱ <strong>Minuut ${e.minute} (Blok ${e.quarter}, ${e.posId}):</strong> <strong class="text-emerald-700">${e.in}</strong> vervangt <strong class="text-rose-600">${e.out}</strong> <em>(${minsLeft} min overgenomen)</em></span>
+                        <button onclick="removeEmergencySub(${e.id})" class="text-rose-600 hover:underline font-bold ml-3 cursor-pointer">Verwijderen ✕</button>
+                    </div>
                 `;
-                list.appendChild(div);
             });
         }
 
-        // ==========================================
-        // 6. BEREKENING SPEELTIJD & WISSELBANK
-        // ==========================================
-        function calculateTodayMinutes() {
+        // =========================================================
+        // 8. BEREKENING SPEELTIJD & SEIZOENSMONITOR
+        // =========================================================
+        function calculateMatchMinutes() {
             const active = getActivePlayers();
             const mins = {};
             active.forEach(p => {
-                mins[p.name] = { field: 0, keeper: 0 };
+                mins[p.name] = { field: 0, keeper: 0, benchQuarters: 0 };
             });
 
-            // Tel reguliere kwartieren (4 x 15m)
             for (let q = 1; q <= 4; q++) {
+                const pitchNames = Object.values(lineup[q]).filter(Boolean);
                 for (let posId in lineup[q]) {
                     const pName = lineup[q][posId];
                     if (pName && mins[pName]) {
-                        if (posId === "GK") {
-                            mins[pName].keeper += 15;
-                        } else {
-                            mins[pName].field += 15;
-                        }
+                        if (posId === "GK") mins[pName].keeper += 15;
+                        else mins[pName].field += 15;
                     }
                 }
+                active.forEach(p => {
+                    if (!pitchNames.includes(p.name)) {
+                        mins[p.name].benchQuarters++;
+                    }
+                });
             }
 
-            // Verreken tussentijdse noodwissels tot op de minuut
+            // Corrigeer voor noodwissels
             emergencySubs.forEach(e => {
-                const qEnd = e.quarter * 15;
-                const remainingInQuarter = Math.max(0, Math.min(15, qEnd - e.minute));
+                const minsTransferred = Math.max(0, Math.min(15, (e.quarter * 15) - e.minute));
                 if (e.posId === "GK") {
-                    if (mins[e.out]) mins[e.out].keeper = Math.max(0, mins[e.out].keeper - remainingInQuarter);
-                    if (mins[e.in]) mins[e.in].keeper += remainingInQuarter;
+                    if (mins[e.out]) mins[e.out].keeper = Math.max(0, mins[e.out].keeper - minsTransferred);
+                    if (mins[e.in]) mins[e.in].keeper += minsTransferred;
                 } else {
-                    if (mins[e.out]) mins[e.out].field = Math.max(0, mins[e.out].field - remainingInQuarter);
-                    if (mins[e.in]) mins[e.in].field += remainingInQuarter;
+                    if (mins[e.out]) mins[e.out].field = Math.max(0, mins[e.out].field - minsTransferred);
+                    if (mins[e.in]) mins[e.in].field += minsTransferred;
                 }
             });
 
             return mins;
         }
 
-        function updateLiveMatchCalculations() {
+        function renderLiveMatchMonitor() {
             const active = getActivePlayers();
-            const todayMins = calculateTodayMinutes();
-            const hist = getHistoricalStats();
+            const todayMins = calculateMatchMinutes();
+            const hist = getSeasonHistoryStats();
 
-            // 1. Update Wisselbank rij onderaan de tabel
-            for (let q = 1; q <= 4; q++) {
-                const onPitch = Object.values(lineup[q]).filter(Boolean);
-                const benchNames = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
-                const cell = document.getElementById(`bench-q${q}`);
-                cell.innerText = benchNames.length > 0 ? benchNames.join(', ') : 'Geen wissel';
-            }
-
-            // 2. Wissel-instructies langs de lijn
-            const instrBox = document.getElementById('subInstructionsBox');
-            instrBox.innerHTML = '';
-            for (let q = 2; q <= 4; q++) {
-                const prev = lineup[q - 1];
-                const curr = lineup[q];
-                const prevPitch = Object.values(prev).filter(Boolean);
-                const currPitch = Object.values(curr).filter(Boolean);
-
-                const comingIn = currPitch.filter(n => !prevPitch.includes(n));
-                const goingOut = prevPitch.filter(n => !currPitch.includes(n));
-                const posChanges = [];
-
-                POSITIONS.forEach(pos => {
-                    if (curr[pos.id] && prev[pos.id] && curr[pos.id] !== prev[pos.id]) {
-                        posChanges.push(`${pos.id}: ${curr[pos.id]}`);
-                    }
-                });
-
-                const div = document.createElement('div');
-                div.className = "p-2.5 bg-slate-50 rounded-lg border border-slate-200";
-                div.innerHTML = `
-                    <div class="font-bold text-slate-800 mb-1">Na Periode ${q - 1} (${(q - 1) * 15}' min):</div>
-                    <div class="flex flex-wrap gap-3">
-                        <span class="text-emerald-700 font-semibold">▶ Erin: ${comingIn.length ? comingIn.join(', ') : '-'}</span>
-                        <span class="text-rose-600 font-semibold">◀ Eruit: ${goingOut.length ? goingOut.join(', ') : '-'}</span>
-                    </div>
-                    ${posChanges.length ? `<div class="text-[11px] text-slate-500 mt-1">Posities: ${posChanges.join(' | ')}</div>` : ''}
-                `;
-                instrBox.appendChild(div);
-            }
-
-            // 3. Bereken streefgemiddelde vandaag (420 veldminuten / aantal aanwezige veldspelers)
-            const outfieldCount = active.filter(p => todayMins[p.name].keeper < 60).length || 1;
-            const todayTarget = 420 / outfieldCount;
-            document.getElementById('todayTargetBadge').innerText = `Streef vandaag: ${todayTarget.toFixed(1)}m per veldspeler`;
-
-            // 4. Vul Live Match Minuten Tabel
-            const liveBody = document.getElementById('liveMatchMinutesBody');
-            liveBody.innerHTML = '';
-
+            // Hoeveel speler-wedstrijden zijn er vandaag op het veld beschikbaar? (Totaal aanwezigen min 1 hele keeper = 8 bij 9 spelers)
+            let totalOutfieldFullShares = 0;
             active.forEach(p => {
-                const t = todayMins[p.name] || { field: 0, keeper: 0 };
-                const h = hist[p.name] || { playedMatches: 0, fieldMinutes: 0, cumulativeTargetMinutes: 0 };
-
-                const isFullKeeperToday = t.keeper >= 60;
-                const newPlayed = isFullKeeperToday ? h.playedMatches : (h.playedMatches + 1);
-                const newFieldTotal = h.fieldMinutes + t.field;
-                const newAvg = newPlayed > 0 ? (newFieldTotal / newPlayed) : 0;
-
-                const newTargetTotal = isFullKeeperToday ? h.cumulativeTargetMinutes : (h.cumulativeTargetMinutes + todayTarget);
-                const personalTargetAvg = newPlayed > 0 ? (newTargetTotal / newPlayed) : todayTarget;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="py-2 font-bold text-slate-800">${p.name}</td>
-                    <td class="py-2 text-center font-bold ${t.field > 0 ? 'text-orange-600' : 'text-slate-400'}">${t.field} min</td>
-                    <td class="py-2 text-center text-amber-700 font-semibold">${t.keeper > 0 ? t.keeper + ' min' : '-'}</td>
-                    <td class="py-2 text-center font-bold text-slate-800">${isFullKeeperToday && h.playedMatches === 0 ? 'Keeper' : newAvg.toFixed(1) + ' min'}</td>
-                    <td class="py-2 text-center text-slate-500">${isFullKeeperToday && h.playedMatches === 0 ? '-' : personalTargetAvg.toFixed(1) + ' min'}</td>
-                `;
-                liveBody.appendChild(tr);
+                const kMin = todayMins[p.name]?.keeper || 0;
+                totalOutfieldFullShares += Math.max(0, (60 - kMin) / 60);
             });
-        }
+            const todayTargetPerFullOutfielder = totalOutfieldFullShares > 0 ? (420 / totalOutfieldFullShares) : 52.5;
 
-        // ==========================================
-        // 7. OPSLAAN IN SEIZOEN & SEIZOENSTABEL
-        // ==========================================
-        function saveMatchToSeason() {
-            const opponent = document.getElementById('opponentSelect').value;
-            const date = document.getElementById('matchDate').value || new Date().toISOString().slice(0, 10);
-            const todayMins = calculateTodayMinutes();
-            const active = getActivePlayers();
+            document.getElementById('matchTargetPill').innerText = `Streefgemiddelde Vandaag: ${todayTargetPerFullOutfielder.toFixed(1)} min (excl. keeper)`;
 
-            const outfieldCount = active.filter(p => (todayMins[p.name]?.keeper || 0) < 60).length || 1;
-            const targetAvgThatMatch = 420 / outfieldCount;
-
-            const record = {
-                id: Date.now(),
-                opponent,
-                date,
-                attendance: { ...attendance },
-                minutes: todayMins,
-                targetAvgThatMatch,
-                emergencySubs: [...emergencySubs]
-            };
-
-            savedMatches.push(record);
-            localStorage.setItem('ona_jo11_4_season_v2', JSON.stringify(savedMatches));
-            alert(`Wedstrijd tegen ${opponent} is opgeslagen! De seizoensgemiddelden zijn bijgewerkt.`);
-            updateLiveMatchCalculations();
-            renderSeasonTable();
-        }
-
-        function renderSeasonTable() {
-            const hist = getHistoricalStats();
-            const tbody = document.getElementById('seasonTableBody');
+            const tbody = document.getElementById('liveMonitorBody');
             tbody.innerHTML = '';
 
-            BASE_SQUAD.forEach(p => {
-                const h = hist[p.name];
-                const avgField = h.playedMatches > 0 ? (h.fieldMinutes / h.playedMatches) : 0;
-                const targetAvg = h.playedMatches > 0 ? (h.cumulativeTargetMinutes / h.playedMatches) : 52.5;
-                const diff = avgField - targetAvg;
+            active.forEach(p => {
+                const t = todayMins[p.name] || { field: 0, keeper: 0, benchQuarters: 0 };
+                const h = hist[p.name] || { outfieldMatches: 0, fieldMinutes: 0, targetFieldMinutesSum: 0 };
 
-                let diffHtml = `<span class="text-slate-400">0.0m</span>`;
-                if (h.playedMatches > 0) {
-                    if (diff > 0.2) diffHtml = `<span class="text-emerald-600 font-bold">+${diff.toFixed(1)}m</span>`;
-                    else if (diff < -0.2) diffHtml = `<span class="text-rose-600 font-bold">${diff.toFixed(1)}m</span>`;
+                const todayOutfieldFraction = Math.max(0, (60 - t.keeper) / 60);
+                const newOutfieldMatches = h.outfieldMatches + todayOutfieldFraction;
+                const newFieldMinutes = h.fieldMinutes + t.field;
+                const newTargetSum = h.targetFieldMinutesSum + (todayTargetPerFullOutfielder * todayOutfieldFraction);
+
+                const newAvg = newOutfieldMatches > 0 ? (newFieldMinutes / newOutfieldMatches) : 0;
+                const personalTargetAvg = newOutfieldMatches > 0 ? (newTargetSum / newOutfieldMatches) : todayTargetPerFullOutfielder;
+                const diff = newAvg - personalTargetAvg;
+
+                let diffBadge = `<span class="text-slate-400 font-bold">0.0m</span>`;
+                if (newOutfieldMatches > 0) {
+                    if (diff > 0.2) diffBadge = `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-extrabold">+${diff.toFixed(1)}m</span>`;
+                    else if (diff < -0.2) diffBadge = `<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-extrabold">${diff.toFixed(1)}m</span>`;
+                    else diffBadge = `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-extrabold">Exact op streef</span>`;
                 }
 
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50";
                 tr.innerHTML = `
-                    <td class="p-3 font-bold text-slate-800">${p.name} <span class="text-[10px] font-normal text-slate-400">(${p.roleLabel})</span></td>
-                    <td class="p-3 text-center font-bold text-emerald-600">${h.playedMatches + (h.keeperMinutes >= 60 ? Math.round(h.keeperMinutes/60) : 0)}</td>
-                    <td class="p-3 text-center text-rose-500 font-semibold">${h.absentMatches}</td>
-                    <td class="p-3 text-center font-bold">${h.fieldMinutes} min</td>
-                    <td class="p-3 text-center font-bold text-orange-600">${h.playedMatches > 0 ? avgField.toFixed(1) + ' min' : '-'}</td>
-                    <td class="p-3 text-center text-slate-600">${h.playedMatches > 0 ? targetAvg.toFixed(1) + ' min' : '-'}</td>
-                    <td class="p-3 text-center">${h.playedMatches > 0 ? diffHtml : '<span class="text-xs text-amber-700 font-semibold">Vaste Keeper</span>'}</td>
-                    <td class="p-3 text-center text-amber-700 font-semibold">${h.keeperMinutes} min</td>
+                    <td class="p-2.5 font-extrabold text-slate-800">${p.name} <span class="text-[10px] font-semibold text-slate-400">(${p.badge})</span></td>
+                    <td class="p-2.5 text-center font-extrabold ${t.field > 0 ? 'text-orange-600' : 'text-slate-400'}">${t.field} min</td>
+                    <td class="p-2.5 text-center font-bold text-amber-700">${t.keeper > 0 ? t.keeper + ' min 🧤' : '-'}</td>
+                    <td class="p-2.5 text-center font-semibold text-slate-600">${t.benchQuarters}x 15m</td>
+                    <td class="p-2.5 text-center font-extrabold text-slate-900">${newOutfieldMatches > 0 ? newAvg.toFixed(1) + ' min' : 'Vaste Keeper'}</td>
+                    <td class="p-2.5 text-center font-semibold text-slate-500">${newOutfieldMatches > 0 ? personalTargetAvg.toFixed(1) + ' min' : '-'}</td>
+                    <td class="p-2.5 text-center">${newOutfieldMatches > 0 ? diffBadge : '<span class="text-xs text-amber-700 font-bold">Keeper</span>'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function saveMatchToSeason() {
+            const opponent = document.getElementById('opponentSelect').value;
+            const date = document.getElementById('matchDate').value || new Date().toISOString().slice(0, 10);
+            const active = getActivePlayers();
+            const todayMins = calculateMatchMinutes();
+
+            let totalOutfieldFullShares = 0;
+            active.forEach(p => {
+                const kMin = todayMins[p.name]?.keeper || 0;
+                totalOutfieldFullShares += Math.max(0, (60 - kMin) / 60);
+            });
+            const targetFieldMinutesPerOutfielder = totalOutfieldFullShares > 0 ? (420 / totalOutfieldFullShares) : 52.5;
+
+            savedMatches.push({
+                id: Date.now(),
+                opponent,
+                date,
+                attendance: { ...attendance },
+                minutes: todayMins,
+                targetFieldMinutesPerOutfielder,
+                emergencySubs: [...emergencySubs]
+            });
+
+            localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
+            document.getElementById('savedCountBadge').innerText = savedMatches.length;
+            alert(`Wedstrijd tegen ${opponent} is opgeslagen in het seizoensoverzicht!`);
+            renderAllViews();
+            renderSeasonOverview();
+        }
+
+        function renderSeasonOverview() {
+            document.getElementById('savedCountBadge').innerText = savedMatches.length;
+            const hist = getSeasonHistoryStats();
+            const tbody = document.getElementById('seasonOverviewBody');
+            tbody.innerHTML = '';
+
+            BASE_PLAYERS.forEach(p => {
+                const h = hist[p.name];
+                const avgField = h.outfieldMatches > 0 ? (h.fieldMinutes / h.outfieldMatches) : 0;
+                const targetAvg = h.outfieldMatches > 0 ? (h.targetFieldMinutesSum / h.outfieldMatches) : 52.5;
+                const diff = avgField - targetAvg;
+
+                let diffHtml = `<span class="text-slate-400">0.0m</span>`;
+                if (h.outfieldMatches > 0) {
+                    if (diff > 0.2) diffHtml = `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">+${diff.toFixed(1)}m</span>`;
+                    else if (diff < -0.2) diffHtml = `<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-bold">${diff.toFixed(1)}m</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50";
+                tr.innerHTML = `
+                    <td class="p-3 font-extrabold text-slate-800">${p.name} <span class="text-[10px] font-normal text-slate-400">(${p.role})</span></td>
+                    <td class="p-3 text-center font-bold text-emerald-600">${h.presentMatches}</td>
+                    <td class="p-3 text-center font-bold text-rose-500">${h.absentMatches}</td>
+                    <td class="p-3 text-center font-extrabold">${h.fieldMinutes} min</td>
+                    <td class="p-3 text-center font-extrabold text-orange-600">${h.outfieldMatches > 0 ? avgField.toFixed(1) + ' min' : '-'}</td>
+                    <td class="p-3 text-center font-semibold text-slate-600">${h.outfieldMatches > 0 ? targetAvg.toFixed(1) + ' min' : '-'}</td>
+                    <td class="p-3 text-center">${h.outfieldMatches > 0 ? diffHtml : '<span class="text-amber-700 font-bold">Vaste Keeper</span>'}</td>
+                    <td class="p-3 text-center font-bold text-amber-700">${h.keeperMinutes} min</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1103,12 +1674,12 @@
 
             savedMatches.forEach((m, idx) => {
                 const div = document.createElement('div');
-                div.className = "flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs";
+                div.className = "flex justify-between items-center p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs";
                 div.innerHTML = `
                     <div>
-                        <strong>Oranje Nassau JO11-4 vs ${m.opponent}</strong> 
+                        <strong class="text-slate-800">Oranje Nassau JO11-4 vs ${m.opponent}</strong>
                         <span class="text-slate-400 ml-2">(${m.date})</span>
-                        ${m.emergencySubs && m.emergencySubs.length ? `<span class="ml-2 bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-semibold">${m.emergencySubs.length} noodwissel(s)</span>` : ''}
+                        <span class="ml-2 bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Streef: ${m.targetFieldMinutesPerOutfielder.toFixed(1)}m</span>
                     </div>
                     <button onclick="deleteSavedMatch(${idx})" class="text-rose-600 hover:underline font-bold cursor-pointer">Verwijderen</button>
                 `;
@@ -1117,20 +1688,20 @@
         }
 
         function deleteSavedMatch(idx) {
-            if (confirm("Weet je zeker dat je deze opgeslagen wedstrijd wilt verwijderen?")) {
+            if (confirm("Deze opgeslagen wedstrijd verwijderen uit het seizoensoverzicht?")) {
                 savedMatches.splice(idx, 1);
-                localStorage.setItem('ona_jo11_4_season_v2', JSON.stringify(savedMatches));
-                renderSeasonTable();
-                updateLiveMatchCalculations();
+                localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
+                renderSeasonOverview();
+                renderAllViews();
             }
         }
 
-        function resetAllSeasonData() {
-            if (confirm("Alle opgeslagen wedstrijden van dit seizoen wissen?")) {
+        function clearSeasonHistory() {
+            if (confirm("Weet je zeker dat je alle opgeslagen wedstrijden van het seizoen wilt wissen?")) {
                 savedMatches = [];
-                localStorage.removeItem('ona_jo11_4_season_v2');
-                renderSeasonTable();
-                updateLiveMatchCalculations();
+                localStorage.removeItem('ona_jo11_4_season_v3');
+                renderSeasonOverview();
+                renderAllViews();
             }
         }
 
@@ -1139,9 +1710,9 @@
             const active = getActivePlayers();
             let txt = `⚽ *Oranje Nassau JO11-4 vs ${opp}*\n\n`;
             for (let q = 1; q <= 4; q++) {
-                txt += `*Periode ${q} (${(q - 1) * 15} - ${q * 15} min):*\n`;
-                POSITIONS.forEach(pos => {
-                    txt += `• ${pos.id}: ${lineup[q][pos.id] || '-'}\n`;
+                txt += `*Blok ${q} (${(q - 1) * 15} - ${q * 15} min):*\n`;
+                TABLE_POSITIONS.forEach(pos => {
+                    txt += `• ${pos.short}: ${lineup[q][pos.id] || '-'}\n`;
                 });
                 const onPitch = Object.values(lineup[q]).filter(Boolean);
                 const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
@@ -1151,7 +1722,7 @@
             alert("Opstelling en wisselschema gekopieerd voor WhatsApp!");
         }
 
-        window.onload = init;
+        window.onload = initApp;
     </script>
 </body>
 </html>
