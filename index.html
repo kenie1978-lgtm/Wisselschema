@@ -57,13 +57,12 @@
                             8v8 • 4x 15m
                         </span>
                     </div>
-                    <p class="text-slate-300 text-xs mt-0.5">Live Match Tracker, Doelpunten, Wisselplanner & Data Analytics</p>
+                    <p id="headerSubtitle" class="text-slate-300 text-xs mt-0.5">Live Match Tracker, Doelpunten, Wisselplanner & Data Analytics</p>
                 </div>
             </div>
 
             <!-- Header Bediening: Grote Knop Wedstrijd Modus + Tabs -->
             <div class="flex flex-wrap items-center justify-center gap-3">
-                <!-- OPVALLENDE WEDSTRIJD MODUS KNOP -->
                 <button onclick="toggleMatchMode()" id="matchModeLaunchBtn" class="bg-gradient-to-r from-rose-600 via-red-500 to-orange-500 hover:from-rose-700 hover:to-orange-600 text-white px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer flex items-center gap-2.5 shadow-lg border-2 border-rose-300 animate-pulse transform hover:scale-105">
                     <span class="w-3 h-3 rounded-full bg-white shadow-xs"></span>
                     <span>🔴 START WEDSTRIJD MODUS</span>
@@ -101,21 +100,20 @@
                     <span class="w-2 h-2 rounded-full bg-white"></span> LIVE WEDSTRIJD
                 </span>
                 <div>
-                    <h2 class="text-sm sm:text-base font-black text-white flex items-center gap-2">
-                        <span>O.N. Almelo JO11-4</span>
-                        <span class="text-slate-500">vs</span>
-                        <span id="matchModeOpponentName" class="text-orange-400">Tegenstander</span>
+                    <!-- Titel conform Thuis / Uit volgorde -->
+                    <h2 id="matchModeMatchTitle" class="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                        <!-- Dynamisch gevuld -->
                     </h2>
                     <span id="matchModeCurrentQuarterBadge" class="text-[11px] font-bold text-slate-400">Blok 1 (0-15m)</span>
                 </div>
             </div>
 
-            <!-- Scorebord & Timer in Cockpit Header -->
+            <!-- Scorebord & Timer in Cockpit Header (Links Thuis, Rechts Uit) -->
             <div class="flex items-center gap-4 bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800">
                 <div class="text-center font-black">
-                    <span id="matchModeScoreON" class="text-2xl text-orange-400">0</span>
+                    <span id="matchModeScoreHome" class="text-2xl text-white">0</span>
                     <span class="text-slate-600 mx-1">-</span>
-                    <span id="matchModeScoreOpp" class="text-2xl text-white">0</span>
+                    <span id="matchModeScoreAway" class="text-2xl text-white">0</span>
                 </div>
                 <div class="h-6 w-px bg-slate-800"></div>
                 <div class="text-center font-mono">
@@ -172,7 +170,7 @@
                 </div>
             </div>
 
-            <!-- Midden Inhoudsgedeelte (Groot en Relevante Focus) -->
+            <!-- Midden Inhoudsgedeelte -->
             <div class="lg:col-span-9 space-y-4">
                 
                 <!-- Periode Bedieningsbalk in Cockpit -->
@@ -220,9 +218,8 @@
                         </button>
                     </div>
 
-                    <!-- Knoppen per aanwezige speler voor 1-klik doelpunt -->
                     <div>
-                        <div class="text-[11px] font-bold text-slate-400 mb-2">Wie scoorde zojuist?</div>
+                        <div class="text-[11px] font-bold text-slate-400 mb-2">Wie scoorde voor Oranje Nassau?</div>
                         <div id="mmQuickScorerButtons" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
                     </div>
 
@@ -243,23 +240,29 @@
         <main class="max-w-7xl mx-auto px-4 py-4 sm:py-6 space-y-6">
 
             <!-- LIVE SCOREBORD & CENTRALE TIMESTAMP-TIMER (STANDAARD) -->
+            <!-- Volgorde van weergave draait automatisch mee met Thuis / Uit -->
             <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-4 sm:p-5 shadow-md border border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-4 sm:gap-6">
-                    <div class="text-center">
-                        <span class="block text-[10px] font-extrabold uppercase tracking-wider text-orange-400">Oranje Nassau</span>
-                        <span id="scoreON" class="text-3xl sm:text-4xl font-black text-white">0</span>
-                    </div>
-                    <div class="text-2xl font-black text-slate-500">-</div>
-                    <div class="text-center">
-                        <span id="scoreboardOpponentName" class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-300 truncate max-w-[140px]">Tegenstander</span>
+                <div class="flex items-center gap-4 sm:gap-6" id="scoreboardContainer">
+                    <!-- Linker Team (Thuis) -->
+                    <div class="text-center" id="scoreLeftTeamBlock">
+                        <span id="scoreLeftTeamName" class="block text-[10px] font-extrabold uppercase tracking-wider truncate max-w-[140px] text-orange-400">Oranje Nassau</span>
                         <div class="flex items-center justify-center gap-1">
-                            <span id="scoreOpponent" class="text-3xl sm:text-4xl font-black text-white">0</span>
-                            <div class="flex flex-col ml-1">
-                                <button onclick="adjustOpponentGoal(1)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded font-bold">▲</button>
-                                <button onclick="adjustOpponentGoal(-1)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded font-bold mt-0.5">▼</button>
-                            </div>
+                            <span id="scoreLeftNumber" class="text-3xl sm:text-4xl font-black text-white">0</span>
+                            <div class="flex flex-col ml-1" id="scoreLeftArrows"></div>
                         </div>
                     </div>
+
+                    <div class="text-2xl font-black text-slate-500">-</div>
+
+                    <!-- Rechter Team (Uit) -->
+                    <div class="text-center" id="scoreRightTeamBlock">
+                        <span id="scoreRightTeamName" class="block text-[10px] font-extrabold uppercase tracking-wider truncate max-w-[140px] text-slate-300">Tegenstander</span>
+                        <div class="flex items-center justify-center gap-1">
+                            <span id="scoreRightNumber" class="text-3xl sm:text-4xl font-black text-white">0</span>
+                            <div class="flex flex-col ml-1" id="scoreRightArrows"></div>
+                        </div>
+                    </div>
+
                     <button onclick="openGoalModal()" class="ml-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-extrabold px-3.5 py-2.5 rounded-xl text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
                         ⚽ + Goal ON
                     </button>
@@ -321,6 +324,21 @@
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                                <!-- Thuis / Uit Toggle Knop -->
+                                <div class="sm:col-span-12">
+                                    <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Locatie (Thuis of Uit)</label>
+                                    <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                                        <button type="button" onclick="setHomeAway(true)" id="homeBtn" class="py-1.5 rounded-lg text-xs font-black transition cursor-pointer bg-white text-orange-600 shadow-sm flex items-center justify-center gap-1.5">
+                                            <span>🏠 Thuis</span>
+                                            <span class="text-[9px] text-slate-400 font-normal">(ON eerst)</span>
+                                        </button>
+                                        <button type="button" onclick="setHomeAway(false)" id="awayBtn" class="py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5">
+                                            <span>🚗 Uit</span>
+                                            <span class="text-[9px] text-slate-400 font-normal">(Tegenst. eerst)</span>
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div class="sm:col-span-7 relative" id="opponentDropdownWrapper">
                                     <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Tegenstander</label>
                                     <button type="button" id="opponentTriggerBtn" onclick="toggleOpponentDropdown()" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-slate-50 text-slate-800 hover:border-orange-400 focus:ring-2 focus:ring-orange-500 outline-none flex items-center justify-between cursor-pointer">
@@ -538,11 +556,11 @@
 
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                                 <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-orange-600 flex items-center gap-1.5">
-                                    🔄 Wisselbank in Blok <span id="sideBenchQuarterNum">1</span>
-                                </h4>
-                                <span class="text-[11px] font-bold bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full">Rust</span>
-                            </div>
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-orange-600 flex items-center gap-1.5">
+                                        🔄 Wisselbank in Blok <span id="sideBenchQuarterNum">1</span>
+                                    </h4>
+                                    <span class="text-[11px] font-bold bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full">Rust</span>
+                                </div>
                                 <div id="sideBenchPlayersList" class="space-y-2"></div>
                             </div>
 
@@ -728,7 +746,7 @@
                     </div>
                 </div>
 
-                <!-- Opgeslagen wedstrijden lijst -->
+                <!-- Opgeslagen wedstrijden lijst (Met duidelijke W/G/V resultaat badges) -->
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
                         <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-700">📁 Opgeslagen Wedstrijden</h3>
@@ -741,7 +759,7 @@
     </div>
 
     <!-- ========================================================= -->
-    <!-- ZWEVENDE DATA & AI CHAT ASSISTENT (HERSTELD & VERBETERD)  -->
+    <!-- ZWEVENDE DATA & AI CHAT ASSISTENT                        -->
     <!-- ========================================================= -->
     <div id="chatWidgetContainer" class="fixed bottom-4 right-4 z-50">
         <button onclick="toggleChatWindow()" id="chatFloatingBtn" class="bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white p-3.5 rounded-full shadow-2xl border-2 border-white flex items-center gap-2 cursor-pointer transition transform hover:scale-105">
@@ -772,7 +790,7 @@
             <div id="chatMessagesList" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
                 <div class="bg-slate-100 p-3 rounded-2xl text-slate-700 space-y-1">
                     <p class="font-extrabold text-orange-600">Hallo coach! 👋</p>
-                    <p>Ik beheer alle data en onderwater-statistieken van O.N. Almelo JO11-4. Vraag me gerust naar topscorers, speeltijden, opstellingen of vraag om een grafiek!</p>
+                    <p>Ik beheer alle data en onderwater-statistieken van O.N. Almelo JO11-4. Vraag me gerust naar topscorers, uitslagen, speeltijden of vraag om een grafiek!</p>
                 </div>
             </div>
 
@@ -795,7 +813,21 @@
         </div>
     </div>
 
-    <!-- MODALS: DOELPUNTEN, ROLLEN, OPSTELLING, NOODWISSEL, BACKUP -->
+    <!-- MODALS: DOELPUNTEN, ROLLEN, OPSTELLING, NOODWISSEL, BACKUP, FINISH POPUP -->
+
+    <!-- FINISH WEDSTRIJD POPUP (OVERWINNING / NEDERLAAG / GELIJKSPEL) -->
+    <div id="matchFinishModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 text-center space-y-4 transform animate-bounce-short">
+            <div id="finishModalIcon" class="text-5xl">🏆</div>
+            <h3 id="finishModalTitle" class="text-xl font-black text-slate-900 leading-tight">Gefeliciteerd met de overwinning!</h3>
+            <p id="finishModalSubtitle" class="text-xs font-bold text-slate-600">Eindstand: 4 - 2</p>
+            <div class="pt-2">
+                <button onclick="closeMatchFinishModal()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-3 rounded-2xl text-xs shadow-md transition cursor-pointer">
+                    Terug naar Hoofdscherm
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL: DOELPUNT TOEVOEGEN / BEWERKEN -->
     <div id="goalModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
@@ -1017,10 +1049,11 @@
         ];
 
         // =========================================================
-        // 2. APPLICATIE & WEDSTRIJD STATE
+        // 2. APPLICATIE & WEDSTRIJD STATE (INCL. THUIS/UIT)
         // =========================================================
         let opponentsList = JSON.parse(localStorage.getItem('ona_jo11_4_opponents_v4') || 'null') || DEFAULT_OPPONENTS;
         let selectedOpponent = "";
+        let isHomeMatch = true; // true = Thuis (ON eerst), false = Uit (Tegenstander eerst)
         let attendance = {};
         let guestPlayers = [];
         let isFixedKeeper = true;
@@ -1028,15 +1061,15 @@
         let quarterKeepers = { 1: "Sep", 2: "Sep", 3: "Sep", 4: "Sep" };
         let lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
         let emergencySubs = [];
-        let matchGoals = [];
+        let matchGoals = []; // Doelpunten van Oranje Nassau
+        let opponentGoals = 0; // Doelpunten van de Tegenstander
         let editingGoalId = null;
-        let opponentGoals = 0;
         let activeQuarterView = 1;
         let displayMode = "pitch";
 
-        // Wedstrijd Modus State (Lokaal per apparaat!)
+        // Wedstrijd Modus State
         let isMatchMode = localStorage.getItem('ona_jo11_4_match_mode') === 'true';
-        let matchModeActiveTab = 'pitch'; // 'pitch' | 'sub' | 'goals'
+        let matchModeActiveTab = 'pitch';
 
         // Centrale Timestamp-Timer State
         let timerActiveQuarter = 1;
@@ -1104,7 +1137,140 @@
         }
 
         // =========================================================
-        // 3. HERONTWORPEN WEDSTRIJD MODUS (STADION COCKPIT)
+        // 3. THUIS / UIT INSTELLING & SCOREBORD CONTEXT
+        // =========================================================
+        function setHomeAway(isHome) {
+            if (isReadOnlyMode) return;
+            isHomeMatch = isHome;
+
+            const homeBtn = document.getElementById('homeBtn');
+            const awayBtn = document.getElementById('awayBtn');
+
+            if (isHomeMatch) {
+                homeBtn.className = "py-1.5 rounded-lg text-xs font-black transition cursor-pointer bg-white text-orange-600 shadow-sm flex items-center justify-center gap-1.5";
+                awayBtn.className = "py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5";
+            } else {
+                awayBtn.className = "py-1.5 rounded-lg text-xs font-black transition cursor-pointer bg-white text-orange-600 shadow-sm flex items-center justify-center gap-1.5";
+                homeBtn.className = "py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5";
+            }
+
+            renderScoreboard();
+            renderMatchModeCockpit();
+            syncLiveDraftToCloud();
+        }
+
+        // Bepaalt de uitslag en of ON gewonnen, gelijkgespeeld of verloren heeft
+        function getMatchResultDetails(onScore, oppScore, isHome) {
+            const onGoals = onScore || 0;
+            const theirGoals = oppScore || 0;
+
+            const homeScore = isHome ? onGoals : theirGoals;
+            const awayScore = isHome ? theirGoals : onGoals;
+
+            let resultStatus = "G"; // "W", "V", "G"
+            let badgeClass = "bg-slate-200 text-slate-800";
+
+            if (onGoals > theirGoals) {
+                resultStatus = "W";
+                badgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-300";
+            } else if (onGoals < theirGoals) {
+                resultStatus = "V";
+                badgeClass = "bg-rose-100 text-rose-800 border border-rose-300";
+            } else {
+                resultStatus = "G";
+                badgeClass = "bg-amber-100 text-amber-800 border border-amber-300";
+            }
+
+            const homeName = isHome ? "Oranje Nassau" : (selectedOpponent || "Tegenstander");
+            const awayName = isHome ? (selectedOpponent || "Tegenstander") : "Oranje Nassau";
+
+            return {
+                onGoals,
+                theirGoals,
+                homeScore,
+                awayScore,
+                resultStatus,
+                badgeClass,
+                homeName,
+                awayName,
+                scoreString: `${homeScore} - ${awayScore}`
+            };
+        }
+
+        function renderScoreboard() {
+            const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
+
+            // Standaard Scorebord Header
+            const leftNameEl = document.getElementById('scoreLeftTeamName');
+            const rightNameEl = document.getElementById('scoreRightTeamName');
+            const leftNumEl = document.getElementById('scoreLeftNumber');
+            const rightNumEl = document.getElementById('scoreRightNumber');
+            const leftArrows = document.getElementById('scoreLeftArrows');
+            const rightArrows = document.getElementById('scoreRightArrows');
+
+            leftNameEl.innerText = res.homeName;
+            rightNameEl.innerText = res.awayName;
+
+            leftNumEl.innerText = res.homeScore;
+            rightNumEl.innerText = res.awayScore;
+
+            if (isHomeMatch) {
+                leftNameEl.className = "block text-[10px] font-extrabold uppercase tracking-wider truncate max-w-[140px] text-orange-400";
+                rightNameEl.className = "block text-[10px] font-extrabold uppercase tracking-wider truncate max-w-[140px] text-slate-300";
+                leftArrows.innerHTML = '';
+                rightArrows.innerHTML = `
+                    <button onclick="adjustOpponentGoal(1)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded font-bold">▲</button>
+                    <button onclick="adjustOpponentGoal(-1)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded font-bold mt-0.5">▼</button>
+                `;
+            } else {
+                leftNameEl.className = "block text-[10px] font-extrabold uppercase tracking-wider truncate max-w-[140px] text-slate-300";
+                rightNameEl.className = "block text-[10px] font-extrabold uppercase tracking-wider truncate max-w-[140px] text-orange-400";
+                leftArrows.innerHTML = `
+                    <button onclick="adjustOpponentGoal(1)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded font-bold">▲</button>
+                    <button onclick="adjustOpponentGoal(-1)" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-1.5 py-0.5 rounded font-bold mt-0.5">▼</button>
+                `;
+                rightArrows.innerHTML = '';
+            }
+
+            // Wedstrijd Modus Cockpit Scorebord
+            document.getElementById('matchModeScoreHome').innerText = res.homeScore;
+            document.getElementById('matchModeScoreAway').innerText = res.awayScore;
+
+            const titleEl = document.getElementById('matchModeMatchTitle');
+            if (titleEl) {
+                if (isHomeMatch) {
+                    titleEl.innerHTML = `<span class="text-orange-400">Oranje Nassau</span> <span class="text-slate-500">vs</span> <span>${selectedOpponent || 'Tegenstander'}</span> <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-bold">🏠 Thuis</span>`;
+                } else {
+                    titleEl.innerHTML = `<span>${selectedOpponent || 'Tegenstander'}</span> <span class="text-slate-500">vs</span> <span class="text-orange-400">Oranje Nassau</span> <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full font-bold">🚗 Uit</span>`;
+                }
+            }
+
+            // Doelpuntenlijst badges
+            const container = document.getElementById('goalsOverviewBox');
+            const badgesList = document.getElementById('goalsBadgesList');
+
+            if (matchGoals.length === 0) {
+                container.classList.add('hidden');
+            } else {
+                container.classList.remove('hidden');
+                badgesList.innerHTML = '';
+                matchGoals.forEach((g) => {
+                    const badge = document.createElement('span');
+                    badge.className = "bg-orange-100 text-orange-900 border border-orange-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1";
+                    badge.innerHTML = `
+                        <span>${g.scorer}${g.minute ? ` (${g.minute}')` : ''}</span>
+                        ${!isReadOnlyMode ? `
+                            <button onclick="editGoal(${g.id})" class="text-slate-500 hover:text-slate-800 ml-1 font-bold" title="Doelpunt bewerken">✏️</button>
+                            <button onclick="removeGoalById(${g.id})" class="text-rose-500 hover:text-rose-700 ml-0.5 font-bold" title="Verwijderen">✕</button>
+                        ` : ''}
+                    `;
+                    badgesList.appendChild(badge);
+                });
+            }
+        }
+
+        // =========================================================
+        // 4. HERONTWORPEN WEDSTRIJD MODUS (STADION COCKPIT)
         // =========================================================
         function toggleMatchMode() {
             isMatchMode = !isMatchMode;
@@ -1123,12 +1289,9 @@
                 mainHeader.classList.add('hidden');
                 dedicatedContainer.classList.remove('hidden');
 
-                // Synchroniseer score en tegenstander
-                document.getElementById('matchModeOpponentName').innerText = selectedOpponent || "Tegenstander";
-                document.getElementById('matchModeScoreON').innerText = matchGoals.length;
-                document.getElementById('matchModeScoreOpp').innerText = opponentGoals;
-
+                renderScoreboard();
                 renderMatchModeCockpit();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 dedicatedContainer.classList.add('hidden');
                 mainHeader.classList.remove('hidden');
@@ -1164,7 +1327,6 @@
             document.getElementById('mmActivePeriodNum').innerText = timerActiveQuarter;
             document.getElementById('mmActivePeriodMins').innerText = `(${(timerActiveQuarter - 1) * 15} - ${timerActiveQuarter * 15}m)`;
 
-            // Update Period Buttons in sidebar
             for (let q = 1; q <= 4; q++) {
                 const b = document.getElementById(`mmQBtn-${q}`);
                 if (b) {
@@ -1174,10 +1336,8 @@
                 }
             }
 
-            // Render groot veld in cockpit
             document.getElementById('mmSinglePitchContainer').innerHTML = generatePitchHTMLForQuarter(timerActiveQuarter, false);
 
-            // Render Wisselcoach
             const subContainer = document.getElementById('mmSubInstructionsBig');
             const benchContainer = document.getElementById('mmBenchPlayersListBig');
             if (timerActiveQuarter < 4) {
@@ -1203,7 +1363,6 @@
                 });
             }
 
-            // Render Snelle Goal Knoppen
             const quickGoalContainer = document.getElementById('mmQuickScorerButtons');
             quickGoalContainer.innerHTML = '';
             active.forEach(p => {
@@ -1215,7 +1374,6 @@
                 `;
             });
 
-            // Render Cockpit Doelpuntenlijst
             const goalsList = document.getElementById('mmGoalsListContainer');
             document.getElementById('mmGoalsCountBadge').innerText = matchGoals.length;
             goalsList.innerHTML = '';
@@ -1245,7 +1403,7 @@
         }
 
         // =========================================================
-        // 4. TIMER & DE DYNAMISCHE PERIODE-KNOP (INCL. BEËINDIGEN)
+        // 5. TIMER & WEDSTRIJD BEËINDIGEN KNOPLOGICA
         // =========================================================
         function calculateCurrentTimerSeconds() {
             if (!isTimerRunning || !timerStartedAt) {
@@ -1296,12 +1454,10 @@
             syncLiveDraftToCloud();
         }
 
-        // DE GEÏNTEGREERDE KNOP: VOLGENDE PERIODE (1-3) OF WEDSTRIJD BEËINDIGEN (4)
         function handlePeriodProgressButton() {
             if (isReadOnlyMode) return;
 
             if (timerActiveQuarter < 4) {
-                // Volgende periode starten
                 isTimerRunning = false;
                 timerStartedAt = null;
                 timerAccumulatedSeconds = 0;
@@ -1312,7 +1468,6 @@
                 selectActiveQuarter(timerActiveQuarter);
                 syncLiveDraftToCloud();
             } else {
-                // Periode 4 is afgelopen: Knop = Wedstrijd Beëindigen!
                 finishMatchAction();
             }
         }
@@ -1323,10 +1478,46 @@
             updateTimerDisplay();
             syncLiveDraftToCloud();
 
-            if (confirm(`Wedstrijd tegen ${selectedOpponent || 'deze tegenstander'} definitief beëindigen?\n\nStand: ${matchGoals.length} - ${opponentGoals}\n\nWil je de wedstrijd direct definitief opslaan in het seizoensoverzicht?`)) {
-                saveMatchToSeason();
-                if (isMatchMode) toggleMatchMode();
+            // Automatisch opslaan van de wedstrijd
+            saveMatchToSeason();
+
+            // Direct wedstrijdmodus afsluiten en teruggaan naar normale scherm
+            if (isMatchMode) {
+                toggleMatchMode();
             }
+
+            // Bepaal uitslag en toon passende popup
+            const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
+            showMatchFinishModal(res);
+        }
+
+        function showMatchFinishModal(res) {
+            const modal = document.getElementById('matchFinishModal');
+            const iconEl = document.getElementById('finishModalIcon');
+            const titleEl = document.getElementById('finishModalTitle');
+            const subEl = document.getElementById('finishModalSubtitle');
+
+            subEl.innerText = `${res.homeName} ${res.homeScore} - ${res.awayScore} ${res.awayName}`;
+
+            if (res.resultStatus === "W") {
+                iconEl.innerText = "🏆";
+                titleEl.innerText = "Gefeliciteerd met de overwinning!";
+                titleEl.className = "text-xl font-black text-emerald-600 leading-tight";
+            } else if (res.resultStatus === "V") {
+                iconEl.innerText = "💪";
+                titleEl.innerText = "Jammer, volgende keer beter!";
+                titleEl.className = "text-xl font-black text-rose-600 leading-tight";
+            } else {
+                iconEl.innerText = "🤝";
+                titleEl.innerText = "Gelijkspel! Goed gestreden mannen!";
+                titleEl.className = "text-xl font-black text-amber-600 leading-tight";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeMatchFinishModal() {
+            document.getElementById('matchFinishModal').classList.add('hidden');
         }
 
         function resetMatchTimer() {
@@ -1371,7 +1562,6 @@
                 dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
             }
 
-            // UPDATE DE KNOP NAAR 'WEDSTRIJD BEËINDIGEN' ALS WE IN BLOK 4 ZITTEN!
             const nextBtnStd = document.getElementById('nextPeriodManualBtn');
             const nextBtnCockpit = document.getElementById('mmNextPeriodBtn');
 
@@ -1394,40 +1584,8 @@
         }
 
         // =========================================================
-        // 5. DOELPUNTENMAKERS
+        // 6. DOELPUNTEN INVOEREN / BEWERKEN
         // =========================================================
-        function renderScoreboard() {
-            document.getElementById('scoreON').innerText = matchGoals.length;
-            document.getElementById('scoreOpponent').innerText = opponentGoals;
-            document.getElementById('scoreboardOpponentName').innerText = selectedOpponent || "Tegenstander";
-
-            document.getElementById('matchModeScoreON').innerText = matchGoals.length;
-            document.getElementById('matchModeScoreOpp').innerText = opponentGoals;
-            document.getElementById('matchModeOpponentName').innerText = selectedOpponent || "Tegenstander";
-
-            const container = document.getElementById('goalsOverviewBox');
-            const badgesList = document.getElementById('goalsBadgesList');
-
-            if (matchGoals.length === 0) {
-                container.classList.add('hidden');
-            } else {
-                container.classList.remove('hidden');
-                badgesList.innerHTML = '';
-                matchGoals.forEach((g) => {
-                    const badge = document.createElement('span');
-                    badge.className = "bg-orange-100 text-orange-900 border border-orange-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-1";
-                    badge.innerHTML = `
-                        <span>${g.scorer}${g.minute ? ` (${g.minute}')` : ''}</span>
-                        ${!isReadOnlyMode ? `
-                            <button onclick="editGoal(${g.id})" class="text-slate-500 hover:text-slate-800 ml-1 font-bold" title="Doelpunt bewerken">✏️</button>
-                            <button onclick="removeGoalById(${g.id})" class="text-rose-500 hover:text-rose-700 ml-0.5 font-bold" title="Verwijderen">✕</button>
-                        ` : ''}
-                    `;
-                    badgesList.appendChild(badge);
-                });
-            }
-        }
-
         function adjustOpponentGoal(delta) {
             if (isReadOnlyMode) return;
             opponentGoals = Math.max(0, opponentGoals + delta);
@@ -1509,7 +1667,7 @@
         }
 
         // =========================================================
-        // 6. SPELERSROLLEN BEHEREN
+        // 7. SPELERSROLLEN BEHEREN
         // =========================================================
         function openRoleManagerModal() {
             const list = document.getElementById('roleManagerList');
@@ -1556,7 +1714,7 @@
         }
 
         // =========================================================
-        // 7. FIREBASE CLOUD VERBINDING
+        // 8. FIREBASE CLOUD VERBINDING
         // =========================================================
         function updateCloudStatusBadge(state, text) {
             const btn = document.getElementById('cloudStatusBtn');
@@ -1619,6 +1777,8 @@
                         if (loadedMatchId === null && data.liveDraft && data.updatedBy !== clientSessionId) {
                             const d = data.liveDraft;
                             selectedOpponent = d.selectedOpponent || selectedOpponent;
+                            isHomeMatch = (d.isHomeMatch !== undefined) ? d.isHomeMatch : true;
+
                             if (d.matchDate) document.getElementById('matchDate').value = d.matchDate;
                             if (d.attendance) attendance = { ...d.attendance };
                             if (Array.isArray(d.guestPlayers)) {
@@ -1650,6 +1810,7 @@
                             updateTimerDisplay();
                         }
 
+                        setHomeAway(isHomeMatch);
                         renderOpponentDropdown();
                         renderAttendancePills();
                         renderKeeperControls();
@@ -1670,7 +1831,7 @@
 
             } catch (err) {
                 console.error("Firebase fout:", err);
-                updateCloudStatusBadge('error', '⚠️ Cloud Fout');
+                updateCloudStatusBadge('error', '⚠️ Cloud Mislukt');
             }
         }
 
@@ -1689,6 +1850,7 @@
             if (loadedMatchId === null) {
                 payload.liveDraft = {
                     selectedOpponent,
+                    isHomeMatch,
                     matchDate: document.getElementById('matchDate').value,
                     attendance: { ...attendance },
                     guestPlayers: JSON.parse(JSON.stringify(guestPlayers)),
@@ -1740,7 +1902,7 @@
         }
 
         // =========================================================
-        // 8. TEGENSTANDERS & BLOK DOORKOPIËREN
+        // 9. TEGENSTANDERS & BLOK DOORKOPIËREN
         // =========================================================
         function toggleOpponentDropdown() {
             if (isReadOnlyMode) return;
@@ -1871,7 +2033,7 @@
         }
 
         // =========================================================
-        // 9. SELECTIE, AANWEZIGHEID & GASTSPELERS
+        // 10. SELECTIE, AANWEZIGHEID & GASTSPELERS
         // =========================================================
         function getActivePlayers() {
             const base = basePlayers.filter(p => attendance[p.name]);
@@ -2039,7 +2201,7 @@
         }
 
         // =========================================================
-        // 10. KEEPER LOGICA
+        // 11. KEEPER LOGICA
         // =========================================================
         function toggleFixedKeeperMode() {
             if (isReadOnlyMode) return;
@@ -2140,7 +2302,7 @@
         }
 
         // =========================================================
-        // 11. POSITIE PULL-DOWN & VELDWEERGAVE
+        // 12. POSITIE PULL-DOWN & VELDWEERGAVE
         // =========================================================
         function isPlayerPreferredForPos(player, posObj) {
             if (posObj.id === "GK") return player.pos1 === "Keeper";
@@ -2508,7 +2670,7 @@
         }
 
         // =========================================================
-        // 12. WISSELROTATIE WAARSCHUWING (MEEST RECENTE SPEELDATUM)
+        // 13. WISSELROTATIE WAARSCHUWING (MEEST RECENTE SPEELDATUM)
         // =========================================================
         function getMostRecentPastMatch(currentDateStr) {
             if (savedMatches.length === 0) return null;
@@ -2555,7 +2717,7 @@
         }
 
         // =========================================================
-        // 13. EERLIJKE OPSTELLING MET MINIMALE WISSELS IN DE REST
+        // 14. EERLIJKE OPSTELLING MET MINIMALE WISSELS IN DE REST
         // =========================================================
         function askFairLineupConfirmation() {
             if (isReadOnlyMode) return;
@@ -2766,7 +2928,7 @@
             const sevenFieldPlayersB1 = active.filter(p => keepersPerQ[1] !== p.name && !benchPerQ[1].includes(p.name));
             Object.assign(lineup[1], assignPositionsTactically(sevenFieldPlayersB1));
 
-            // Blok 2, 3 en 4: Behoud zoveel mogelijk dezelfde spelers op dezelfde positie!
+            // Blok 2, 3 en 4: Behoud zoveel mogelijk dezelfde spelers op dezelfde positie
             for (let q = 2; q <= 4; q++) {
                 lineup[q]["GK"] = keepersPerQ[q];
                 const prevLineup = lineup[q - 1];
@@ -2777,7 +2939,6 @@
                 const openSlots = [];
                 const unplacedPlayers = [...activeThisBlock];
 
-                // Stap A: Behoud spelers die al op hun positie stonden en blijven spelen
                 fieldSlotIds.forEach(slotId => {
                     const prevPlayerName = prevLineup[slotId];
                     if (prevPlayerName && activeNames.includes(prevPlayerName)) {
@@ -2789,7 +2950,6 @@
                     }
                 });
 
-                // Stap B: Vul alleen de opengevallen posities met de verse/gewisselde spelers
                 if (ignorePositions) {
                     openSlots.forEach((slotId, idx) => {
                         if (unplacedPlayers[idx]) currentBlockAssignments[slotId] = unplacedPlayers[idx].name;
@@ -2864,7 +3024,7 @@
         }
 
         // =========================================================
-        // 14. OPGESLAGEN WEDSTRIJDEN INZIEN & BEWERKEN
+        // 15. OPGESLAGEN WEDSTRIJDEN INZIEN & BEWERKEN
         // =========================================================
         function openSavedMatch(matchId) {
             const m = savedMatches.find(x => x.id === matchId);
@@ -2874,6 +3034,7 @@
             isReadOnlyMode = true;
 
             selectedOpponent = m.opponent || "avc Heracles O11-2JM";
+            isHomeMatch = (m.isHomeMatch !== undefined) ? m.isHomeMatch : true;
             document.getElementById('matchDate').value = m.date || new Date().toISOString().slice(0, 10);
 
             basePlayers.forEach(p => {
@@ -2898,6 +3059,7 @@
             matchGoals = m.goals ? JSON.parse(JSON.stringify(m.goals)) : [];
             opponentGoals = m.opponentGoals || 0;
 
+            setHomeAway(isHomeMatch);
             renderOpponentDropdown();
             renderAttendancePills();
             renderKeeperControls();
@@ -2923,6 +3085,7 @@
 
             const firstUnlocked = opponentsList.find(o => !o.locked) || opponentsList[0];
             selectedOpponent = firstUnlocked ? firstUnlocked.name : "avc Heracles O11-2JM";
+            isHomeMatch = true;
             document.getElementById('matchDate').valueAsDate = new Date();
 
             basePlayers.forEach(p => attendance[p.name] = true);
@@ -2943,6 +3106,7 @@
             opponentGoals = 0;
             resetMatchTimer();
 
+            setHomeAway(true);
             renderOpponentDropdown();
             renderAttendancePills();
             renderKeeperControls();
@@ -2968,6 +3132,8 @@
                 const m = savedMatches.find(x => x.id === loadedMatchId);
                 const oppName = m ? m.opponent : selectedOpponent;
                 const mDate = m ? m.date : "";
+                const mHome = (m && m.isHomeMatch !== undefined) ? m.isHomeMatch : true;
+                const matchTitle = mHome ? `Oranje Nassau vs ${oppName} (Thuis)` : `${oppName} vs Oranje Nassau (Uit)`;
 
                 banner.classList.remove('hidden');
                 if (isReadOnlyMode) {
@@ -2977,7 +3143,7 @@
                             <span class="text-2xl">🔒</span>
                             <div>
                                 <div class="text-xs font-black uppercase tracking-wider text-sky-700">Alleen-Lezen Modus — Opgeslagen Wedstrijd</div>
-                                <div class="text-sm font-extrabold">Oranje Nassau JO11-4 vs ${oppName} <span class="text-xs font-normal text-sky-700">(${mDate})</span></div>
+                                <div class="text-sm font-extrabold">${matchTitle} <span class="text-xs font-normal text-sky-700">(${mDate})</span></div>
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -2999,7 +3165,7 @@
                             <span class="text-2xl">✏️</span>
                             <div>
                                 <div class="text-xs font-black uppercase tracking-wider text-orange-700">Bewerk-Modus Actief</div>
-                                <div class="text-sm font-extrabold">Je bewerkt nu: Oranje Nassau JO11-4 vs ${oppName} (${mDate})</div>
+                                <div class="text-sm font-extrabold">Je bewerkt nu: ${matchTitle} (${mDate})</div>
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -3029,7 +3195,7 @@
         }
 
         // =========================================================
-        // 15. NOODWISSEL LOGICA
+        // 16. NOODWISSEL LOGICA
         // =========================================================
         function openEmergencyModal() {
             if (isReadOnlyMode) return;
@@ -3143,7 +3309,7 @@
         }
 
         // =========================================================
-        // 16. LIVE SPEELTIJD MONITOR
+        // 17. LIVE SPEELTIJD MONITOR
         // =========================================================
         function calculateMatchMinutes() {
             const active = getActivePlayers();
@@ -3244,7 +3410,7 @@
         }
 
         // =========================================================
-        // 17. POSITIERAPPORTAGE
+        // 18. POSITIERAPPORTAGE
         // =========================================================
         function renderPositionReportPlayerDropdown() {
             const sel = document.getElementById('positionReportPlayerSelect');
@@ -3280,12 +3446,15 @@
             const sortedMatches = [...savedMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
 
             sortedMatches.forEach(m => {
+                const isHome = (m.isHomeMatch !== undefined) ? m.isHomeMatch : true;
+                const matchTitle = isHome ? `ON vs ${m.opponent} (Thuis)` : `${m.opponent} vs ON (Uit)`;
+
                 const wasPresent = m.attendance && m.attendance[playerName] !== false;
                 if (!wasPresent) {
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 text-slate-400 bg-slate-50/50";
                     tr.innerHTML = `
-                        <td class="p-2.5 font-bold">vs ${m.opponent} <span class="font-normal text-[10px]">(${m.date})</span></td>
+                        <td class="p-2.5 font-bold">${matchTitle} <span class="font-normal text-[10px]">(${m.date})</span></td>
                         <td colspan="4" class="p-2.5 text-center font-bold text-rose-500">❌ Afwezig gemeld</td>
                         <td class="p-2.5 text-center font-semibold">0 min</td>
                     `;
@@ -3329,7 +3498,7 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50";
                 tr.innerHTML = `
-                    <td class="p-2.5 font-bold text-slate-800">vs ${m.opponent} <span class="font-normal text-slate-400 text-[10px]">(${m.date})</span></td>
+                    <td class="p-2.5 font-bold text-slate-800">${matchTitle} <span class="font-normal text-slate-400 text-[10px]">(${m.date})</span></td>
                     ${qCells.join('')}
                     <td class="p-2.5 text-center font-extrabold text-orange-600">${matchQuarters * 15} min</td>
                 `;
@@ -3354,7 +3523,7 @@
         }
 
         // =========================================================
-        // 18. AI / DATA CHAT & ANALYTICS ENGINE (HERSTELDE LOGICA)
+        // 19. AI / DATA CHAT & ANALYTICS ENGINE
         // =========================================================
         function toggleChatWindow() {
             const win = document.getElementById('chatWindow');
@@ -3402,12 +3571,11 @@
             }, 250);
         }
 
-        // SLIMME NATUURLIJKE TAAL HERKENNING ZONDER REGEX BOTSINGEN
         function processChatQuery(q) {
             const hist = getSeasonHistoryStats(null);
 
-            // 1. DOELPUNTEN & TOPSCORERS PRIORITEIT
-            const isGoalQuery = q.includes('doelpunt') || q.includes('goal') || q.includes('goals') || q.includes('topscorer') || q.includes('score') || q.includes('gescoord') || q.includes('gescoord');
+            // 1. DOELPUNTEN & TOPSCORERS
+            const isGoalQuery = q.includes('doelpunt') || q.includes('goal') || q.includes('goals') || q.includes('topscorer') || q.includes('score') || q.includes('gescoord');
             if (isGoalQuery) {
                 const scorers = [...basePlayers]
                     .map(p => ({ name: p.name, goals: hist[p.name]?.goals || 0 }))
@@ -3612,7 +3780,7 @@
         }
 
         // =========================================================
-        // 19. OPSLAAN & SEIZOENSOVERZICHT
+        // 20. OPSLAAN & SEIZOENSOVERZICHT MET THUIS/UIT & W/G/V
         // =========================================================
         function saveMatchToSeason() {
             if (isReadOnlyMode) return;
@@ -3629,9 +3797,12 @@
             });
             const targetFieldMinutesPerOutfielder = totalFixedOutfieldShares > 0 ? (420 / totalFixedOutfieldShares) : 52.5;
 
+            const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
+
             const matchPayload = {
                 id: loadedMatchId || Date.now(),
                 opponent,
+                isHomeMatch,
                 date,
                 attendance: { ...attendance },
                 guestPlayers: JSON.parse(JSON.stringify(guestPlayers)),
@@ -3643,22 +3814,22 @@
                 targetFieldMinutesPerOutfielder,
                 emergencySubs: JSON.parse(JSON.stringify(emergencySubs)),
                 goals: JSON.parse(JSON.stringify(matchGoals)),
-                opponentGoals
+                opponentGoals,
+                resultStatus: res.resultStatus,
+                scoreString: res.scoreString
             };
 
             if (loadedMatchId !== null) {
                 const idx = savedMatches.findIndex(x => x.id === loadedMatchId);
                 if (idx !== -1) savedMatches[idx] = matchPayload;
                 isReadOnlyMode = true;
-                alert(`Wijzigingen voor de wedstrijd tegen ${opponent} zijn opgeslagen!`);
+                alert(`Wijzigingen voor de wedstrijd zijn opgeslagen!`);
             } else {
                 savedMatches.push(matchPayload);
                 const oppEntry = opponentsList.find(o => o.name === opponent);
                 if (oppEntry) oppEntry.locked = true;
                 const nextAvailable = opponentsList.find(o => !o.locked);
                 if (nextAvailable) selectedOpponent = nextAvailable.name;
-
-                alert(`Wedstrijd tegen ${opponent} (${matchGoals.length} - ${opponentGoals}) is centraal opgeslagen!`);
             }
 
             localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
@@ -3723,18 +3894,26 @@
 
             savedMatches.forEach((m, idx) => {
                 const isCurrentlyOpen = (m.id === loadedMatchId);
-                const scoreText = (m.goals !== undefined && m.opponentGoals !== undefined) ? `[ ${m.goals.length} - ${m.opponentGoals} ]` : "";
+                const isHome = (m.isHomeMatch !== undefined) ? m.isHomeMatch : true;
+                const onGoals = m.goals ? m.goals.length : 0;
+                const oppGoals = m.opponentGoals || 0;
+
+                const res = getMatchResultDetails(onGoals, oppGoals, isHome);
+                const matchTitle = isHome ? `Oranje Nassau vs ${m.opponent}` : `${m.opponent} vs Oranje Nassau`;
+                const locationBadge = isHome ? `<span class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[10px] font-extrabold">🏠 Thuis</span>` : `<span class="bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[10px] font-extrabold">🚗 Uit</span>`;
 
                 const div = document.createElement('div');
                 div.className = `flex flex-wrap justify-between items-center gap-3 p-4 rounded-xl border text-xs transition ${
                     isCurrentlyOpen ? 'bg-sky-50 border-sky-300' : 'bg-slate-50 border-slate-200 hover:border-orange-300'
                 }`;
                 div.innerHTML = `
-                    <div class="space-y-0.5">
-                        <div class="flex items-center gap-2">
-                            <strong class="text-slate-800 text-sm">Oranje Nassau JO11-4 vs ${m.opponent}</strong>
-                            <span class="bg-orange-100 text-orange-900 px-2 py-0.5 rounded font-black">${scoreText}</span>
-                            <span class="text-slate-500 font-semibold">(${m.date})</span>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded font-black text-xs ${res.badgeClass}">${res.resultStatus}</span>
+                            <strong class="text-slate-800 text-sm">${matchTitle}</strong>
+                            <span class="bg-orange-100 text-orange-900 px-2 py-0.5 rounded font-black">[ ${res.scoreString} ]</span>
+                            ${locationBadge}
+                            <span class="text-slate-400 font-semibold text-[11px]">(${m.date})</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -3783,11 +3962,11 @@
         }
 
         // =========================================================
-        // 20. BACKUP, EXPORT & WHATSAPP
+        // 21. BACKUP, EXPORT & WHATSAPP
         // =========================================================
         function getFullBackupObject() {
             return {
-                version: 9,
+                version: 10,
                 exportedAt: new Date().toISOString(),
                 team: "Oranje Nassau JO11-4",
                 basePlayers,
@@ -3898,9 +4077,11 @@
         function copyWhatsApp() {
             const opp = selectedOpponent || "Tegenstander";
             const active = getActivePlayers();
-            let txt = `⚽ *Oranje Nassau JO11-4 vs ${opp}*\n`;
+            const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
+
+            let txt = `⚽ *${res.homeName} vs ${res.awayName} (${isHomeMatch ? 'Thuis' : 'Uit'})*\n`;
             if (matchGoals.length > 0 || opponentGoals > 0) {
-                txt += `🏆 Stand: ${matchGoals.length} - ${opponentGoals}\n`;
+                txt += `🏆 Stand: ${res.scoreString} (${res.resultStatus === 'W' ? 'Gewonnen! 🎉' : (res.resultStatus === 'V' ? 'Verloren' : 'Gelijkspel')})\n`;
             }
             txt += `\n`;
 
@@ -3915,7 +4096,7 @@
             }
 
             if (matchGoals.length > 0) {
-                txt += `⚽ *Doelpunten ON:*\n`;
+                txt += `⚽ *Doelpunten Oranje Nassau:*\n`;
                 matchGoals.forEach(g => {
                     txt += `- ${g.scorer}${g.minute ? ` (${g.minute}')` : ''}\n`;
                 });
