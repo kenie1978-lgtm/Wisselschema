@@ -541,11 +541,11 @@
 
                             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                                 <div class="flex items-center justify-between mb-3">
-                                <h4 class="text-xs font-extrabold uppercase tracking-wider text-orange-600 flex items-center gap-1.5">
-                                    🔄 Wisselbank in Blok <span id="sideBenchQuarterNum">1</span>
-                                </h4>
-                                <span class="text-[11px] font-bold bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full">Rust</span>
-                            </div>
+                                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-orange-600 flex items-center gap-1.5">
+                                        🔄 Wisselbank in Blok <span id="sideBenchQuarterNum">1</span>
+                                    </h4>
+                                    <span class="text-[11px] font-bold bg-orange-100 text-orange-800 px-2.5 py-0.5 rounded-full">Rust</span>
+                                </div>
                                 <div id="sideBenchPlayersList" class="space-y-2"></div>
                             </div>
 
@@ -619,19 +619,19 @@
                     </div>
                 </div>
 
-                <!-- ONDERSTE SECTIE: LIVE SPEELTIJD MONITOR -->
+                <!-- ONDERSTE SECTIE: MONITOR (ALLEEN AFGESLOTEN DUELS & GEMIDDELD STREEFCIJFER) -->
                 <div id="liveStatsSection" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
                         <div>
                             <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-800">
-                                ⏱ Speeltijd & 5%-Regel Monitor (Tot en met deze wedstrijd)
+                                ⏱ Historische Speeltijd & 5%-Regel Monitor (Reeds afgesloten wedstrijden)
                             </h3>
                             <p class="text-xs text-slate-500">
-                                Gastspelers worden afgetrokken van het totaal en verlagen het streefpercentage van de vaste selectie niet.
+                                De nog te spelen wedstrijd wordt hier NIET in meegenomen. De streeftijd toont het zuivere gemiddelde per gespeelde wedstrijd.
                             </p>
                         </div>
                         <div id="matchTargetPill" class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold px-3 py-1.5 rounded-xl">
-                            Streefgemiddelde Vaste Spelers: 52.5 min
+                            Seizoens-streefgemiddelde: 52.5 min / duel
                         </div>
                     </div>
 
@@ -640,13 +640,13 @@
                             <thead>
                                 <tr class="bg-slate-50 text-slate-500 uppercase border-b border-slate-200">
                                     <th class="p-2.5">Speler</th>
-                                    <th class="p-2.5 text-center">Veld Vandaag</th>
-                                    <th class="p-2.5 text-center">Keeper Vandaag</th>
-                                    <th class="p-2.5 text-center">Wissels</th>
-                                    <th class="p-2.5 text-center">Nieuw Totaal Veld</th>
-                                    <th class="p-2.5 text-center">Streeftijd Tot Nu</th>
+                                    <th class="p-2.5 text-center">Gespeelde Duels</th>
+                                    <th class="p-2.5 text-center">Totaal Veldminuten</th>
+                                    <th class="p-2.5 text-center">Gem. Veldminuten</th>
+                                    <th class="p-2.5 text-center">Gem. Streeftijd</th>
                                     <th class="p-2.5 text-center">Afwijking (%)</th>
                                     <th class="p-2.5 text-center">5% Advies</th>
+                                    <th class="p-2.5 text-center">Keeperminuten</th>
                                 </tr>
                             </thead>
                             <tbody id="liveMonitorBody" class="divide-y divide-slate-100"></tbody>
@@ -656,7 +656,7 @@
 
             </div>
 
-            <!-- TAB 2: SEIZOENSMONITOR (Duidelijk afwijkend uiterlijk met donkere marineblauwe stijl) -->
+            <!-- TAB 2: SEIZOENSMONITOR (Donkere stijl) -->
             <div id="view-season" class="hidden space-y-6 bg-slate-900 -mx-4 -my-4 sm:-my-6 p-4 sm:p-8 rounded-3xl shadow-2xl border-4 border-slate-800">
                 <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-6 text-white">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-5 border-b border-slate-700 pb-4">
@@ -698,7 +698,7 @@
                     </div>
                 </div>
 
-                <!-- POSITIERAPPORTAGE (In de donkere monitor stijl) -->
+                <!-- POSITIERAPPORTAGE -->
                 <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-6 space-y-4 text-white">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-700 pb-3">
                         <div>
@@ -1257,7 +1257,6 @@
             }
         }
 
-        // Handmatige reset voor scorebord alleen
         function resetScoreboardOnly() {
             if (isReadOnlyMode) return;
             if (matchGoals.length === 0 && opponentGoals === 0) return;
@@ -1486,26 +1485,21 @@
             if (isSavingMatchLock) return;
             isSavingMatchLock = true;
 
-            // 1. Stop de timer
             isTimerRunning = false;
             timerStartedAt = null;
             updateTimerDisplay();
 
-            // 2. Bepaal uitslag voor de popup (score en doelpunten blijven bewaard!)
             const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
 
-            // 3. Sluit de wedstrijdmodus af en ga terug naar het normale scherm
             if (isMatchMode) {
                 isMatchMode = false;
                 localStorage.setItem('ona_jo11_4_match_mode', 'false');
                 applyMatchModeUI();
             }
 
-            // 4. Update weergave en synchroniseer
             renderScoreboard();
             syncLiveDraftToCloud();
 
-            // 5. Toon de resultaat-popup (winst/verlies/gelijkspel)
             showMatchFinishModal(res);
 
             setTimeout(() => {
@@ -3464,7 +3458,7 @@
         }
 
         // =========================================================
-        // 18. LIVE SPEELTIJD MONITOR
+        // 18. LIVE SPEELTIJD MONITOR (ALLEEN AFGESLOTEN WEDSTRIJDEN)
         // =========================================================
         function calculateMatchMinutes() {
             const active = getActivePlayers();
@@ -3502,47 +3496,24 @@
         }
 
         function renderLiveMatchMonitor() {
-            const active = getActivePlayers();
-            const todayMins = calculateMatchMinutes();
-            const hist = getSeasonHistoryStats(loadedMatchId);
-
-            let guestFieldMinutesToday = 0;
-            active.filter(p => p.isGuest).forEach(g => {
-                guestFieldMinutesToday += (todayMins[g.name]?.field || 0);
-            });
-
-            const fixedActive = active.filter(p => !p.isGuest);
-            let totalFixedOutfieldShares = 0;
-            fixedActive.forEach(p => {
-                const kMin = todayMins[p.name]?.keeper || 0;
-                totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
-            });
-
-            const netFieldForFixed = Math.max(0, 420 - guestFieldMinutesToday);
-            const todayTargetPerFixedOutfielder = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : 52.5;
-
-            document.getElementById('matchTargetPill').innerText = `Streefgemiddelde vaste spelers: ${todayTargetPerFixedOutfielder.toFixed(1)} min`;
-
+            // Neem UITSLUITEND opgeslagen en afgesloten wedstrijden mee
+            const hist = getSeasonHistoryStats(null);
             const tbody = document.getElementById('liveMonitorBody');
             tbody.innerHTML = '';
 
-            active.forEach(p => {
-                const t = todayMins[p.name] || { field: 0, keeper: 0, benchQuarters: 0 };
-                const h = hist[p.name] || { outfieldMatches: 0, fieldMinutes: 0, targetFieldMinutesSum: 0 };
+            basePlayers.forEach(p => {
+                const h = hist[p.name] || { outfieldMatches: 0, fieldMinutes: 0, targetFieldMinutesSum: 0, presentMatches: 0, keeperMinutes: 0 };
 
-                const todayOutfieldFraction = Math.max(0, (60 - t.keeper) / 60);
-                const newFieldTotal = h.fieldMinutes + t.field;
-                const newTargetSum = h.targetFieldMinutesSum + (todayTargetPerFixedOutfielder * todayOutfieldFraction);
+                // Gemiddelde streeftijd per wedstrijd (niet opgeteld!)
+                const avgTarget = h.outfieldMatches > 0 ? (h.targetFieldMinutesSum / h.outfieldMatches) : 52.5;
+                const avgActual = h.outfieldMatches > 0 ? (h.fieldMinutes / h.outfieldMatches) : 0;
 
-                const percentDiff = newTargetSum > 0 ? ((newFieldTotal - newTargetSum) / newTargetSum) * 100 : 0;
+                const percentDiff = h.targetFieldMinutesSum > 0 ? ((h.fieldMinutes - h.targetFieldMinutesSum) / h.targetFieldMinutesSum) * 100 : 0;
 
-                let diffBadge = `<span class="text-slate-400 font-bold">-</span>`;
+                let diffBadge = `<span class="text-slate-400 font-bold">0.0%</span>`;
                 let adviceBadge = `<span class="text-slate-400 text-[11px] font-medium">-</span>`;
 
-                if (p.isGuest) {
-                    diffBadge = `<span class="bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-bold">Gastspeler</span>`;
-                    adviceBadge = `<span class="text-slate-400 text-[10px]">Telt niet mee</span>`;
-                } else if (newTargetSum > 0) {
+                if (h.outfieldMatches > 0) {
                     if (percentDiff <= -5.0) {
                         diffBadge = `<span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full font-black">${percentDiff.toFixed(1)}%</span>`;
                         adviceBadge = `<span class="bg-rose-600 text-white px-2 py-0.5 rounded-md font-extrabold text-[10px]">⚠️ ≥5% Minder (60m spelen)</span>`;
@@ -3559,13 +3530,13 @@
                 tr.className = "hover:bg-slate-50";
                 tr.innerHTML = `
                     <td class="p-2.5 font-extrabold text-slate-800">${p.name} <span class="text-[10px] font-semibold text-slate-400">(${p.badge})</span></td>
-                    <td class="p-2.5 text-center font-extrabold ${t.field > 0 ? 'text-orange-600' : 'text-slate-400'}">${t.field}m</td>
-                    <td class="p-2.5 text-center font-bold text-amber-700">${t.keeper > 0 ? t.keeper + 'm 🧤' : '-'}</td>
-                    <td class="p-2.5 text-center font-semibold text-slate-600">${t.benchQuarters}x</td>
-                    <td class="p-2.5 text-center font-extrabold text-slate-900">${newFieldTotal}m</td>
-                    <td class="p-2.5 text-center font-semibold text-slate-500">${p.isGuest ? '-' : newTargetSum.toFixed(1) + 'm'}</td>
-                    <td class="p-2.5 text-center">${diffBadge}</td>
-                    <td class="p-2.5 text-center">${p.isGuest ? adviceBadge : (newTargetSum > 0 ? adviceBadge : '<span class="text-amber-700 font-bold">Vaste Keeper</span>')}</td>
+                    <td class="p-2.5 text-center font-bold text-slate-700">${h.presentMatches} duel(s)</td>
+                    <td class="p-2.5 text-center font-extrabold text-slate-900">${h.fieldMinutes} min</td>
+                    <td class="p-2.5 text-center font-extrabold text-orange-600">${h.outfieldMatches > 0 ? avgActual.toFixed(1) + 'm' : '-'}</td>
+                    <td class="p-2.5 text-center font-semibold text-slate-600">${h.outfieldMatches > 0 ? avgTarget.toFixed(1) + 'm' : '-'}</td>
+                    <td class="p-2.5 text-center">${h.outfieldMatches > 0 ? diffBadge : '-'}</td>
+                    <td class="p-2.5 text-center">${h.outfieldMatches > 0 ? adviceBadge : '<span class="text-amber-700 font-bold">Vaste Keeper</span>'}</td>
+                    <td class="p-2.5 text-center font-bold text-amber-700">${h.keeperMinutes > 0 ? h.keeperMinutes + 'm' : '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -3672,8 +3643,8 @@
                     if (posKey === "GK") badgeClass = "bg-amber-950 text-amber-300 border-amber-600";
                     else if (["LV", "CV", "RV"].includes(posKey)) badgeClass = "bg-blue-950 text-blue-300 border-blue-600";
                     else if (["LM", "CM", "RM"].includes(posKey)) badgeClass = "bg-emerald-950 text-emerald-300 border-emerald-600";
-                    else if (posKey === "SP") badgeClass = "bg-rose-950 text-rose-300 border-rose-600";
-                    else if (posKey === "Wissel") badgeClass = "bg-orange-950 text-orange-300 border-orange-700";
+                    else if (posKey === "SP") badgeClass = "bg-rose-950 text-rose-300 border border-rose-600";
+                    else if (posKey === "Wissel") badgeClass = "bg-orange-950 text-orange-300 border border-orange-700";
 
                     badge.className = `px-2.5 py-1 rounded-xl text-xs font-black border ${badgeClass}`;
                     badge.innerHTML = `${posKey}: ${posCounts[posKey]}x <span class="font-normal text-[10px]">(${posCounts[posKey] * 15}m)</span>`;
@@ -4054,7 +4025,7 @@
         // =========================================================
         function getFullBackupObject() {
             return {
-                version: 13,
+                version: 14,
                 exportedAt: new Date().toISOString(),
                 team: "Oranje Nassau JO11-4",
                 basePlayers,
@@ -4077,8 +4048,9 @@
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            const dateStamp = new Date().toISOString().slice(0, 10);
             a.href = url;
-            a.download = `ONA-JO11-4-Backup-${new Date().toISOString().slice(0, 10)}.json`;
+            a.download = `ONA-JO11-4-Backup-${dateStamp}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
