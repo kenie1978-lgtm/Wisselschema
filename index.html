@@ -3732,7 +3732,8 @@
             const loadingEl = document.getElementById(loadingElementId);
 
             // Als geen API-sleutel is ingevuld, vallen we terug op de slimme lokale afhandeling
-            if (!GEMINI_API_KEY || GEMINI_API_KEY === "PLAK_HIER_JOUW_GEMINI_API_KEY") {
+        const GEMINI_API_KEY = "AQ.Ab8RN6J2mX8lVOiHcs1J-ivKtiitIxYkw2od_8CMbo944dO4TQ"; // <-- Plak hier je sleutel tussen de aanhalingstekens
+            if (!GEMINI_API_KEY || GEMINI_API_KEY === "") {
                 if (loadingEl) loadingEl.remove();
                 processLocalSmartQuery(userQuery);
                 return;
