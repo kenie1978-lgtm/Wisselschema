@@ -3757,34 +3757,9 @@
             }
 
             try {
-                // 1. Vraag aan Google welke modellen beschikbaar zijn voor jouw sleutel
-                const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(GEMINI_API_KEY)}`);
-                const listData = await listResp.json();
-
-                if (listData.error) {
-                    if (loadingEl) loadingEl.remove();
-                    appendChatMessage('ai', `⚠️ Google API Fout (${listData.error.status}): <strong>${listData.error.message}</strong>`);
-                    return;
-                }
-
-                // 2. Zoek een model dat tekstgeneratie ondersteunt
-                const availableModels = (listData.models || [])
-                    .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"))
-                    .map(m => m.name.replace(/^models\//, ""));
-
-                if (availableModels.length === 0) {
-                    if (loadingEl) loadingEl.remove();
-                    appendChatMessage('ai', '⚠️ Geen geschikt Gemini-model gevonden voor deze sleutel. Controleer je rechten in Google AI Studio.');
-                    return;
-                }
-
-                // Kies bij voorkeur een flash-model, anders het eerste beschikbare model
-                const chosenModel = availableModels.find(m => m.includes("flash")) || availableModels[0];
-
-                // 3. Verstuur de vraag naar het gevonden model
                 const systemPrompt = `Je bent de data-assistent van jeugdvoetbalteam O.N. Almelo JO11-4. Hier is de actuele seizoensdata:\n${buildTeamContextPrompt()}\nBeantwoord de vraag van de trainer kort, enthousiast en to-the-point in het Nederlands.`;
 
-                const genResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${chosenModel}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+                const genResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3798,7 +3773,7 @@
                 if (loadingEl) loadingEl.remove();
 
                 if (genData.error) {
-                    appendChatMessage('ai', `⚠️ Fout bij model ${chosenModel}: <strong>${genData.error.message}</strong>`);
+                    appendChatMessage('ai', `⚠️ Fout bij Gemini: <strong>${genData.error.message}</strong>`);
                     return;
                 }
 
