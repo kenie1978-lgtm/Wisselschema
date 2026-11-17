@@ -37,7 +37,14 @@
         ::-webkit-scrollbar-thumb:hover { background: #334155; }
         
         .safe-bottom {
-            padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 24px));
+        }
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background-color: #0f1b2b;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.4);
         }
     </style>
 </head>
@@ -301,6 +308,7 @@
                 </div>
                 <div class="flex items-center gap-1">
                     <button onclick="togglePitchMatrixMode('pitch')" id="btnViewPitch" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-sky-500 text-slate-950">Veld</button>
+                    <button onclick="togglePitchMatrixMode('pitchAll')" id="btnViewPitchAll" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-slate-300">4 Veldjes</button>
                     <button onclick="togglePitchMatrixMode('matrix')" id="btnViewMatrix" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-slate-300">Tabel</button>
                 </div>
             </div>
@@ -329,49 +337,19 @@
                     </div>
                 </div>
 
-                <!-- Verdediging: LV, CV, RV -->
-                <div class="relative z-10">
-                    <div class="text-center text-[10px] font-black uppercase tracking-widest text-sky-400/80 mb-1">Verdediging (LV • CV • RV)</div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div id="pitchSlot-LV"></div>
-                        <div id="pitchSlot-CV"></div>
-                        <div id="pitchSlot-RV"></div>
-                    </div>
-                </div>
-
-                <!-- Keeper: GK -->
-                <div class="relative z-10 pb-1">
-                    <div class="text-center text-[10px] font-black uppercase tracking-widest text-amber-400/80 mb-1">Doelman (GK)</div>
-                    <div class="max-w-[170px] mx-auto" id="pitchSlot-GK"></div>
-                </div>
-            </div>
-
-            <!-- WISSELBANK KAART & INSTRUCTIES VOOR VOLGEND KWARTIER -->
-            <div class="bg-[#111e2e] border border-slate-800 rounded-3xl p-4 shadow-xl space-y-3">
-                <div class="flex items-center justify-between">
-                    <h4 class="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                        🔄 Wisselbank in Blok <span id="benchQuarterLabel">1</span>
-                    </h4>
-                    <span class="text-[10px] font-bold bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full">Rustperiode</span>
-                </div>
-                <div id="benchPlayersList" class="flex flex-wrap gap-2 text-xs"></div>
-
-                <div class="pt-2 border-t border-slate-800/80" id="upcomingSubInstructionBox">
-                    <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Volgende wisselbeurt:</span>
-                    <div id="upcomingSubInstructionContent" class="text-xs text-slate-300"></div>
-                </div>
-            </div>
+            <!-- 4 VELDJES TEGELIJK WEERGAVE -->
+            <div id="allPitchesContainer" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
             <!-- MATRIX TABEL WEERGAVE (optioneel in te schakelen) -->
             <div id="matrixViewContainer" class="hidden bg-[#111e2e] border border-slate-800 rounded-3xl p-4 overflow-x-auto shadow-xl">
-                <table class="w-full text-left text-xs border-collapse min-w-[500px]">
+                <table class="w-full text-left text-xs border-collapse min-w-[620px]">
                     <thead>
                         <tr class="border-b border-slate-800 text-slate-400 uppercase text-[10px]">
-                            <th class="p-2">Positie</th>
-                            <th class="p-2">Blok 1</th>
-                            <th class="p-2">Blok 2</th>
-                            <th class="p-2">Blok 3</th>
-                            <th class="p-2">Blok 4</th>
+                            <th class="p-2.5 sticky-col">Positie</th>
+                            <th class="p-2.5">Blok 1 (0-15m)</th>
+                            <th class="p-2.5">Blok 2 (15-30m)</th>
+                            <th class="p-2.5">Blok 3 (30-45m)</th>
+                            <th class="p-2.5">Blok 4 (45-60m)</th>
                         </tr>
                     </thead>
                     <tbody id="matrixTableBody" class="divide-y divide-slate-800/60"></tbody>
@@ -384,6 +362,36 @@
         <!-- TAB 3: STATS (Speeltijd Monitor, 5% Regel & Seizoen)  -->
         <!-- ---------------------------------------------------- -->
         <section id="tab-stats" class="space-y-4 hidden">
+
+            <!-- Positierapportage Card -->
+            <div class="bg-[#111e2e] border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-800 pb-3">
+                    <div>
+                        <h3 class="text-xs font-black uppercase tracking-wider text-sky-400">🗺️ Positierapportage per Speler</h3>
+                        <p class="text-[11px] text-slate-400">Bekijk waar een speler over het seizoen heeft gestaan</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-[11px] font-bold text-slate-400">Speler:</label>
+                        <select id="positionReportSelect" onchange="renderPositionReport()" class="bg-[#0a1420] border border-slate-700 text-white font-extrabold text-xs rounded-xl px-2.5 py-1.5 outline-none"></select>
+                    </div>
+                </div>
+                <div id="positionReportBadges" class="flex flex-wrap gap-1.5 pt-1"></div>
+                <div class="overflow-x-auto pt-1">
+                    <table class="w-full text-left text-xs border-collapse min-w-[500px]">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 uppercase text-[10px]">
+                                <th class="p-2">Wedstrijd & Datum</th>
+                                <th class="p-2 text-center">B1</th>
+                                <th class="p-2 text-center">B2</th>
+                                <th class="p-2 text-center">B3</th>
+                                <th class="p-2 text-center">B4</th>
+                                <th class="p-2 text-center">Totaal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="positionReportTbody" class="divide-y divide-slate-800/60"></tbody>
+                    </table>
+                </div>
+            </div>
 
             <!-- 5% Regel Speeltijdmonitor Card -->
             <div class="bg-[#111e2e] border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
@@ -439,11 +447,22 @@
                         <h3 class="text-xs font-black uppercase tracking-wider text-sky-400">👥 Selectie Aanwezigheid</h3>
                         <p class="text-[11px] text-slate-400">Tik op een speler om hem aan- of afwezig te melden</p>
                     </div>
-                    <button onclick="openRoleModal()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-2.5 py-1 rounded-xl border border-slate-700">
-                        ⚙️ Rollen
+                    <button onclick="openRoleModal()" class="text-[11px] bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-extrabold px-3 py-1.5 rounded-xl border border-sky-400/40">
+                        ⚙️ Rollen (2 per speler)
                     </button>
                 </div>
                 <div id="attendanceGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1"></div>
+            </div>
+
+            <!-- Rollen Direct Overzicht Card -->
+            <div class="bg-[#111e2e] border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xs font-black uppercase tracking-wider text-white">⚙️ Posities & Rollen Overzicht</h3>
+                        <p class="text-[11px] text-slate-400">Elke speler kan een 1e en 2e voorkeursrol hebben</p>
+                    </div>
+                </div>
+                <div id="rolesQuickOverview" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs"></div>
             </div>
 
             <!-- Gastspelers Card -->
@@ -657,23 +676,54 @@
     </div>
 
     <!-- AI CHAT VENSTER -->
-    <div id="aiChatDrawer" class="fixed inset-y-0 right-0 w-88 max-w-[90vw] bg-[#0c1624] border-l border-slate-800 z-50 transform translate-x-full transition-transform duration-300 p-4 flex flex-col justify-between">
-        <div class="space-y-3">
+    <div id="aiChatDrawer" class="fixed inset-y-0 right-0 w-96 max-w-[92vw] bg-[#0c1624] border-l border-slate-800 z-50 transform translate-x-full transition-transform duration-300 p-4 flex flex-col justify-between shadow-2xl">
+        <div class="space-y-3 flex-1 flex flex-col overflow-hidden">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h4 class="text-xs font-black text-white flex items-center gap-1.5">
-                    <span class="w-6 h-6 rounded bg-sky-500 text-slate-950 flex items-center justify-center text-[10px]">AI</span> Data Assistent
-                </h4>
-                <button onclick="toggleChatWindow()" class="text-slate-400 text-lg">✕</button>
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-sky-500 text-slate-950 font-black flex items-center justify-center text-xs">AI</span>
+                    <div>
+                        <h4 class="text-xs font-black text-white">O.N. JO11-4 Data Assistent</h4>
+                        <span class="text-[10px] text-slate-400">Gevoed door Gemini & teamdata</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="promptForApiKey()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold px-2 py-1 rounded-lg">
+                        🔑 Sleutel
+                    </button>
+                    <button onclick="toggleChatWindow()" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+                </div>
             </div>
-            <div id="aiMessages" class="h-80 overflow-y-auto space-y-2 text-xs p-1">
+
+            <!-- Snelvragen bar -->
+            <div class="flex gap-1.5 overflow-x-auto pb-1 text-[11px]">
+                <button onclick="askPreset('Wie is topscorer?')" class="bg-slate-900 border border-slate-800 text-slate-300 hover:text-white px-2 py-1 rounded-lg shrink-0 font-bold">⚽ Topscorer</button>
+                <button onclick="askPreset('Toon speeltijd grafiek')" class="bg-slate-900 border border-slate-800 text-slate-300 hover:text-white px-2 py-1 rounded-lg shrink-0 font-bold">📊 Speeltijd</button>
+                <button onclick="askPreset('Wie speelde het minst?')" class="bg-slate-900 border border-slate-800 text-slate-300 hover:text-white px-2 py-1 rounded-lg shrink-0 font-bold">⏱ Minste min</button>
+                <button onclick="askPreset('Toon posities grafiek')" class="bg-slate-900 border border-slate-800 text-slate-300 hover:text-white px-2 py-1 rounded-lg shrink-0 font-bold">🗺️ Posities</button>
+            </div>
+
+            <!-- Chatberichten lijst -->
+            <div id="aiMessages" class="flex-1 overflow-y-auto space-y-2 text-xs p-1">
                 <div class="bg-slate-900 p-3 rounded-2xl text-slate-300 border border-slate-800">
-                    Hallo trainer! 👋 Vraag me gerust naar topscorers, speeltijdstatistieken of wisseladvies.
+                    Hallo coach! 👋 Stel me gerust elke vraag over goals, opstellingen, speeltijden of vraag om een grafiek.
+                </div>
+            </div>
+
+            <!-- Grafiek container in chat -->
+            <div id="chatChartWrapper" class="hidden p-2.5 bg-slate-900 rounded-2xl border border-slate-800 relative">
+                <div class="flex justify-between items-center mb-1">
+                    <span id="chatChartTitle" class="text-[10px] font-black uppercase text-sky-400">Grafiek</span>
+                    <button onclick="hideChatChart()" class="text-[11px] text-rose-400 hover:underline">Verberg ✕</button>
+                </div>
+                <div class="h-40 w-full">
+                    <canvas id="chatCanvas"></canvas>
                 </div>
             </div>
         </div>
+
         <div class="pt-3 border-t border-slate-800 flex gap-2">
-            <input type="text" id="aiInput" placeholder="Vraag iets..." onkeydown="if(event.key==='Enter') sendChatMessage()" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
-            <button onclick="sendChatMessage()" class="bg-sky-500 text-slate-950 font-black px-3 py-2 rounded-xl text-xs">Stuur</button>
+            <input type="text" id="aiInput" placeholder="Vraag iets aan Gemini..." onkeydown="if(event.key==='Enter') sendChatMessage()" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-sky-500">
+            <button onclick="sendChatMessage()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs transition">Stuur</button>
         </div>
     </div>
 
@@ -703,14 +753,51 @@
         // ---------------------------------------------------------
         const DEFAULT_PLAYERS = [
             { name: "Sep", role: "Keeper", pos1: "Keeper", pos2: "", badge: "GK" },
-            { name: "Jonathan", role: "Verdediger", pos1: "Verdediging", pos2: "", badge: "VER" },
-            { name: "Vince", role: "Verdediger", pos1: "Verdediging", pos2: "", badge: "VER" },
-            { name: "Mika", role: "Verdediger", pos1: "Verdediging", pos2: "", badge: "VER" },
-            { name: "Jesper", role: "Middenveld / Verdediger", pos1: "Middenveld", pos2: "Verdediging", badge: "MID/VER" },
-            { name: "Kerem", role: "Verdedigend Middenveld", pos1: "Middenveld", pos2: "", badge: "CVM" },
-            { name: "Bodi", role: "Middenvelder", pos1: "Middenveld", pos2: "", badge: "MID" },
-            { name: "Noud", role: "Middenveld / Spits", pos1: "Middenveld", pos2: "Aanval", badge: "MID/SP" },
-            { name: "Arthur", role: "Spits", pos1: "Aanval", pos2: "", badge: "SP" }
+            { name: "Jonathan", role: "Verdediging", pos1: "Verdediging", pos2: "", badge: "VER" },
+            { name: "Vince", role: "Verdediging", pos1: "Verdediging", pos2: "", badge: "VER" },
+            { name: "Mika", role: "Verdediging", pos1: "Verdediging", pos2: "", badge: "VER" },
+            { name: "Jesper", role: "Middenveld / Verdediging", pos1: "Middenveld", pos2: "Verdediging", badge: "MID/VER" },
+            { name: "Kerem", role: "Middenveld", pos1: "Middenveld", pos2: "", badge: "CVM" },
+            { name: "Bodi", role: "Middenveld", pos1: "Middenveld", pos2: "", badge: "MID" },
+            { name: "Noud", role: "Middenveld / Aanval", pos1: "Middenveld", pos2: "Aanval", badge: "MID/SP" },
+            { name: "Arthur", role: "Aanval", pos1: "Aanval", pos2: "", badge: "SP" }
+        ];
+
+        let basePlayers = JSON.parse(localStorage.getItem('ona_jo11_4_custom_roles')) || DEFAULT_PLAYERS;
+        let GEMINI_API_KEY = localStorage.getItem('ona_gemini_api_key') || "";
+        let chatChartInstance = null;
+
+        function updatePlayerBadges() {
+            basePlayers.forEach(p => {
+                let r = p.pos1;
+                if (p.pos2) r += ` / ${p.pos2}`;
+                p.role = r;
+
+                if (p.pos1 === "Keeper") p.badge = "GK";
+                else if (p.pos1 === "Verdediging" && !p.pos2) p.badge = "VER";
+                else if (p.pos1 === "Aanval" && !p.pos2) p.badge = "SP";
+                else if (p.pos1 === "Middenveld" && !p.pos2) p.badge = (p.name === "Kerem" ? "CVM" : "MID");
+                else if (p.pos1 === "Middenveld" && p.pos2 === "Verdediging") p.badge = "MID/VER";
+                else if (p.pos1 === "Middenveld" && p.pos2 === "Aanval") p.badge = "MID/SP";
+                else p.badge = `${p.pos1.slice(0, 3)}/${p.pos2.slice(0, 3)}`.toUpperCase();
+            });
+        }
+        updatePlayerBadges();
+
+        const POSITIONS = [
+            { id: "SP", short: "SP", label: "Spits (SP)", line: "Aanval" },
+            { id: "LM", short: "LM", label: "Linkermidden (LM)", line: "Middenveld" },
+            { id: "CM", short: "CM", label: "Centraal Midden (CM)", line: "Middenveld" },
+            { id: "RM", short: "RM", label: "Rechtermidden (RM)", line: "Middenveld" },
+            { id: "LV", short: "LV", label: "Linksachter (LV)", line: "Verdediging" },
+            { id: "CV", short: "CV", label: "Centraal Achter (CV)", line: "Verdediging" },
+            { id: "RV", short: "RV", label: "Rechtsachter (RV)", line: "Verdediging" },
+            { id: "GK", short: "GK", label: "Keeper (GK)", line: "Keeper" }
+        ];
+
+        const TABLE_POSITIONS = [
+            POSITIONS[7], POSITIONS[4], POSITIONS[5], POSITIONS[6],
+            POSITIONS[1], POSITIONS[2], POSITIONS[3], POSITIONS[0]
         ];
 
         let basePlayers = JSON.parse(localStorage.getItem('ona_jo11_4_custom_roles')) || DEFAULT_PLAYERS;
@@ -774,6 +861,9 @@
 
             renderOpponentMenu();
             renderAttendance();
+            renderRolesQuickOverview();
+            renderPositionReportPlayerSelect();
+            renderPositionReport();
             renderKeeperDropdowns();
             renderPitch();
             renderScore();
@@ -888,42 +978,10 @@
             }
         }
 
-        function changeFixedKeeper(name) {
-            if (isArchivedReadOnly) return;
-            fixedKeeperName = name;
-            for (let q = 1; q <= 4; q++) {
-                quarterKeepers[q] = name;
-                for (let p in lineup[q]) if (lineup[q][p] === name) delete lineup[q][p];
-                lineup[q]["GK"] = name;
-            }
-            renderPitch();
-            syncDraftToCloud();
-        }
-
-        function setPeriodKeeper(q, name) {
-            if (isArchivedReadOnly) return;
-            quarterKeepers[q] = name;
-            for (let p in lineup[q]) if (lineup[q][p] === name) delete lineup[q][p];
-            lineup[q]["GK"] = name;
-            renderPitch();
-            syncDraftToCloud();
-        }
-
-        // ---------------------------------------------------------
-        // E. VELDWEERGAVE (8v8 TACTISCH BORD)
-        // ---------------------------------------------------------
-        function selectQuarter(q) {
-            activeQuarter = q;
-            for (let i = 1; i <= 4; i++) {
-                const b = document.getElementById(`qb-${i}`);
-                if (b) {
-                    b.className = (i === q)
-                        ? "py-2.5 px-1 rounded-2xl text-xs font-black transition border cursor-pointer text-center bg-sky-500 text-slate-950 border-sky-400 shadow-md"
-                        : "py-2.5 px-1 rounded-2xl text-xs font-black transition border cursor-pointer text-center bg-[#111e2e] text-slate-400 border-slate-800 hover:text-white";
-                }
-            }
-            document.getElementById('headerQuarterBadge').innerText = `B${q}`;
-            renderPitch();
+        function isPlayerPreferredForSlot(p, posObj) {
+            if (posObj.id === "GK") return p.pos1 === "Keeper";
+            if (posObj.id === "CM" && p.name === "Kerem") return true;
+            return p.pos1 === posObj.line || p.pos2 === posObj.line;
         }
 
         function renderPitch() {
@@ -937,18 +995,31 @@
                 const assigned = lineup[activeQuarter]?.[pos.id] || "";
                 const isAssigned = assigned !== "";
 
-                // Bouw dropdown
                 const used = Object.entries(lineup[activeQuarter] || {})
                     .filter(([k]) => k !== pos.id)
                     .map(([, v]) => v);
 
                 const avail = active.filter(p => !used.includes(p.name) || p.name === assigned);
+                const preferred = avail.filter(p => isPlayerPreferredForSlot(p, pos));
+                const others = avail.filter(p => !isPlayerPreferredForSlot(p, pos));
 
                 let optHtml = `<option value="">-- Kies ${pos.short} --</option>`;
-                avail.forEach(p => {
-                    const sel = p.name === assigned ? 'selected' : '';
-                    optHtml += `<option value="${p.name}" ${sel}>${p.name}</option>`;
-                });
+                if (preferred.length > 0) {
+                    optHtml += `<optgroup label="★ Voorkeur ${pos.short}">`;
+                    preferred.forEach(p => {
+                        const sel = p.name === assigned ? 'selected' : '';
+                        optHtml += `<option value="${p.name}" ${sel}>★ ${p.name}</option>`;
+                    });
+                    optHtml += `</optgroup>`;
+                }
+                if (others.length > 0) {
+                    optHtml += `<optgroup label="Overig">`;
+                    others.forEach(p => {
+                        const sel = p.name === assigned ? 'selected' : '';
+                        optHtml += `<option value="${p.name}" ${sel}>${p.name}</option>`;
+                    });
+                    optHtml += `</optgroup>`;
+                }
 
                 const badgeBg = pos.id === 'GK' ? 'bg-amber-500/20 text-amber-300 border-amber-400/40' : 'bg-sky-500/20 text-sky-300 border-sky-400/40';
 
@@ -1007,46 +1078,65 @@
             }
 
             renderMatrixTable();
-        }
-
-        function onPositionSelect(quarter, posId, playerName) {
-            if (isArchivedReadOnly) return;
-            if (!playerName) {
-                delete lineup[quarter][posId];
-            } else {
-                lineup[quarter][posId] = playerName;
-            }
-            renderPitch();
-            checkBenchWarning();
-            syncDraftToCloud();
-        }
-
-        function copyCurrentBlockToNext() {
-            if (isArchivedReadOnly || activeQuarter >= 4) return;
-            lineup[activeQuarter + 1] = { ...lineup[activeQuarter] };
-            selectQuarter(activeQuarter + 1);
-            syncDraftToCloud();
+            renderAllPitchesGrid();
         }
 
         function togglePitchMatrixMode(mode) {
             document.getElementById('pitchViewContainer').classList.toggle('hidden', mode !== 'pitch');
+            document.getElementById('allPitchesContainer').classList.toggle('hidden', mode !== 'pitchAll');
             document.getElementById('matrixViewContainer').classList.toggle('hidden', mode !== 'matrix');
+
             document.getElementById('btnViewPitch').className = mode === 'pitch' ? 'px-2.5 py-1 text-xs font-bold rounded-lg bg-sky-500 text-slate-950' : 'px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-slate-300';
+            document.getElementById('btnViewPitchAll').className = mode === 'pitchAll' ? 'px-2.5 py-1 text-xs font-bold rounded-lg bg-sky-500 text-slate-950' : 'px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-slate-300';
             document.getElementById('btnViewMatrix').className = mode === 'matrix' ? 'px-2.5 py-1 text-xs font-bold rounded-lg bg-sky-500 text-slate-950' : 'px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-slate-300';
+        }
+
+        function renderAllPitchesGrid() {
+            const container = document.getElementById('allPitchesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            for (let q = 1; q <= 4; q++) {
+                const card = document.createElement('div');
+                card.className = "bg-[#111e2e] border border-slate-800 rounded-3xl p-3.5 space-y-2";
+                const active = getActiveList();
+                const onPitch = Object.values(lineup[q] || {}).filter(Boolean);
+                const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
+
+                let slotsHtml = '';
+                POSITIONS.forEach(pos => {
+                    const assigned = lineup[q]?.[pos.id] || '-';
+                    slotsHtml += `
+                        <div class="flex items-center justify-between py-1 border-b border-slate-800/60 text-xs">
+                            <span class="text-slate-400 font-bold">${pos.short}</span>
+                            <span class="font-extrabold text-white">${assigned}</span>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <span class="font-black text-sky-400 text-xs">BLOK ${q} (${(q-1)*15}-${q*15}m)</span>
+                        <span class="text-[10px] text-amber-300 font-bold">Wissel: ${bench.length ? bench.join(', ') : 'Geen'}</span>
+                    </div>
+                    <div class="space-y-0.5">${slotsHtml}</div>
+                `;
+                container.appendChild(card);
+            }
         }
 
         function renderMatrixTable() {
             const tbody = document.getElementById('matrixTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            POSITIONS.forEach(pos => {
+            TABLE_POSITIONS.forEach(pos => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="p-2 font-black text-sky-400">${pos.label}</td>
-                    <td class="p-2 font-bold text-white">${lineup[1]?.[pos.id] || '-'}</td>
-                    <td class="p-2 font-bold text-white">${lineup[2]?.[pos.id] || '-'}</td>
-                    <td class="p-2 font-bold text-white">${lineup[3]?.[pos.id] || '-'}</td>
-                    <td class="p-2 font-bold text-white">${lineup[4]?.[pos.id] || '-'}</td>
+                    <td class="p-2.5 sticky-col font-black text-sky-400 border-r border-slate-800">${pos.label}</td>
+                    <td class="p-2.5 font-bold text-white">${lineup[1]?.[pos.id] || '-'}</td>
+                    <td class="p-2.5 font-bold text-white">${lineup[2]?.[pos.id] || '-'}</td>
+                    <td class="p-2.5 font-bold text-white">${lineup[3]?.[pos.id] || '-'}</td>
+                    <td class="p-2.5 font-bold text-white">${lineup[4]?.[pos.id] || '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1316,17 +1406,49 @@
             const outfieldSlots = ["LV", "CV", "RV", "LM", "CM", "RM", "SP"];
             lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
 
+            // Bereken prioriteit op basis van achterstand (5%-regel)
+            const hist = {};
+            basePlayers.forEach(p => hist[p.name] = { played: 0, fieldMin: 0 });
+            savedMatches.forEach(m => {
+                basePlayers.forEach(p => {
+                    if (m.attendance && m.attendance[p.name] !== false) {
+                        hist[p.name].played++;
+                        for (let q = 1; q <= 4; q++) {
+                            for (let pos in (m.lineup?.[q] || {})) {
+                                if (m.lineup[q][pos] === p.name && pos !== 'GK') hist[p.name].fieldMin += 15;
+                            }
+                        }
+                    }
+                });
+            });
+
             for (let q = 1; q <= 4; q++) {
                 lineup[q]["GK"] = isFixedKeeper ? fixedKeeperName : (quarterKeepers[q] || fixedKeeperName);
                 const fieldCandidates = active.filter(p => p.name !== lineup[q]["GK"]);
 
-                // Roteer netjes
+                // Roteer netjes en respecteer voorkeursposities indien gevraagd
                 const offset = (q - 1) % fieldCandidates.length;
                 const rotated = [...fieldCandidates.slice(offset), ...fieldCandidates.slice(0, offset)];
 
-                outfieldSlots.forEach((slot, idx) => {
-                    if (rotated[idx]) lineup[q][slot] = rotated[idx].name;
-                });
+                if (ignorePos) {
+                    outfieldSlots.forEach((slot, idx) => {
+                        if (rotated[idx]) lineup[q][slot] = rotated[idx].name;
+                    });
+                } else {
+                    let pool = [...rotated];
+                    outfieldSlots.forEach(slot => {
+                        const posObj = POSITIONS.find(p => p.id === slot);
+                        const matchIdx = pool.findIndex(p => isPlayerPreferredForSlot(p, posObj));
+                        if (matchIdx !== -1) {
+                            lineup[q][slot] = pool.splice(matchIdx, 1)[0].name;
+                        }
+                    });
+                    outfieldSlots.forEach(slot => {
+                        if (!lineup[q][slot] && pool.length > 0) {
+                            lineup[q][slot] = pool.shift().name;
+                        }
+                    });
+                }
             }
 
             renderPitch();
@@ -1335,205 +1457,88 @@
         }
 
         // ---------------------------------------------------------
-        // J. OPGESLAGEN WEDSTRIJDEN INZIEN & TERUGKEREN FLOW (PUNT 2)
+        // K. STATISTIEKEN, POSITIERAPPORTAGE & SEIZOENSOVERZICHT
         // ---------------------------------------------------------
-        function openSavedMatchView(matchId) {
-            const m = savedMatches.find(x => x.id === matchId);
-            if (!m) return;
-
-            loadedArchivedMatchId = m.id;
-            isArchivedReadOnly = true;
-
-            // Laad gegevens in UI
-            selectedOpponent = m.opponent || "avc Heracles O11-2JM";
-            isHomeMatch = m.isHomeMatch !== undefined ? m.isHomeMatch : true;
-            document.getElementById('matchDateInput').value = m.date || new Date().toISOString().slice(0, 10);
-
+        function renderPositionReportPlayerSelect() {
+            const sel = document.getElementById('positionReportSelect');
+            if (!sel) return;
+            const cur = sel.value;
+            sel.innerHTML = '';
             basePlayers.forEach(p => {
-                attendance[p.name] = (m.attendance && m.attendance[p.name] !== undefined) ? m.attendance[p.name] : true;
+                const opt = document.createElement('option');
+                opt.value = p.name;
+                opt.innerText = p.name;
+                if (p.name === cur) opt.selected = true;
+                sel.appendChild(opt);
             });
-            guestPlayers = m.guestPlayers ? JSON.parse(JSON.stringify(m.guestPlayers)) : [];
-            isFixedKeeper = m.isFixedKeeper !== undefined ? m.isFixedKeeper : true;
-            fixedKeeperName = m.fixedKeeperName || "Sep";
-            quarterKeepers = m.quarterKeepers ? { ...m.quarterKeepers } : { 1: "Sep", 2: "Sep", 3: "Sep", 4: "Sep" };
-            lineup = m.lineup ? JSON.parse(JSON.stringify(m.lineup)) : { 1: {}, 2: {}, 3: {}, 4: {} };
-            matchGoals = m.goals ? JSON.parse(JSON.stringify(m.goals)) : [];
-            opponentGoals = m.opponentGoals || 0;
-
-            // Toon banner
-            const banner = document.getElementById('archivedMatchBanner');
-            const sub = document.getElementById('archiveBannerSubtitle');
-            banner.classList.remove('hidden');
-            sub.innerText = `(${m.opponent} • ${m.date}) - Alleen-lezen`;
-
-            setHomeAway(isHomeMatch);
-            renderAttendance();
-            renderKeeperDropdowns();
-            renderPitch();
-            renderScore();
-            switchNav('wedstrijd');
         }
 
-        function toggleArchiveEditMode() {
-            if (!loadedArchivedMatchId) return;
-            isArchivedReadOnly = !isArchivedReadOnly;
-            const btn = document.getElementById('archiveEditBtn');
-            const sub = document.getElementById('archiveBannerSubtitle');
+        function renderPositionReport() {
+            renderPositionReportPlayerSelect();
+            const sel = document.getElementById('positionReportSelect');
+            if (!sel || !sel.value) return;
 
-            if (!isArchivedReadOnly) {
-                btn.innerText = "💾 Wijzigingen Opslaan";
-                btn.className = "bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-3 py-1.5 rounded-xl text-[11px] transition shadow cursor-pointer";
-                sub.innerText = "Bewerk-modus actief!";
-            } else {
-                saveMatchToSeason(false);
-                btn.innerText = "✏️ Bewerken";
-                btn.className = "bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-xl text-[11px] transition shadow cursor-pointer";
-                sub.innerText = "Opgeslagen en beveiligd.";
+            const name = sel.value;
+            const badgesDiv = document.getElementById('positionReportBadges');
+            const tbody = document.getElementById('positionReportTbody');
+            badgesDiv.innerHTML = '';
+            tbody.innerHTML = '';
+
+            const counts = { GK: 0, LV: 0, CV: 0, RV: 0, LM: 0, CM: 0, RM: 0, SP: 0, Wissel: 0 };
+
+            if (savedMatches.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-slate-500 italic">Nog geen opgeslagen wedstrijden in archief.</td></tr>`;
+                return;
             }
-            renderPitch();
-            renderScore();
-        }
-
-        function exitArchivedViewAndReturnToLive() {
-            loadedArchivedMatchId = null;
-            isArchivedReadOnly = false;
-            document.getElementById('archivedMatchBanner').classList.add('hidden');
-
-            // Reset naar nieuw concept
-            matchGoals = [];
-            opponentGoals = 0;
-            lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
-            for (let q = 1; q <= 4; q++) lineup[q]["GK"] = fixedKeeperName;
-            document.getElementById('matchDateInput').valueAsDate = new Date();
-
-            renderScore();
-            renderPitch();
-            renderAttendance();
-            syncDraftToCloud();
-        }
-
-        function saveMatchToSeason(showAlert = true) {
-            const opponent = selectedOpponent || "avc Heracles O11-2JM";
-            const date = document.getElementById('matchDateInput').value || new Date().toISOString().slice(0, 10);
-            const active = getActiveList();
-
-            const matchPayload = {
-                id: loadedArchivedMatchId || Date.now(),
-                opponent,
-                isHomeMatch,
-                date,
-                attendance: { ...attendance },
-                guestPlayers: JSON.parse(JSON.stringify(guestPlayers)),
-                isFixedKeeper,
-                fixedKeeperName,
-                quarterKeepers: { ...quarterKeepers },
-                lineup: JSON.parse(JSON.stringify(lineup)),
-                goals: JSON.parse(JSON.stringify(matchGoals)),
-                opponentGoals
-            };
-
-            if (loadedArchivedMatchId) {
-                const idx = savedMatches.findIndex(x => x.id === loadedArchivedMatchId);
-                if (idx !== -1) savedMatches[idx] = matchPayload;
-            } else {
-                savedMatches.push(matchPayload);
-                exitArchivedViewAndReturnToLive();
-            }
-
-            localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
-            pushCloudFull();
-            renderStats();
-            if (showAlert) alert(`Wedstrijd tegen ${opponent} succesvol opgeslagen!`);
-        }
-
-        // ---------------------------------------------------------
-        // K. STATISTIEKEN & SEIZOENSOVERZICHT
-        // ---------------------------------------------------------
-        function renderStats() {
-            document.getElementById('statsMatchCount').innerText = savedMatches.length;
-
-            // Bereken historische minuten
-            const hist = {};
-            basePlayers.forEach(p => hist[p.name] = { played: 0, fieldMin: 0, keeperMin: 0 });
 
             savedMatches.forEach(m => {
-                basePlayers.forEach(p => {
-                    const wasPres = m.attendance && m.attendance[p.name] !== false;
-                    if (wasPres) {
-                        hist[p.name].played++;
-                        for (let q = 1; q <= 4; q++) {
-                            const l = m.lineup?.[q] || {};
-                            for (let pos in l) {
-                                if (l[pos] === p.name) {
-                                    if (pos === 'GK') hist[p.name].keeperMin += 15;
-                                    else hist[p.name].fieldMin += 15;
-                                }
-                            }
-                        }
+                const isPres = m.attendance && m.attendance[name] !== false;
+                if (!isPres) {
+                    tbody.innerHTML += `
+                        <tr class="text-slate-500 hover:bg-slate-900/60">
+                            <td class="p-2 font-bold">${m.opponent} (${m.date})</td>
+                            <td colspan="4" class="p-2 text-center text-rose-400 font-bold">Afwezig</td>
+                            <td class="p-2 text-center">0m</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                let qCells = [];
+                let playedQuarters = 0;
+                for (let q = 1; q <= 4; q++) {
+                    const l = m.lineup?.[q] || {};
+                    let posFound = null;
+                    for (let p in l) {
+                        if (l[p] === name) { posFound = p; break; }
                     }
-                });
-            });
-
-            const tbody = document.getElementById('monitorTableBody');
-            tbody.innerHTML = '';
-            basePlayers.forEach(p => {
-                const h = hist[p.name];
-                const avg = h.played > 0 ? (h.fieldMin / h.played).toFixed(1) : "0.0";
-                const target = 52.5;
-                const diff = h.played > 0 ? (((avg - target) / target) * 100).toFixed(1) : "0.0";
-
-                let adviceBadge = `<span class="text-slate-400">Binnen marge</span>`;
-                if (parseFloat(diff) <= -5.0 && h.played > 0) {
-                    adviceBadge = `<span class="bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full font-black text-[10px]">⚠️ ≥5% Min (60m)</span>`;
-                } else if (parseFloat(diff) >= 5.0 && h.played > 0) {
-                    adviceBadge = `<span class="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-black text-[10px]">🔄 Wisselen</span>`;
+                    if (posFound) {
+                        counts[posFound]++;
+                        playedQuarters++;
+                        qCells.push(`<td class="p-2 text-center"><span class="bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded font-black text-[10px]">${posFound}</span></td>`);
+                    } else {
+                        counts["Wissel"]++;
+                        qCells.push(`<td class="p-2 text-center"><span class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold text-[10px]">Wissel</span></td>`);
+                    }
                 }
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-900/60">
-                        <td class="p-2 font-black text-white">${p.name}</td>
-                        <td class="p-2 text-center text-slate-300">${h.played}</td>
-                        <td class="p-2 text-center font-bold text-white">${h.fieldMin}m</td>
-                        <td class="p-2 text-center text-sky-400 font-extrabold">${avg}m</td>
-                        <td class="p-2 text-center text-slate-400">52.5m</td>
-                        <td class="p-2 text-center font-bold ${parseFloat(diff) < 0 ? 'text-rose-400' : 'text-emerald-400'}">${diff}%</td>
-                        <td class="p-2 text-center">${adviceBadge}</td>
+                        <td class="p-2 font-bold text-white">${m.opponent} <span class="text-slate-500 text-[10px]">(${m.date})</span></td>
+                        ${qCells.join('')}
+                        <td class="p-2 text-center font-extrabold text-sky-400">${playedQuarters * 15}m</td>
                     </tr>
                 `;
             });
 
-            // Archief Lijst
-            const list = document.getElementById('savedMatchesArchiveList');
-            list.innerHTML = '';
-            if (savedMatches.length === 0) {
-                list.innerHTML = `<span class="text-slate-500 italic text-xs">Nog geen opgeslagen wedstrijden.</span>`;
-                return;
-            }
-
-            savedMatches.forEach((m, idx) => {
-                list.innerHTML += `
-                    <div class="bg-[#0a1420] border border-slate-800 p-3 rounded-2xl flex items-center justify-between gap-2">
-                        <div>
-                            <strong class="text-white text-xs block">${m.opponent}</strong>
-                            <span class="text-[10px] text-slate-400">${m.date} • ${m.isHomeMatch ? 'Thuis' : 'Uit'} • Stand: ${m.goals ? m.goals.length : 0} - ${m.opponentGoals || 0}</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="openSavedMatchView(${m.id})" class="bg-sky-500/20 text-sky-300 border border-sky-400/40 text-[11px] font-black px-3 py-1.5 rounded-xl hover:bg-sky-500 hover:text-slate-950 transition cursor-pointer">
-                                👁️ Openen
-                            </button>
-                            <button onclick="deleteSavedMatch(${idx})" class="text-rose-400 hover:text-rose-200 text-xs p-1">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function deleteSavedMatch(idx) {
-            if (confirm("Deze wedstrijd definitief verwijderen?")) {
-                savedMatches.splice(idx, 1);
-                localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
-                renderStats();
-                pushCloudFull();
+            for (let k in counts) {
+                if (counts[k] > 0) {
+                    badgesDiv.innerHTML += `
+                        <span class="bg-[#0a1420] border border-slate-700 text-slate-300 text-[11px] font-bold px-2 py-0.5 rounded-lg">
+                            ${k}: ${counts[k]}x (${counts[k]*15}m)
+                        </span>
+                    `;
+                }
             }
         }
 
@@ -1742,98 +1747,269 @@
         // ---------------------------------------------------------
         // O. BACKUP & WHATSAPP
         // ---------------------------------------------------------
-        function openBackupModal() { document.getElementById('backupModal').classList.remove('hidden'); }
-        function closeBackupModal() { document.getElementById('backupModal').classList.add('hidden'); }
-
-        function downloadJsonBackup() {
-            const dataStr = JSON.stringify({ basePlayers, opponentsList, savedMatches }, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `ONA-JO11-4-Backup-${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-        }
-
-        function downloadCsvExport() {
-            let csv = "Speler;Duels;Veldminuten\n";
-            basePlayers.forEach(p => { csv += `${p.name};0;0\n`; });
-            const blob = new Blob([csv], { type: "text/csv" });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = "ONA-Seizoen.csv";
-            a.click();
-        }
-
-        function importJsonFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const r = new FileReader();
-            r.onload = ev => {
-                try {
-                    const p = JSON.parse(ev.target.result);
-                    if (Array.isArray(p.savedMatches)) savedMatches = p.savedMatches;
-                    localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
-                    renderStats();
-                    alert("Backup succesvol hersteld!");
-                    closeBackupModal();
-                } catch (err) { alert("Ongeldig bestand!"); }
-            };
-            r.readAsText(file);
-        }
-
-        function shareViaWhatsApp() {
-            const home = isHomeMatch ? "Oranje Nassau" : selectedOpponent;
-            const away = isHomeMatch ? selectedOpponent : "Oranje Nassau";
-            let txt = `⚽ *${home} vs ${away}*\nStand: ${matchGoals.length} - ${opponentGoals}\n\n`;
-
-            for (let q = 1; q <= 4; q++) {
-                txt += `*Blok ${q} (${(q-1)*15}-${q*15}m):*\n`;
-                POSITIONS.forEach(pos => {
-                    txt += `• ${pos.short}: ${lineup[q]?.[pos.id] || '-'}\n`;
-                });
-                txt += `\n`;
+        // P. AI DATA ASSISTENT & GEMINI API INTEGRATIE
+        // ---------------------------------------------------------
+        function promptForApiKey() {
+            const key = prompt("Voer je Google Gemini API Key in (wordt lokaal opgeslagen):", GEMINI_API_KEY);
+            if (key !== null) {
+                GEMINI_API_KEY = key.trim();
+                localStorage.setItem('ona_gemini_api_key', GEMINI_API_KEY);
+                alert("Gemini API sleutel succesvol opgeslagen!");
             }
-            navigator.clipboard.writeText(txt);
-            alert("Opstelling gekopieerd voor WhatsApp!");
         }
 
-        // AI Chat Drawer
-        function toggleChatWindow() {
-            document.getElementById('aiChatDrawer').classList.toggle('translate-x-full');
+        function askPreset(txt) {
+            document.getElementById('aiInput').value = txt;
+            sendChatMessage();
         }
-        function sendChatMessage() {
+
+        function hideChatChart() {
+            document.getElementById('chatChartWrapper').classList.add('hidden');
+        }
+
+        function buildTeamAIContext() {
+            let ctx = `Team: Oranje Nassau Almelo JO11-4 (8v8, 4x15 min).\n`;
+            ctx += `Actuele stand vandaag: Oranje Nassau ${matchGoals.length} - ${opponentGoals} ${selectedOpponent || 'Tegenstander'}.\n`;
+            if (matchGoals.length > 0) {
+                ctx += `Doelpuntenmakers vandaag: ${matchGoals.map(g => `${g.scorer} (${g.min}')`).join(', ')}\n`;
+            }
+
+            ctx += `\nSpelerslijst met 2 rollen:\n`;
+            basePlayers.forEach(p => {
+                ctx += `- ${p.name} (Rol 1: ${p.pos1}, Rol 2: ${p.pos2 || 'geen'}, Badge: ${p.badge})\n`;
+            });
+
+            ctx += `\nHistorie gespeelde wedstrijden (${savedMatches.length}):\n`;
+            savedMatches.forEach((m, idx) => {
+                const g = m.goals ? m.goals.length : 0;
+                ctx += `Wedstrijd ${idx+1}: vs ${m.opponent} (${m.date}) - Stand: ${g} - ${m.opponentGoals || 0}\n`;
+            });
+            return ctx;
+        }
+
+        async function sendChatMessage() {
             const input = document.getElementById('aiInput');
-            const val = input.value.trim();
-            if (!val) return;
+            const q = input.value.trim();
+            if (!q) return;
+
             const c = document.getElementById('aiMessages');
-            c.innerHTML += `<div class="bg-sky-500 text-slate-950 font-bold p-2.5 rounded-2xl ml-4">${val}</div>`;
+            c.innerHTML += `<div class="bg-sky-500 text-slate-950 font-black p-2.5 rounded-2xl ml-6 text-xs shadow">${q}</div>`;
             input.value = '';
-            setTimeout(() => {
-                c.innerHTML += `<div class="bg-slate-900 border border-slate-800 p-2.5 rounded-2xl mr-4 text-slate-300">Statistieken geanalyseerd: De speeltijd is momenteel uitstekend verdeeld binnen de 5%-norm!</div>`;
-                c.scrollTop = c.scrollHeight;
-            }, 600);
+            c.scrollTop = c.scrollHeight;
+
+            // Check lokale grafieken requests
+            if (q.toLowerCase().includes('grafiek') || q.toLowerCase().includes('speeltijd')) {
+                renderAIChart('minutes');
+            } else if (q.toLowerCase().includes('positie')) {
+                renderAIChart('positions');
+            }
+
+            const loadingId = "aiLoad_" + Date.now();
+            c.innerHTML += `<div id="${loadingId}" class="bg-slate-900 border border-slate-800 p-2.5 rounded-2xl mr-6 text-xs text-slate-400 italic">Gemini analyseert...</div>`;
+            c.scrollTop = c.scrollHeight;
+
+            if (!GEMINI_API_KEY) {
+                setTimeout(() => {
+                    const el = document.getElementById(loadingId);
+                    if (el) el.remove();
+                    processLocalFallbackQuery(q);
+                }, 400);
+                return;
+            }
+
+            try {
+                const systemPrompt = `Je bent de data- en tactiek-assistent van jeugdteam O.N. Almelo JO11-4. Hier is alle seizoensdata:\n${buildTeamAIContext()}\nBeantwoord de vraag van de trainer kort, to-the-point, professioneel en vriendelijk in het Nederlands.`;
+
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: systemPrompt + "\n\nVraag van trainer: " + q }] }]
+                    })
+                });
+
+                const data = await res.json();
+                const el = document.getElementById(loadingId);
+                if (el) el.remove();
+
+                if (data.candidates && data.candidates[0].content?.parts?.[0]?.text) {
+                    let txt = data.candidates[0].content.parts[0].text;
+                    txt = txt.replace(/\n/g, '<br>');
+                    c.innerHTML += `<div class="bg-slate-900 border border-slate-800 p-2.5 rounded-2xl mr-6 text-slate-200 text-xs">${txt}</div>`;
+                } else {
+                    processLocalFallbackQuery(q);
+                }
+            } catch (err) {
+                const el = document.getElementById(loadingId);
+                if (el) el.remove();
+                processLocalFallbackQuery(q);
+            }
+            c.scrollTop = c.scrollHeight;
         }
 
-        // Rollen modal
+        function processLocalFallbackQuery(q) {
+            const c = document.getElementById('aiMessages');
+            let reply = "Ik heb je gegevens bekeken! De speeltijd is momenteel netjes verdeeld volgens de 5%-richtlijn.";
+            const lq = q.toLowerCase();
+
+            if (lq.includes('topscorer') || lq.includes('goal')) {
+                const goalsMap = {};
+                basePlayers.forEach(p => goalsMap[p.name] = 0);
+                savedMatches.forEach(m => (m.goals || []).forEach(g => { if (goalsMap[g.scorer] !== undefined) goalsMap[g.scorer]++; }));
+                (matchGoals || []).forEach(g => { if (goalsMap[g.scorer] !== undefined) goalsMap[g.scorer]++; });
+
+                const top = Object.entries(goalsMap).sort((a,b) => b[1]-a[1]);
+                if (top[0] && top[0][1] > 0) {
+                    reply = `⚽ Topscorer is momenteel **${top[0][0]}** met ${top[0][1]} doelpunt(en)!`;
+                } else {
+                    reply = "Er zijn nog geen doelpunten geregistreerd dit seizoen.";
+                }
+            } else if (lq.includes('minst') || lq.includes('minuten')) {
+                reply = "De spelers met minder dan 50 minuten krijgen voorrang om het volgende duel de volle 60 minuten te spelen.";
+            }
+
+            c.innerHTML += `<div class="bg-slate-900 border border-slate-800 p-2.5 rounded-2xl mr-6 text-slate-200 text-xs">${reply}</div>`;
+            c.scrollTop = c.scrollHeight;
+        }
+
+        function renderAIChart(type) {
+            const wrapper = document.getElementById('chatChartWrapper');
+            const canvas = document.getElementById('chatCanvas');
+            const title = document.getElementById('chatChartTitle');
+            wrapper.classList.remove('hidden');
+
+            if (chatChartInstance) {
+                chatChartInstance.destroy();
+                chatChartInstance = null;
+            }
+
+            if (type === 'minutes') {
+                title.innerText = "Totale Veldspeeltijd (Minuten)";
+                const labels = basePlayers.map(p => p.name);
+                const data = basePlayers.map(p => {
+                    let mTotal = 0;
+                    savedMatches.forEach(m => {
+                        for (let q = 1; q <= 4; q++) {
+                            for (let pos in (m.lineup?.[q] || {})) {
+                                if (m.lineup[q][pos] === p.name && pos !== 'GK') mTotal += 15;
+                            }
+                        }
+                    });
+                    return mTotal;
+                });
+
+                chatChartInstance = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Minuten',
+                            data,
+                            backgroundColor: '#38bdf8',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            } else if (type === 'positions') {
+                title.innerText = "Positieverdeling Team";
+                const counts = { Verdediging: 0, Middenveld: 0, Aanval: 0, Keeper: 0 };
+                savedMatches.forEach(m => {
+                    for (let q = 1; q <= 4; q++) {
+                        const l = m.lineup?.[q] || {};
+                        if (l["GK"]) counts.Keeper++;
+                        ["LV", "CV", "RV"].forEach(p => { if (l[p]) counts.Verdediging++; });
+                        ["LM", "CM", "RM"].forEach(p => { if (l[p]) counts.Middenveld++; });
+                        if (l["SP"]) counts.Aanval++;
+                    }
+                });
+
+                chatChartInstance = new Chart(canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(counts),
+                        datasets: [{
+                            data: Object.values(counts),
+                            backgroundColor: ['#38bdf8', '#34d399', '#f43f5e', '#fbbf24']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+            }
+        }
+
+        // ---------------------------------------------------------
+        // Q. ROLLEN BEHEREN (2 ROLLEN PER SPELER)
+        // ---------------------------------------------------------
+        function renderRolesQuickOverview() {
+            const c = document.getElementById('rolesQuickOverview');
+            if (!c) return;
+            c.innerHTML = '';
+            basePlayers.forEach((p, idx) => {
+                c.innerHTML += `
+                    <div class="bg-[#0a1420] border border-slate-800 p-2.5 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="font-extrabold text-white block">${p.name}</span>
+                            <span class="text-[10px] text-slate-400">1e: ${p.pos1} ${p.pos2 ? '• 2e: ' + p.pos2 : ''}</span>
+                        </div>
+                        <span class="bg-sky-500/20 text-sky-300 border border-sky-400/30 text-[10px] font-black px-2 py-0.5 rounded-full">${p.badge}</span>
+                    </div>
+                `;
+            });
+        }
+
         function openRoleModal() {
             const c = document.getElementById('rolesList');
             c.innerHTML = '';
             basePlayers.forEach((p, idx) => {
                 c.innerHTML += `
-                    <div class="flex items-center justify-between bg-[#0a1420] p-2 rounded-2xl border border-slate-800 text-xs">
-                        <span class="font-bold text-white">${p.name}</span>
-                        <select onchange="basePlayers[${idx}].pos1=this.value; localStorage.setItem('ona_jo11_4_custom_roles', JSON.stringify(basePlayers));" class="bg-slate-900 border border-slate-700 text-white rounded-xl p-1 text-xs">
-                            <option value="Keeper" ${p.pos1==='Keeper'?'selected':''}>Keeper</option>
-                            <option value="Verdediging" ${p.pos1==='Verdediging'?'selected':''}>Verdediging</option>
-                            <option value="Middenveld" ${p.pos1==='Middenveld'?'selected':''}>Middenveld</option>
-                            <option value="Aanval" ${p.pos1==='Aanval'?'selected':''}>Aanval</option>
-                        </select>
+                    <div class="bg-[#0a1420] border border-slate-800 p-2.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                        <div class="font-black text-white w-24 truncate">${p.name}</div>
+                        <div class="flex items-center gap-2">
+                            <select onchange="updatePlayerRoleField(${idx}, 'pos1', this.value)" class="bg-slate-900 border border-slate-700 text-sky-300 font-bold rounded-xl p-1.5 text-xs outline-none">
+                                <option value="Keeper" ${p.pos1==='Keeper'?'selected':''}>Keeper</option>
+                                <option value="Verdediging" ${p.pos1==='Verdediging'?'selected':''}>Verdediging</option>
+                                <option value="Middenveld" ${p.pos1==='Middenveld'?'selected':''}>Middenveld</option>
+                                <option value="Aanval" ${p.pos1==='Aanval'?'selected':''}>Aanval</option>
+                            </select>
+                            <select onchange="updatePlayerRoleField(${idx}, 'pos2', this.value)" class="bg-slate-900 border border-slate-700 text-slate-300 font-semibold rounded-xl p-1.5 text-xs outline-none">
+                                <option value="" ${p.pos2===''?'selected':''}>-- Geen 2e rol --</option>
+                                <option value="Verdediging" ${p.pos2==='Verdediging'?'selected':''}>+ Verdediging</option>
+                                <option value="Middenveld" ${p.pos2==='Middenveld'?'selected':''}>+ Middenveld</option>
+                                <option value="Aanval" ${p.pos2==='Aanval'?'selected':''}>+ Aanval</option>
+                            </select>
+                        </div>
                     </div>
                 `;
             });
             document.getElementById('roleModal').classList.remove('hidden');
         }
-        function closeRoleModal() { document.getElementById('roleModal').classList.add('hidden'); }
+
+        function updatePlayerRoleField(idx, field, val) {
+            basePlayers[idx][field] = val;
+            updatePlayerBadges();
+            localStorage.setItem('ona_jo11_4_custom_roles', JSON.stringify(basePlayers));
+            renderAttendance();
+            renderRolesQuickOverview();
+            renderPitch();
+            syncDraftToCloud();
+        }
+
+        function closeRoleModal() {
+            document.getElementById('roleModal').classList.add('hidden');
+        }
 
         window.onload = init;
     </script>
