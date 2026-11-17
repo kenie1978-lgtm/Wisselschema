@@ -764,6 +764,13 @@
                 <button onclick="toggleChatWindow()" class="text-slate-400 hover:text-white font-bold text-lg p-1">✕</button>
             </div>
 
+            <div>
+                <div class="flex items-center gap-1.5">
+                    <button onclick="promptForApiKey()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-orange-300 px-2 py-1 rounded-lg border border-slate-700 font-bold transition cursor-pointer" title="Stel Gemini API Key in">🔑 Sleutel</button>
+                    <button onclick="toggleChatWindow()" class="text-slate-400 hover:text-white font-bold text-lg p-1">✕</button>
+                </div>
+            </div>
+
             <div class="bg-slate-50 p-2.5 border-b border-slate-200 flex flex-wrap gap-1.5 overflow-x-auto text-[11px]">
                 <button onclick="askPresetQuery('Wie heeft de meeste doelpunten gescoord?')" class="bg-white border border-slate-300 hover:border-orange-500 hover:text-orange-600 px-2 py-1 rounded-lg font-bold transition">⚽ Topscorers</button>
                 <button onclick="askPresetQuery('Laat de speeltijdgrafiek zien')" class="bg-white border border-slate-300 hover:border-orange-500 hover:text-orange-600 px-2 py-1 rounded-lg font-bold transition">📊 Grafiek Speeltijd</button>
@@ -3655,7 +3662,23 @@
      // =========================================================
         // 20. AI / DATA CHAT & ANALYTICS ENGINE (GEKOPPELD AAN GEMINI API)
         // =========================================================
-        const GEMINI_API_KEY = "AQ.Ab8RN6KnKkN30uJDBpdkxnA9L4Ee6kZvm9GsJotqM7zIAy7_dA"; // <-- Plak hier je sleutel tussen de aanhalingstekens
+        
+        
+        
+        
+        let GEMINI_API_KEY = localStorage.getItem('ona_gemini_api_key') || "";
+
+        function promptForApiKey() {
+            const key = prompt("Voer je Google Gemini API key in (deze wordt alleen lokaal op dit apparaat opgeslagen):", GEMINI_API_KEY);
+            if (key !== null) {
+                GEMINI_API_KEY = key.trim();
+                localStorage.setItem('ona_gemini_api_key', GEMINI_API_KEY);
+                alert("API-sleutel lokaal opgeslagen!");
+            }
+        }
+        
+        
+        //const GEMINI_API_KEY = ""; // <-- Plak hier je sleutel tussen de aanhalingstekens
 
         function toggleChatWindow() {
             const win = document.getElementById('chatWindow');
