@@ -3735,16 +3735,52 @@
             callGeminiAI(q, loadingId);
         }
 
-        // Genereer een compact tekstbestand van alle teamdata om mee te sturen naar Gemini
+        // Genereer een complete, gestructureerde data-context voor Gemini
         function buildTeamContextPrompt() {
             const hist = getSeasonHistoryStats(null);
-            let summary = `Team: O.N. Almelo JO11-4 (8v8 voetbal).\nSpelersstatistieken dit seizoen:\n`;
+            
+            let context = `=== TEAM INFORMATIE ===\n`;
+            context += `Team: v.v. Oranje Nassau Almelo JO11-4 (8 tegen 8, 4 kwartieren van 15 minuten).\n\n`;
+
+            // 1. Spelersstatistieken over het hele seizoen
+            context += `=== SPELERSSTATISTIEKEN DIT SEIZOEN ===\n`;
             basePlayers.forEach(p => {
                 const h = hist[p.name] || {};
-                summary += `- ${p.name} (${p.role}): ${h.presentMatches || 0} duels aanwezig, ${h.fieldMinutes || 0} veldminuten, ${h.goals || 0} doelpunten, ${h.keeperMinutes || 0} keeperminuten.\n`;
+                const avgField = h.outfieldMatches > 0 ? (h.fieldMinutes / h.outfieldMatches).toFixed(1) : "0";
+                const avgTarget = h.outfieldMatches > 0 ? (h.targetFieldMinutesSum / h.outfieldMatches).toFixed(1) : "52.5";
+                const diffPct = h.targetFieldMinutesSum > 0 ? (((h.fieldMinutes - h.targetFieldMinutesSum) / h.targetFieldMinutesSum) * 100).toFixed(1) : "0.0";
+                
+                context += `- ${p.name} (Rol: ${p.role}): ${h.presentMatches || 0}x gespeeld, ${h.absentMatches || 0}x afwezig | Veldminuten: ${h.fieldMinutes || 0}m (gem. ${avgField}m/duel, streef: ${avgTarget}m, afwijking: ${diffPct}%) | Doelpunten: ${h.goals || 0} | Keeperminuten: ${h.keeperMinutes || 0}m\n`;
             });
-            summary += `Opgeslagen wedstrijden count: ${savedMatches.length}.\n`;
-            return summary;
+
+            // 2. Volledige historie van alle opgeslagen wedstrijden
+            context += `\n=== GESPEELDE & OPGESLAGEN WEDSTRIJDEN (${savedMatches.length} duels) ===\n`;
+            if (savedMatches.length === 0) {
+                context += `Er zijn nog geen afgesloten wedstrijden opgeslagen in het seizoensoverzicht.\n`;
+            } else {
+                savedMatches.forEach((m, idx) => {
+                    const loc = (m.isHomeMatch !== false) ? "Thuis" : "Uit";
+                    const uitslag = m.scoreString || `${m.goals ? m.goals.length : 0} - ${m.opponentGoals || 0}`;
+                    const resStr = m.resultStatus === 'W' ? 'Gewonnen' : (m.resultStatus === 'V' ? 'Verloren' : 'Gelijk');
+                    
+                    let scorersStr = "Geen goals geregistreerd";
+                    if (Array.isArray(m.goals) && m.goals.length > 0) {
+                        scorersStr = m.goals.map(g => `${g.scorer}${g.minute ? ` (${g.minute}')` : ''}`).join(', ');
+                    }
+
+                    context += `Duel ${idx + 1}: ${m.date || 'Onbekende datum'} | ON vs ${m.opponent} (${loc}) | Uitslag: ${uitslag} (${resStr}) | Doelpunten ON: ${scorersStr}\n`;
+                });
+            }
+
+            // 3. Status van de huidige conceptwedstrijd op het bord
+            context += `\n=== HUIDIGE / ACTIEVE WEDSTRIJDSTATUS ===\n`;
+            context += `Geselecteerde tegenstander: ${selectedOpponent || 'Nog niet gekozen'}\n`;
+            context += `Huidige stand op het bord: ON ${matchGoals.length} - ${opponentGoals} Tegenstander\n`;
+            if (matchGoals.length > 0) {
+                context += `Doelpuntenmakers vandaag: ${matchGoals.map(g => g.scorer).join(', ')}\n`;
+            }
+
+            return context;
         }
 
         async function callGeminiAI(userQuery, loadingElementId) {
