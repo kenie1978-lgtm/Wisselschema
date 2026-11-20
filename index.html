@@ -76,8 +76,8 @@
                     <label class="block text-[11px] font-extrabold uppercase text-slate-500 mb-1.5">Kies je naam</label>
                     <div class="grid grid-cols-3 gap-2">
                         <button type="button" onclick="selectCoachName('Kenie')" id="coachBtn-Kenie" class="coach-name-btn py-2.5 px-2 rounded-xl border-2 border-orange-500 bg-orange-50 text-orange-900 text-xs font-black transition cursor-pointer">Kenie</button>
-                        <button type="button" onclick="selectCoachName('Stephan')" id="coachBtn-Stephan" class="coach-name-btn py-2.5 px-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:border-orange-300 transition cursor-pointer">Stephan</button>
                         <button type="button" onclick="selectCoachName('Salih')" id="coachBtn-Salih" class="coach-name-btn py-2.5 px-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:border-orange-300 transition cursor-pointer">Salih</button>
+                        <button type="button" onclick="selectCoachName('Stephan')" id="coachBtn-Stephan" class="coach-name-btn py-2.5 px-2 rounded-xl border-2 border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold hover:border-orange-300 transition cursor-pointer">Stephan</button>
                     </div>
                 </div>
 
@@ -869,29 +869,45 @@
                     </div>
                 </div>
 
-                <!-- POSITIERAPPORTAGE -->
+                <!-- POSITIERAPPORTAGE (PER SPELER & PER WEDSTRIJD MET NOODWISSELS) -->
                 <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-5 sm:p-6 space-y-4 text-white">
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-700 pb-3">
+                    <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-3 border-b border-slate-700 pb-4">
                         <div>
-                            <span class="text-xs font-bold uppercase tracking-wider text-orange-400">Veldbezettingshistorie</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-orange-400">Veldbezettingshistorie & Noodwissels</span>
                             <h3 class="text-base sm:text-lg font-black text-white">
                                 🗺️ Positierapportage: Waar & wanneer heeft wie gespeeld?
                             </h3>
-                            <p class="text-xs text-slate-300">Bekijk per speler op welke posities hij over het seizoen heeft gestaan.</p>
+                            <p class="text-xs text-slate-300">Bekijk per speler óf per wedstrijd alle blokken, wissels en noodwissels op de minuut nauwkeurig.</p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-xs font-bold text-slate-400">Kies speler:</label>
-                            <select id="positionReportPlayerSelect" onchange="renderPositionReport()" class="border border-slate-600 rounded-xl px-3 py-2 text-xs font-extrabold bg-slate-900 text-white outline-none focus:ring-2 focus:ring-orange-500"></select>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
+                                <button type="button" onclick="setPositionReportMode('player')" id="posModeBtn-player" class="px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer bg-orange-600 text-white shadow">
+                                    👤 Per Speler
+                                </button>
+                                <button type="button" onclick="setPositionReportMode('match')" id="posModeBtn-match" class="px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-300 hover:text-white">
+                                    🏟️ Per Wedstrijd
+                                </button>
+                            </div>
+
+                            <div id="posReportPlayerPicker" class="flex items-center gap-2">
+                                <label class="text-xs font-bold text-slate-400">Speler:</label>
+                                <select id="positionReportPlayerSelect" onchange="renderPositionReport()" class="border border-slate-600 rounded-xl px-3 py-2 text-xs font-extrabold bg-slate-900 text-white outline-none focus:ring-2 focus:ring-orange-500"></select>
+                            </div>
+
+                            <div id="posReportMatchPicker" class="hidden flex items-center gap-2">
+                                <label class="text-xs font-bold text-slate-400">Wedstrijd:</label>
+                                <select id="positionReportMatchSelect" onchange="renderPositionReport()" class="border border-slate-600 rounded-xl px-3 py-2 text-xs font-extrabold bg-slate-900 text-white outline-none focus:ring-2 focus:ring-orange-500 max-w-[260px]"></select>
+                            </div>
                         </div>
                     </div>
 
                     <div id="positionReportSummary" class="flex flex-wrap gap-2 pt-1"></div>
 
                     <div class="overflow-x-auto pt-2">
-                        <table class="w-full text-left border-collapse text-xs">
+                        <table class="w-full text-left border-collapse text-xs min-w-[680px]">
                             <thead>
                                 <tr class="bg-slate-950 text-slate-400 uppercase border-b border-slate-700">
-                                    <th class="p-2.5">Datum & Wedstrijd</th>
+                                    <th id="posReportFirstColHeader" class="p-2.5">Datum & Wedstrijd</th>
                                     <th class="p-2.5 text-center">Blok 1 (0-15m)</th>
                                     <th class="p-2.5 text-center">Blok 2 (15-30m)</th>
                                     <th class="p-2.5 text-center">Blok 3 (30-45m)</th>
@@ -1439,6 +1455,7 @@
         let cloudUnsubscribe = null;
         let isApplyingRemoteUpdate = false;
         let clientSessionId = "client_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+        let latestCloudLiveDraft = null;
         let teamRoomId = localStorage.getItem('ona_jo11_4_room_id') || "ONA-JO11-4";
 
         basePlayers.forEach(p => attendance[p.name] = true);
@@ -2269,6 +2286,9 @@
                             localStorage.setItem('ona_jo11_4_custom_roles', JSON.stringify(basePlayers));
                         }
 
+                        if (data.liveDraft) {
+                            latestCloudLiveDraft = JSON.parse(JSON.stringify(data.liveDraft));
+                        }
                         if (loadedMatchId === null && data.liveDraft && data.updatedBy !== clientSessionId) {
                             const d = data.liveDraft;
                             selectedOpponent = d.selectedOpponent || selectedOpponent;
@@ -2379,7 +2399,11 @@
             pushFullStateToCloud();
         }
 
-        function switchMainTab(tab) {
+        function switchMainTab(tab, keepLoadedMatch = false) {
+            if (tab === 'match' && !keepLoadedMatch && loadedMatchId !== null) {
+                startNewMatchMode(true);
+            }
+
             document.getElementById('view-match').classList.toggle('hidden', tab !== 'match');
             document.getElementById('view-season').classList.toggle('hidden', tab !== 'season');
 
@@ -2397,6 +2421,7 @@
                 body.className = "bg-slate-100 text-slate-800 min-h-screen pb-24 transition-colors duration-300";
                 if (drawerMatch) drawerMatch.className = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-orange-600 text-white shadow-md";
                 if (drawerSeason) drawerSeason.className = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center justify-between bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white";
+                applyReadOnlyUIState();
             }
         }
 
@@ -3732,7 +3757,7 @@
             renderKeeperControls();
             renderEmergencyBanner();
             renderScoreboard();
-            switchMainTab('match');
+            switchMainTab('match', true);
             renderAllViews();
             checkConsecutiveBenchWarning();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3747,10 +3772,73 @@
             renderAllViews();
         }
 
-        function startNewMatchMode() {
+
+        function applyLiveDraftState(d) {
+            if (!d) return false;
+            selectedOpponent = d.selectedOpponent || selectedOpponent;
+            isHomeMatch = (d.isHomeMatch !== undefined) ? d.isHomeMatch : true;
+            if (d.matchDate) document.getElementById('matchDate').value = d.matchDate;
+            if (d.attendance) attendance = { ...d.attendance };
+            if (Array.isArray(d.guestPlayers)) {
+                guestPlayers = JSON.parse(JSON.stringify(d.guestPlayers));
+                const hasG = guestPlayers.length > 0;
+                document.getElementById('guestToggleCheck').checked = hasG;
+                document.getElementById('guestPanel').classList.toggle('hidden', !hasG);
+                renderGuestRows();
+            }
+            if (d.isFixedKeeper !== undefined) {
+                isFixedKeeper = d.isFixedKeeper;
+                document.getElementById('fixedKeeperCheck').checked = isFixedKeeper;
+                document.getElementById('fixedKeeperBox').classList.toggle('hidden', !isFixedKeeper);
+                document.getElementById('splitKeeperBox').classList.toggle('hidden', isFixedKeeper);
+            }
+            if (d.fixedKeeperName) fixedKeeperName = d.fixedKeeperName;
+            if (d.quarterKeepers) quarterKeepers = { ...d.quarterKeepers };
+            if (d.lineup) lineup = JSON.parse(JSON.stringify(d.lineup));
+            if (Array.isArray(d.emergencySubs)) emergencySubs = JSON.parse(JSON.stringify(d.emergencySubs));
+            if (Array.isArray(d.matchGoals)) matchGoals = JSON.parse(JSON.stringify(d.matchGoals));
+            if (d.opponentGoals !== undefined) opponentGoals = d.opponentGoals;
+            if (d.timerActiveQuarter !== undefined) timerActiveQuarter = d.timerActiveQuarter;
+            if (d.isTimerRunning !== undefined) isTimerRunning = d.isTimerRunning;
+            if (d.timerStartedAt !== undefined) timerStartedAt = d.timerStartedAt;
+            if (d.timerAccumulatedSeconds !== undefined) timerAccumulatedSeconds = d.timerAccumulatedSeconds;
+            timerSeconds = calculateCurrentTimerSeconds();
+            updateTimerDisplay();
+            return true;
+        }
+
+        function startNewMatchMode(restoreDraftIfAvailable = true) {
             loadedMatchId = null;
             isReadOnlyMode = false;
-            clearAllInputFieldsAfterSave();
+            if (restoreDraftIfAvailable && latestCloudLiveDraft) {
+                isApplyingRemoteUpdate = true;
+                try {
+                    applyLiveDraftState(latestCloudLiveDraft);
+                    const homeBtn = document.getElementById('homeBtn');
+                    const awayBtn = document.getElementById('awayBtn');
+                    if (homeBtn && awayBtn) {
+                        if (isHomeMatch) {
+                            homeBtn.className = "py-2 rounded-lg text-xs font-black transition cursor-pointer bg-white text-orange-600 shadow-sm flex items-center justify-center gap-1.5";
+                            awayBtn.className = "py-2 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5";
+                        } else {
+                            awayBtn.className = "py-2 rounded-lg text-xs font-black transition cursor-pointer bg-white text-orange-600 shadow-sm flex items-center justify-center gap-1.5";
+                            homeBtn.className = "py-2 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5";
+                        }
+                    }
+                    renderOpponentDropdown();
+                    renderAttendancePills();
+                    renderKeeperControls();
+                    renderEmergencyBanner();
+                    renderScoreboard();
+                    renderAllViews();
+                    checkConsecutiveBenchWarning();
+                    renderMatchModeCockpit();
+                } finally {
+                    isApplyingRemoteUpdate = false;
+                }
+            } else {
+                clearAllInputFieldsAfterSave();
+            }
         }
 
         function applyReadOnlyUIState() {
@@ -3788,11 +3876,13 @@
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
+                                ${currentUserRole === 'begeleiding' ? `
                                 <button onclick="enableEditLoadedMatch()" class="bg-orange-600 hover:bg-orange-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shadow cursor-pointer transition flex items-center gap-1.5">
                                     ✏️ Bewerken Inschakelen
                                 </button>
-                                <button onclick="startNewMatchMode()" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition">
-                                    ← Sluiten / Terug naar Hoofdscherm (Nieuw)
+                                ` : ''}
+                                <button onclick="startNewMatchMode(true)" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition">
+                                    ← Terug naar Hoofdscherm
                                 </button>
                             </div>
                         `;
@@ -3818,8 +3908,8 @@
                                 <button onclick="openSavedMatch(${loadedMatchId})" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition">
                                     Annuleren
                                 </button>
-                                <button onclick="startNewMatchMode()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition">
-                                    ➕ Nieuwe Wedstrijd
+                                <button onclick="startNewMatchMode(true)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition">
+                                    ← Terug naar Hoofdscherm
                                 </button>
                             </div>
                         `;
@@ -4044,8 +4134,34 @@
         }
 
         // =========================================================
-        // 19. POSITIERAPPORTAGE
+        // 19. POSITIERAPPORTAGE (PER SPELER & PER WEDSTRIJD MET NOODWISSELS)
         // =========================================================
+        let positionReportMode = 'player'; // 'player' | 'match'
+
+        function setPositionReportMode(mode) {
+            positionReportMode = mode;
+            const btnP = document.getElementById('posModeBtn-player');
+            const btnM = document.getElementById('posModeBtn-match');
+            const pickP = document.getElementById('posReportPlayerPicker');
+            const pickM = document.getElementById('posReportMatchPicker');
+            const firstCol = document.getElementById('posReportFirstColHeader');
+
+            if (mode === 'player') {
+                if (btnP) btnP.className = "px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer bg-orange-600 text-white shadow";
+                if (btnM) btnM.className = "px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-300 hover:text-white";
+                if (pickP) pickP.classList.remove('hidden');
+                if (pickM) pickM.classList.add('hidden');
+                if (firstCol) firstCol.innerText = "Datum & Wedstrijd";
+            } else {
+                if (btnM) btnM.className = "px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer bg-orange-600 text-white shadow";
+                if (btnP) btnP.className = "px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer text-slate-300 hover:text-white";
+                if (pickM) pickM.classList.remove('hidden');
+                if (pickP) pickP.classList.add('hidden');
+                if (firstCol) firstCol.innerText = "Speler";
+            }
+            renderPositionReport();
+        }
+
         function renderPositionReportPlayerDropdown() {
             const sel = document.getElementById('positionReportPlayerSelect');
             if (!sel) return;
@@ -4057,24 +4173,147 @@
             });
         }
 
+        function renderPositionReportMatchDropdown() {
+            const sel = document.getElementById('positionReportMatchSelect');
+            if (!sel) return;
+            const currentVal = sel.value;
+            sel.innerHTML = '';
+            const sortedMatches = [...savedMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
+            if (sortedMatches.length === 0) {
+                sel.innerHTML = `<option value="">Geen wedstrijden</option>`;
+                return;
+            }
+            sortedMatches.forEach(m => {
+                const isHome = (m.isHomeMatch !== undefined) ? m.isHomeMatch : true;
+                const label = `${m.date} • ${isHome ? 'ON vs ' + m.opponent : m.opponent + ' vs ON'}`;
+                const isSel = (String(m.id) === String(currentVal)) ? "selected" : "";
+                sel.innerHTML += `<option value="${m.id}" ${isSel}>${label}</option>`;
+            });
+        }
+
+        function getPosBadgeColorClass(posId) {
+            if (posId === "GK") return "bg-amber-950 text-amber-300 border border-amber-600";
+            if (["LV", "CV", "RV"].includes(posId)) return "bg-blue-950 text-blue-300 border border-blue-600";
+            if (["LM", "CM", "RM"].includes(posId)) return "bg-emerald-950 text-emerald-300 border border-emerald-600";
+            if (posId === "SP") return "bg-rose-950 text-rose-300 border border-rose-600";
+            return "bg-slate-700 text-slate-200 border border-slate-600";
+        }
+
+        function getPlayerBlockDetail(match, playerName, q) {
+            const qLineup = match.lineup ? match.lineup[q] : null;
+            let startPos = null;
+            if (qLineup) {
+                for (let posId in qLineup) {
+                    if (qLineup[posId] === playerName) {
+                        startPos = posId;
+                        break;
+                    }
+                }
+            }
+
+            const qStart = (q - 1) * 15;
+            const subsInQ = Array.isArray(match.emergencySubs)
+                ? match.emergencySubs.filter(e => Number(e.quarter) === q)
+                : [];
+
+            // Check of speler via noodwissel eruit ging
+            const subOut = subsInQ.find(e => e.out === playerName);
+            if (subOut) {
+                const playedMins = Math.max(0, Math.min(15, Number(subOut.minute) - qStart));
+                const benchMins = Math.max(0, 15 - playedMins);
+                const pos = subOut.posId || startPos || "VELD";
+                return {
+                    type: 'sub_out',
+                    pos,
+                    playedMins,
+                    benchMins,
+                    minute: subOut.minute,
+                    otherPlayer: subOut.in
+                };
+            }
+
+            // Check of speler via noodwissel erin kwam
+            const subIn = subsInQ.find(e => e.in === playerName);
+            if (subIn) {
+                const benchMins = Math.max(0, Math.min(15, Number(subIn.minute) - qStart));
+                const playedMins = Math.max(0, 15 - benchMins);
+                const pos = subIn.posId || "VELD";
+                return {
+                    type: 'sub_in',
+                    pos,
+                    playedMins,
+                    benchMins,
+                    minute: subIn.minute,
+                    otherPlayer: subIn.out
+                };
+            }
+
+            if (startPos) {
+                return { type: 'full_play', pos: startPos, playedMins: 15, benchMins: 0 };
+            }
+            return { type: 'full_bench', pos: null, playedMins: 0, benchMins: 15 };
+        }
+
+        function formatBlockDetailCellHTML(detail) {
+            if (detail.type === 'full_play') {
+                return `<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-md font-extrabold text-[11px] ${getPosBadgeColorClass(detail.pos)}">${detail.pos}</span></td>`;
+            }
+            if (detail.type === 'full_bench') {
+                return `<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-md font-bold text-[11px] bg-orange-950 text-orange-300 border border-orange-700">Wissel</span></td>`;
+            }
+            if (detail.type === 'sub_out') {
+                return `
+                    <td class="p-2 text-center">
+                        <div class="inline-flex flex-col items-center gap-0.5 bg-amber-950/70 border border-amber-500/60 px-2 py-1 rounded-lg">
+                            <span class="font-extrabold text-[10px] text-white">🔄 ${detail.pos} (${detail.playedMins}m)</span>
+                            <span class="font-bold text-[10px] text-orange-300">${detail.benchMins}m wissel</span>
+                            <span class="text-[9px] text-slate-400">Uit ${detail.minute}' → ${detail.otherPlayer}</span>
+                        </div>
+                    </td>
+                `;
+            }
+            if (detail.type === 'sub_in') {
+                return `
+                    <td class="p-2 text-center">
+                        <div class="inline-flex flex-col items-center gap-0.5 bg-emerald-950/70 border border-emerald-500/60 px-2 py-1 rounded-lg">
+                            <span class="font-bold text-[10px] text-orange-300">${detail.benchMins}m wissel</span>
+                            <span class="font-extrabold text-[10px] text-emerald-300">🔄 ${detail.pos} (${detail.playedMins}m)</span>
+                            <span class="text-[9px] text-slate-400">In ${detail.minute}' ← ${detail.otherPlayer}</span>
+                        </div>
+                    </td>
+                `;
+            }
+            return `<td class="p-2 text-center">-</td>`;
+        }
+
         function renderPositionReport() {
             renderPositionReportPlayerDropdown();
-            const sel = document.getElementById('positionReportPlayerSelect');
-            if (!sel || !sel.value) return;
+            renderPositionReportMatchDropdown();
 
-            const playerName = sel.value;
             const summaryDiv = document.getElementById('positionReportSummary');
             const timelineTbody = document.getElementById('positionReportTimelineBody');
+            if (!summaryDiv || !timelineTbody) return;
 
             summaryDiv.innerHTML = '';
             timelineTbody.innerHTML = '';
-
-            const posCounts = { GK: 0, LV: 0, CV: 0, RV: 0, LM: 0, CM: 0, RM: 0, SP: 0, Wissel: 0 };
 
             if (savedMatches.length === 0) {
                 timelineTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Nog geen opgeslagen wedstrijden in dit seizoen.</td></tr>`;
                 return;
             }
+
+            if (positionReportMode === 'match') {
+                renderPositionReportByMatch(summaryDiv, timelineTbody);
+                return;
+            }
+
+            // MODUS 1: PER SPELER
+            const sel = document.getElementById('positionReportPlayerSelect');
+            if (!sel || !sel.value) return;
+
+            const playerName = sel.value;
+            const posCounts = { GK: 0, LV: 0, CV: 0, RV: 0, LM: 0, CM: 0, RM: 0, SP: 0, Wissel: 0 };
+            const posMinutes = { GK: 0, LV: 0, CV: 0, RV: 0, LM: 0, CM: 0, RM: 0, SP: 0, Wissel: 0 };
 
             const sortedMatches = [...savedMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -4095,36 +4334,25 @@
                     return;
                 }
 
-                let matchQuarters = 0;
+                let totalPlayedMinsInMatch = 0;
+                let totalBenchMinsInMatch = 0;
                 let qCells = [];
 
                 for (let q = 1; q <= 4; q++) {
-                    const qLineup = m.lineup ? m.lineup[q] : null;
-                    let foundPos = null;
+                    const detail = getPlayerBlockDetail(m, playerName, q);
+                    totalPlayedMinsInMatch += detail.playedMins;
+                    totalBenchMinsInMatch += detail.benchMins;
 
-                    if (qLineup) {
-                        for (let posId in qLineup) {
-                            if (qLineup[posId] === playerName) {
-                                foundPos = posId;
-                                break;
-                            }
-                        }
+                    if (detail.pos && detail.playedMins > 0) {
+                        posCounts[detail.pos] = (posCounts[detail.pos] || 0) + 1;
+                        posMinutes[detail.pos] = (posMinutes[detail.pos] || 0) + detail.playedMins;
                     }
-
-                    if (foundPos) {
-                        posCounts[foundPos] = (posCounts[foundPos] || 0) + 1;
-                        matchQuarters++;
-                        let badgeColor = "bg-slate-700 text-slate-200";
-                        if (foundPos === "GK") badgeColor = "bg-amber-950 text-amber-300 border border-amber-600";
-                        else if (["LV", "CV", "RV"].includes(foundPos)) badgeColor = "bg-blue-950 text-blue-300 border border-blue-600";
-                        else if (["LM", "CM", "RM"].includes(foundPos)) badgeColor = "bg-emerald-950 text-emerald-300 border border-emerald-600";
-                        else if (foundPos === "SP") badgeColor = "bg-rose-950 text-rose-300 border border-rose-600";
-
-                        qCells.push(`<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-md font-extrabold text-[11px] ${badgeColor}">${foundPos}</span></td>`);
-                    } else {
+                    if (detail.benchMins > 0) {
                         posCounts["Wissel"] = (posCounts["Wissel"] || 0) + 1;
-                        qCells.push(`<td class="p-2 text-center"><span class="px-2 py-0.5 rounded-md font-bold text-[11px] bg-orange-950 text-orange-300 border border-orange-700">Wissel</span></td>`);
+                        posMinutes["Wissel"] = (posMinutes["Wissel"] || 0) + detail.benchMins;
                     }
+
+                    qCells.push(formatBlockDetailCellHTML(detail));
                 }
 
                 const tr = document.createElement('tr');
@@ -4132,26 +4360,103 @@
                 tr.innerHTML = `
                     <td class="p-2.5 font-bold text-slate-200">${matchTitle} <span class="font-normal text-slate-400 text-[10px]">(${m.date})</span></td>
                     ${qCells.join('')}
-                    <td class="p-2.5 text-center font-extrabold text-orange-400">${matchQuarters * 15} min</td>
+                    <td class="p-2.5 text-center font-extrabold text-orange-400">
+                        ${totalPlayedMinsInMatch} min
+                        ${totalBenchMinsInMatch > 0 ? `<span class="block text-[10px] font-semibold text-slate-400">(${totalBenchMinsInMatch}m wissel)</span>` : ''}
+                    </td>
                 `;
                 timelineTbody.appendChild(tr);
             });
 
             for (let posKey in posCounts) {
-                if (posCounts[posKey] > 0) {
+                if (posCounts[posKey] > 0 || posMinutes[posKey] > 0) {
                     const badge = document.createElement('span');
-                    let badgeClass = "bg-slate-800 text-slate-200 border-slate-700";
-                    if (posKey === "GK") badgeClass = "bg-amber-950 text-amber-300 border-amber-600";
-                    else if (["LV", "CV", "RV"].includes(posKey)) badgeClass = "bg-blue-950 text-blue-300 border-blue-600";
-                    else if (["LM", "CM", "RM"].includes(posKey)) badgeClass = "bg-emerald-950 text-emerald-300 border-emerald-600";
-                    else if (posKey === "SP") badgeClass = "bg-rose-950 text-rose-300 border border-rose-600";
-                    else if (posKey === "Wissel") badgeClass = "bg-orange-950 text-orange-300 border border-orange-700";
+                    let badgeClass = getPosBadgeColorClass(posKey);
+                    if (posKey === "Wissel") badgeClass = "bg-orange-950 text-orange-300 border border-orange-700";
 
                     badge.className = `px-2.5 py-1 rounded-xl text-xs font-black border ${badgeClass}`;
-                    badge.innerHTML = `${posKey}: ${posCounts[posKey]}x <span class="font-normal text-[10px]">(${posCounts[posKey] * 15}m)</span>`;
+                    badge.innerHTML = `${posKey}: ${posCounts[posKey]}x <span class="font-normal text-[10px]">(${posMinutes[posKey]}m)</span>`;
                     summaryDiv.appendChild(badge);
                 }
             }
+        }
+
+        function renderPositionReportByMatch(summaryDiv, timelineTbody) {
+            const sel = document.getElementById('positionReportMatchSelect');
+            if (!sel || !sel.value) return;
+
+            const m = savedMatches.find(x => String(x.id) === String(sel.value));
+            if (!m) return;
+
+            const isHome = (m.isHomeMatch !== undefined) ? m.isHomeMatch : true;
+            const onGoals = m.goals ? m.goals.length : 0;
+            const oppGoals = m.opponentGoals || 0;
+            const res = getMatchResultDetails(onGoals, oppGoals, isHome);
+            const matchTitle = isHome ? `Oranje Nassau vs ${m.opponent}` : `${m.opponent} vs Oranje Nassau`;
+
+            summaryDiv.innerHTML = `
+                <span class="px-3 py-1 rounded-xl text-xs font-black border bg-slate-900 text-white border-slate-600">
+                    🏟️ ${matchTitle} (${m.date}) • Stand: ${res.scoreString}
+                </span>
+            `;
+
+            if (Array.isArray(m.emergencySubs) && m.emergencySubs.length > 0) {
+                m.emergencySubs.forEach(e => {
+                    summaryDiv.innerHTML += `
+                        <span class="px-3 py-1 rounded-xl text-xs font-bold border bg-rose-950/80 text-rose-200 border-rose-700">
+                            🚨 Noodwissel Min ${e.minute}' (B${e.quarter}, ${e.posId}): ${e.in} in voor ${e.out}
+                        </span>
+                    `;
+                });
+            }
+
+            // Verzamel vaste spelers + eventuele gastspelers van die wedstrijd
+            const matchPlayers = [...basePlayers.map(p => ({ name: p.name, role: p.role, isGuest: false }))];
+            if (Array.isArray(m.guestPlayers)) {
+                m.guestPlayers.forEach(g => {
+                    if (g.name && g.name.trim()) {
+                        matchPlayers.push({ name: `${g.name.trim()} (Gast)`, role: 'Gastspeler', isGuest: true });
+                    }
+                });
+            }
+
+            matchPlayers.forEach(p => {
+                const wasPresent = p.isGuest ? true : (m.attendance && m.attendance[p.name] !== false);
+                if (!wasPresent) {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-800 text-slate-400 bg-slate-950/40";
+                    tr.innerHTML = `
+                        <td class="p-2.5 font-bold text-slate-300">${p.name}</td>
+                        <td colspan="4" class="p-2.5 text-center font-bold text-rose-400">❌ Afwezig gemeld</td>
+                        <td class="p-2.5 text-center font-semibold text-slate-400">0 min</td>
+                    `;
+                    timelineTbody.appendChild(tr);
+                    return;
+                }
+
+                let totalPlayedMins = 0;
+                let totalBenchMins = 0;
+                let qCells = [];
+
+                for (let q = 1; q <= 4; q++) {
+                    const detail = getPlayerBlockDetail(m, p.name, q);
+                    totalPlayedMins += detail.playedMins;
+                    totalBenchMins += detail.benchMins;
+                    qCells.push(formatBlockDetailCellHTML(detail));
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800";
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold text-slate-200">${p.name} <span class="font-normal text-slate-400 text-[10px]">(${p.role})</span></td>
+                    ${qCells.join('')}
+                    <td class="p-2.5 text-center font-extrabold text-orange-400">
+                        ${totalPlayedMins} min
+                        ${totalBenchMins > 0 ? `<span class="block text-[10px] font-semibold text-slate-400">(${totalBenchMins}m wissel)</span>` : ''}
+                    </td>
+                `;
+                timelineTbody.appendChild(tr);
+            });
         }
 
         // =========================================================
@@ -4279,7 +4584,7 @@
             try {
                 const systemPrompt = `Je bent de data-assistent van jeugdvoetbalteam O.N. Almelo JO11-4. Hier is de actuele seizoensdata:\n${buildTeamContextPrompt()}\nBeantwoord de vraag van de trainer kort, enthousiast en to-the-point in het Nederlands.`;
 
-                const activeModel = "gemini-2.5-flash-lite";
+                const activeModel = "gemini-3.5-flash-lite";
 
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${cleanKey}`, {
                     method: 'POST',
