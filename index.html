@@ -273,7 +273,7 @@
                     <div>
                         <div class="text-[11px] font-bold text-slate-400 mb-2">Wie scoorde er?</div>
                         <div id="mmQuickScorerButtons" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                            <!-- Wordt dynamisch gevuld inclusief de opvallende Tegendoelpunt knop -->
+                            <!-- Wordt dynamisch gevuld inclusief de rode Tegendoelpunt knop -->
                         </div>
                     </div>
 
@@ -781,7 +781,7 @@
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-700 pb-3">
                         <div>
                             <span class="text-xs font-bold uppercase tracking-wider text-orange-400">Veldbezettingshistorie</span>
-                            <h3 class="text-base sm:text-lg font-black text-white">
+                            <h3 class="text-base sm:lg font-black text-white">
                                 🗺️ Positierapportage: Waar & wanneer heeft wie gespeeld?
                             </h3>
                             <p class="text-xs text-slate-300">Bekijk per speler op welke posities hij over het seizoen heeft gestaan.</p>
@@ -1185,7 +1185,7 @@
             renderPositionReportPlayerDropdown();
             renderPositionReport();
 
-            // Herstel bewaarde open/dicht standen van de accordeons
+            // Herstel bewaarde open/dicht standen van alle accordeons
             restoreAccordionStates();
 
             applyMatchModeUI();
@@ -1219,7 +1219,6 @@
                 chevron.classList.toggle('rotate-180', !willBeHidden);
             }
             
-            // Bewaar toestand in localStorage
             localStorage.setItem('ona_accordion_' + contentId, willBeHidden ? 'collapsed' : 'expanded');
         }
 
@@ -1388,8 +1387,8 @@
                         badge.innerHTML = `
                             <span>${g.scorer}${g.minute ? ` (${g.minute}')` : ''}</span>
                             ${!isReadOnlyMode ? `
-                                <button onclick="editGoal(${g.id})" class="text-slate-500 hover:text-slate-800 font-bold ml-1" title="Doelpunt bewerken">✏️</button>
-                                <button onclick="removeGoalById(${g.id})" class="text-rose-500 hover:text-rose-700 font-bold ml-0.5" title="Verwijderen">✕</button>
+                                <button onclick="editGoal(${g.id})" class="text-slate-500 hover:text-slate-800 font-bold ml-1 cursor-pointer" title="Doelpunt bewerken">✏️</button>
+                                <button onclick="removeGoalById(${g.id})" class="text-rose-500 hover:text-rose-700 font-bold ml-0.5 cursor-pointer" title="Verwijderen">✕</button>
                             ` : ''}
                         `;
                         badgesList.appendChild(badge);
@@ -1512,7 +1511,6 @@
                 });
             }
 
-            // SNELLE DOELPUNTEN KNOPPEN (Inclusief opvallende rode Tegendoelpunt knop)
             const quickGoalContainer = document.getElementById('mmQuickScorerButtons');
             quickGoalContainer.innerHTML = '';
 
@@ -1550,7 +1548,7 @@
                     goalsList.innerHTML += `
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 px-3.5 py-2 rounded-xl text-xs">
                             <span class="font-extrabold text-white">⚽ ${g.scorer} ${g.minute ? `<span class="text-orange-400 font-mono">(${g.minute}')</span>` : ''}</span>
-                            <button onclick="removeGoalById(${g.id})" class="text-rose-400 hover:text-rose-200 font-bold ml-2 p-1">✕</button>
+                            <button onclick="removeGoalById(${g.id})" class="text-rose-400 hover:text-rose-200 font-bold ml-2 p-1 cursor-pointer">✕</button>
                         </div>
                     `;
                 });
@@ -1560,7 +1558,7 @@
         }
 
         // =========================================================
-        // 5. TIMER & BLESSURETIJD LOGICA
+        // 5. TIMER & BLESSURETIJD LOGICA (MET PAUZE & HERVAT STATUS)
         // =========================================================
         function calculateCurrentTimerSeconds() {
             if (!isTimerRunning || !timerStartedAt) {
@@ -1575,7 +1573,7 @@
             const m = Math.floor(totalSeconds / 60);
             const nominalEndMinute = quarter * 15;
             if (m >= 15) {
-                const stoppageMinutes = (m - 15) + 1; // 1e minuut na 15:00 is +1, daarna +2, etc.
+                const stoppageMinutes = (m - 15) + 1; // 15:00+ is blessuretijd
                 return `${nominalEndMinute}+${stoppageMinutes}`;
             }
             const currentAbsolute = (quarter - 1) * 15 + m;
@@ -1587,8 +1585,6 @@
             timerHeartbeatInterval = setInterval(() => {
                 timerSeconds = calculateCurrentTimerSeconds();
                 updateTimerDisplay();
-
-                // Timer telt tijdens blessuretijd (> 15m) gewoon door en wacht op wisselknop
             }, 500);
         }
 
@@ -1602,10 +1598,10 @@
             } else {
                 isTimerRunning = false;
                 timerAccumulatedSeconds = calculateCurrentTimerSeconds();
+                timerSeconds = timerAccumulatedSeconds;
                 timerStartedAt = null;
             }
 
-            timerSeconds = calculateCurrentTimerSeconds();
             updateTimerDisplay();
             syncLiveDraftToCloud();
         }
@@ -1729,21 +1725,33 @@
             const btnCockpit = document.getElementById('mmToggleTimerBtn');
             const dot = document.getElementById('timerPulse');
 
-            if (btnStd && btnCockpit && dot) {
+            if (btnStd && btnCockpit) {
                 if (isTimerRunning) {
-                    const label = `⏸ Pauzeer Periode ${timerActiveQuarter}`;
+                    const pauseLabel = `⏸ Pauzeer Periode ${timerActiveQuarter}`;
                     btnStd.className = "bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer";
-                    btnStd.innerText = label;
+                    btnStd.innerText = pauseLabel;
+                    
                     btnCockpit.className = "bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-black px-4 py-2.5 rounded-xl text-xs shadow transition cursor-pointer";
-                    btnCockpit.innerText = label;
-                    dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+                    btnCockpit.innerText = pauseLabel;
+                    
+                    if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
                 } else {
-                    const label = timerSeconds > 0 ? `▶ Hervat Periode ${timerActiveQuarter}` : `▶ Start Periode ${timerActiveQuarter}`;
-                    btnStd.className = "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer";
-                    btnStd.innerText = label;
-                    btnCockpit.className = "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-4 py-2.5 rounded-xl text-xs shadow transition cursor-pointer";
-                    btnCockpit.innerText = label;
-                    dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
+                    if (timerSeconds > 0) {
+                        const resumeLabel = `▶ Hervat Periode ${timerActiveQuarter}`;
+                        btnStd.className = "bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer border border-orange-400";
+                        btnStd.innerText = resumeLabel;
+
+                        btnCockpit.className = "bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-black px-4 py-2.5 rounded-xl text-xs shadow transition cursor-pointer border border-orange-400";
+                        btnCockpit.innerText = resumeLabel;
+                    } else {
+                        const startLabel = `▶ Start Periode ${timerActiveQuarter}`;
+                        btnStd.className = "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold px-3.5 py-2 rounded-lg text-xs shadow transition cursor-pointer";
+                        btnStd.innerText = startLabel;
+
+                        btnCockpit.className = "bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-4 py-2.5 rounded-xl text-xs shadow transition cursor-pointer";
+                        btnCockpit.innerText = startLabel;
+                    }
+                    if (dot) dot.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
                 }
             }
 
@@ -1802,7 +1810,7 @@
             sel.innerHTML += `<option value="Eigen doelpunt tegenstander">Eigen doelpunt tegenstander</option>`;
 
             const minString = formatMatchMinuteString(timerActiveQuarter, timerSeconds);
-            document.getElementById('goalMinuteInput').value = isTimerRunning || timerSeconds > 0 ? minString : "";
+            document.getElementById('goalMinuteInput').value = (isTimerRunning || timerSeconds > 0) ? minString : "";
 
             document.getElementById('goalModal').classList.remove('hidden');
         }
@@ -2175,7 +2183,7 @@
                     row.onclick = () => selectOpponentFromMenu(o.name);
                     row.innerHTML = `
                         <span class="truncate pr-2">${isSelected ? '⚽ ' : ''}${o.name}</span>
-                        <button type="button" onclick="toggleOpponentLock('${o.name.replace(/'/g, "\'")}', event)" 
+                        <button type="button" onclick="toggleOpponentLock('${o.name.replace(/'/g, "\\'")}', event)" 
                             class="text-slate-400 hover:text-slate-700 px-2 py-1 rounded hover:bg-slate-200/70 transition text-xs shrink-0 cursor-pointer" 
                             title="Verberg tegenstander">
                             🔓
@@ -2196,7 +2204,7 @@
                     row.className = "flex items-center justify-between px-3 py-2 text-xs bg-slate-50/70 text-slate-400";
                     row.innerHTML = `
                         <span class="truncate line-through pr-2 select-none">${o.name}</span>
-                        <button type="button" onclick="toggleOpponentLock('${o.name.replace(/'/g, "\'")}', event)" 
+                        <button type="button" onclick="toggleOpponentLock('${o.name.replace(/'/g, "\\'")}', event)" 
                             class="bg-slate-200/80 hover:bg-orange-100 text-slate-600 hover:text-orange-700 px-2 py-1 rounded-md font-bold transition text-[11px] shrink-0 cursor-pointer flex items-center gap-1">
                             🔒 <span>Ontgrendel</span>
                         </button>
@@ -4292,7 +4300,7 @@
             basePlayers.forEach(p => {
                 const h = hist[p.name];
                 const avgField = h.outfieldMatches > 0 ? (h.fieldMinutes / h.outfieldMatches).toFixed(1) : "0.0";
-                const targetAvg = h.outfieldMatches > 0 ? (h.targetFieldMinutesSum / h.outfieldMatches).toFixed(1) : "52.5";
+                const targetAvg = h.outfieldMatches > 0 ? (h.targetFieldMinutesSum / h.outfieldMatches) : 52.5;
                 csv += `${p.name};${p.role};${h.presentMatches};${h.absentMatches};${h.fieldMinutes};${avgField};${targetAvg};${h.goals};${h.keeperMinutes}\n`;
             });
 
