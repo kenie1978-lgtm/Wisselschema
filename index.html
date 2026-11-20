@@ -39,7 +39,6 @@
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        /* Touch optimization */
         button, select, input { touch-action: manipulation; }
     </style>
 </head>
@@ -102,7 +101,6 @@
     <!-- VASTE TOP HEADER (STANDAARD HOOFDSCHERM) -->
     <header id="mainHeader" class="bg-gradient-to-r from-slate-900 via-slate-800 to-orange-950 text-white shadow-lg border-b-4 border-orange-500 sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-            <!-- Linkerzijde: Hamburgermenu + Logo -->
             <div class="flex items-center gap-3">
                 <button onclick="toggleNavDrawer()" class="p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition shadow-sm active:scale-95 flex items-center justify-center" aria-label="Open navigatiemenu">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -124,7 +122,6 @@
                 </div>
             </div>
 
-            <!-- Rechterzijde: Directe actieknop 'START MATCH DASHBOARD' -->
             <div class="flex items-center gap-2">
                 <button onclick="toggleMatchMode()" id="matchModeLaunchBtn" class="bg-gradient-to-r from-rose-700 via-rose-600 to-orange-600 hover:from-rose-800 hover:to-orange-700 active:scale-95 text-white px-3.5 sm:px-4 py-2.5 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-2 shadow-md border border-rose-400">
                     <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
@@ -136,7 +133,7 @@
 
     <!-- DEDICATED MATCH DASHBOARD (STADION COCKPIT VOOR LANGS HET VELD) -->
     <div id="dedicatedMatchModeContainer" class="hidden min-h-screen bg-slate-950 text-white p-3 sm:p-6 space-y-4">
-        <!-- STICKY MATCH DASHBOARD HEADER (Blijft altijd bovenaan bij scrollen) -->
+        <!-- STICKY MATCH DASHBOARD HEADER -->
         <div class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border border-slate-800 p-3 sm:p-4 rounded-3xl shadow-2xl flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
                 <span class="bg-rose-600 text-white font-black text-xs px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-sm">
@@ -189,13 +186,19 @@
                     <span>🚨</span> Noodwissel (Blessure)
                 </button>
 
-                <div class="pt-3 border-t border-slate-800 space-y-1.5">
-                    <div class="flex justify-between items-center px-2">
-                        <span class="text-[10px] font-black uppercase text-slate-400">Bekijk Periode</span>
-                        <span class="text-[9px] text-slate-500 font-semibold">(Direct springen)</span>
-                    </div>
-                    <div class="grid grid-cols-4 gap-1.5">
-                        <button onclick="selectActiveQuarter(1)" id="mmQBtn-1" class="py-2.5 rounded-xl text-xs font-black transition cursor-pointer bg-orange-600 text-white">B1</button>
+                <!-- INKLAPBARE SECTIE: BEKIJK PERIODE IN MATCH DASHBOARD -->
+                <div class="pt-3 border-t border-slate-800">
+                    <button type="button" onclick="toggleAccordion('mmPeriodSelectContent', 'mmPeriodSelectChevron')" class="w-full flex items-center justify-between px-2 py-1.5 rounded-xl hover:bg-slate-800/60 transition cursor-pointer text-left">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Bekijk Periode</span>
+                            <span class="text-[9px] text-slate-500 font-semibold">(Bladeren)</span>
+                        </div>
+                        <svg id="mmPeriodSelectChevron" class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="mmPeriodSelectContent" class="grid grid-cols-4 gap-1.5 mt-2">
+                        <button onclick="selectActiveQuarter(1)" id="mmQBtn-1" class="py-2.5 rounded-xl text-xs font-black transition cursor-pointer bg-orange-600 text-white shadow">B1</button>
                         <button onclick="selectActiveQuarter(2)" id="mmQBtn-2" class="py-2.5 rounded-xl text-xs font-black transition cursor-pointer bg-slate-800 text-slate-400 hover:text-white">B2</button>
                         <button onclick="selectActiveQuarter(3)" id="mmQBtn-3" class="py-2.5 rounded-xl text-xs font-black transition cursor-pointer bg-slate-800 text-slate-400 hover:text-white">B3</button>
                         <button onclick="selectActiveQuarter(4)" id="mmQBtn-4" class="py-2.5 rounded-xl text-xs font-black transition cursor-pointer bg-slate-800 text-slate-400 hover:text-white">B4</button>
@@ -211,13 +214,21 @@
 
             <!-- Cockpit Hoofdinhoud -->
             <div class="lg:col-span-9 space-y-4">
-                <div class="bg-slate-900 border border-slate-800 p-3.5 sm:p-4 rounded-3xl flex flex-wrap items-center justify-between gap-3 shadow-md">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-black text-white">Weergave: Periode <span id="mmActivePeriodNum">1</span></span>
-                        <span id="mmActivePeriodMins" class="text-xs text-slate-400 font-semibold">(0 - 15m)</span>
-                    </div>
-
-                    <div class="flex items-center gap-2">
+                <!-- INKLAPBARE SECTIE: WEERGAVE PERIODE & TIMER IN MATCH DASHBOARD -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-md overflow-hidden">
+                    <button type="button" onclick="toggleAccordion('mmActivePeriodContent', 'mmActivePeriodChevron')" class="w-full p-3.5 sm:p-4 flex items-center justify-between hover:bg-slate-800/40 transition cursor-pointer text-left">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-black text-white">Weergave: Periode <span id="mmActivePeriodNum">1</span></span>
+                            <span id="mmActivePeriodMins" class="text-xs text-slate-400 font-semibold">(0 - 15m)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-500 font-bold uppercase hidden sm:inline">Timer & Knoppen</span>
+                            <svg id="mmActivePeriodChevron" class="w-4 h-4 text-slate-400 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                    <div id="mmActivePeriodContent" class="p-3.5 sm:p-4 pt-0 border-t border-slate-800/60 flex flex-wrap items-center justify-end gap-2">
                         <button id="mmToggleTimerBtn" onclick="toggleMatchTimer()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black px-4 py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer">
                             ▶ Start Periode 1
                         </button>
@@ -259,7 +270,6 @@
                         </div>
                     </div>
 
-                    <!-- Knoppenrooster voor directe registratie -->
                     <div>
                         <div class="text-[11px] font-bold text-slate-400 mb-2">Wie scoorde er?</div>
                         <div id="mmQuickScorerButtons" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -896,8 +906,8 @@
                 <select id="goalScorerSelect" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-white"></select>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Minuut in de wedstrijd</label>
-                <input type="number" id="goalMinuteInput" min="1" max="60" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-slate-50">
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Minuut in de wedstrijd (bijv. 12 of 15+2)</label>
+                <input type="text" id="goalMinuteInput" placeholder="Bijv. 14 of 15+2" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500">
             </div>
             <div class="flex gap-2 pt-2">
                 <button onclick="closeGoalModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs cursor-pointer">
@@ -1175,6 +1185,9 @@
             renderPositionReportPlayerDropdown();
             renderPositionReport();
 
+            // Herstel bewaarde open/dicht standen van de accordeons
+            restoreAccordionStates();
+
             applyMatchModeUI();
             startTimerHeartbeat();
 
@@ -1193,17 +1206,46 @@
         }
 
         // =========================================================
-        // ACCORDEON & DRAWER LOGICA
+        // ACCORDEON MET AUTOMATISCHE LOCALSTORAGE ONTHOUDING
         // =========================================================
         function toggleAccordion(contentId, chevronId) {
             const content = document.getElementById(contentId);
             const chevron = document.getElementById(chevronId);
             if (!content) return;
-            const isHidden = content.classList.contains('hidden');
-            content.classList.toggle('hidden', !isHidden);
+            
+            const willBeHidden = !content.classList.contains('hidden');
+            content.classList.toggle('hidden', willBeHidden);
             if (chevron) {
-                chevron.classList.toggle('rotate-180', isHidden);
+                chevron.classList.toggle('rotate-180', !willBeHidden);
             }
+            
+            // Bewaar toestand in localStorage
+            localStorage.setItem('ona_accordion_' + contentId, willBeHidden ? 'collapsed' : 'expanded');
+        }
+
+        function restoreAccordionStates() {
+            const accordions = [
+                { contentId: 'keeperSectionContent', chevronId: 'keeperSectionChevron', defaultState: 'collapsed' },
+                { contentId: 'attendanceSectionContent', chevronId: 'attendanceSectionChevron', defaultState: 'collapsed' },
+                { contentId: 'historicalStatsContent', chevronId: 'historicalStatsChevron', defaultState: 'collapsed' },
+                { contentId: 'mmPeriodSelectContent', chevronId: 'mmPeriodSelectChevron', defaultState: 'expanded' },
+                { contentId: 'mmActivePeriodContent', chevronId: 'mmActivePeriodChevron', defaultState: 'expanded' }
+            ];
+
+            accordions.forEach(acc => {
+                const saved = localStorage.getItem('ona_accordion_' + acc.contentId) || acc.defaultState;
+                const content = document.getElementById(acc.contentId);
+                const chevron = document.getElementById(acc.chevronId);
+                if (content) {
+                    if (saved === 'collapsed') {
+                        content.classList.add('hidden');
+                        if (chevron) chevron.classList.remove('rotate-180');
+                    } else {
+                        content.classList.remove('hidden');
+                        if (chevron) chevron.classList.add('rotate-180');
+                    }
+                }
+            });
         }
 
         function toggleNavDrawer() {
@@ -1517,17 +1559,8 @@
             updateTimerDisplay();
         }
 
-        function registerQuickGoal(scorerName) {
-            let currentMin = (timerActiveQuarter - 1) * 15 + Math.floor(timerSeconds / 60);
-            if (currentMin === 0 && isTimerRunning) currentMin = 1;
-            matchGoals.push({ id: Date.now(), scorer: scorerName, minute: currentMin > 0 ? currentMin : null });
-            renderScoreboard();
-            renderMatchModeCockpit();
-            syncLiveDraftToCloud();
-        }
-
         // =========================================================
-        // 5. TIMER & BEËINDIGEN
+        // 5. TIMER & BLESSURETIJD LOGICA
         // =========================================================
         function calculateCurrentTimerSeconds() {
             if (!isTimerRunning || !timerStartedAt) {
@@ -1538,25 +1571,24 @@
             return timerAccumulatedSeconds + elapsedSinceStart;
         }
 
+        function formatMatchMinuteString(quarter, totalSeconds) {
+            const m = Math.floor(totalSeconds / 60);
+            const nominalEndMinute = quarter * 15;
+            if (m >= 15) {
+                const stoppageMinutes = (m - 15) + 1; // 1e minuut na 15:00 is +1, daarna +2, etc.
+                return `${nominalEndMinute}+${stoppageMinutes}`;
+            }
+            const currentAbsolute = (quarter - 1) * 15 + m;
+            return (currentAbsolute === 0) ? "1" : String(currentAbsolute);
+        }
+
         function startTimerHeartbeat() {
             if (timerHeartbeatInterval) clearInterval(timerHeartbeatInterval);
             timerHeartbeatInterval = setInterval(() => {
                 timerSeconds = calculateCurrentTimerSeconds();
                 updateTimerDisplay();
 
-                if (timerSeconds >= 900 && isTimerRunning) {
-                    isTimerRunning = false;
-                    timerAccumulatedSeconds = 900;
-                    timerStartedAt = null;
-                    if (timerActiveQuarter < 4) {
-                        timerActiveQuarter++;
-                        timerSeconds = 0;
-                        timerAccumulatedSeconds = 0;
-                        activeQuarterView = timerActiveQuarter;
-                        selectActiveQuarter(timerActiveQuarter);
-                    }
-                    syncLiveDraftToCloud();
-                }
+                // Timer telt tijdens blessuretijd (> 15m) gewoon door en wacht op wisselknop
             }, 500);
         }
 
@@ -1669,14 +1701,29 @@
         function updateTimerDisplay() {
             const m = Math.floor(timerSeconds / 60);
             const s = timerSeconds % 60;
-            const formatted = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            
+            let timerClockStr = "";
+            if (m >= 15) {
+                const extraMins = (m - 15) + 1;
+                timerClockStr = `15:00 +${extraMins}m (${String(s).padStart(2, '0')}s)`;
+            } else {
+                timerClockStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
 
             const td1 = document.getElementById('timerDisplay');
             const td2 = document.getElementById('matchModeTimerDisplay');
             const tql = document.getElementById('timerQuarterLabel');
-            if (td1) td1.innerText = formatted;
-            if (td2) td2.innerText = formatted;
-            if (tql) tql.innerText = `Periode ${timerActiveQuarter} (${(timerActiveQuarter - 1) * 15 + m}' min)`;
+            if (td1) td1.innerText = timerClockStr;
+            if (td2) td2.innerText = timerClockStr;
+            
+            if (tql) {
+                if (m >= 15) {
+                    const extraMins = (m - 15) + 1;
+                    tql.innerText = `Periode ${timerActiveQuarter} (${timerActiveQuarter * 15}+${extraMins}' min)`;
+                } else {
+                    tql.innerText = `Periode ${timerActiveQuarter} (${(timerActiveQuarter - 1) * 15 + m}' min)`;
+                }
+            }
 
             const btnStd = document.getElementById('toggleTimerBtn');
             const btnCockpit = document.getElementById('mmToggleTimerBtn');
@@ -1724,11 +1771,19 @@
         }
 
         // =========================================================
-        // 6. DOELPUNTEN INVOEREN / BEWERKEN
+        // 6. DOELPUNTEN INVOEREN / BEWERKEN MET BLESSURETIJD
         // =========================================================
         function adjustOpponentGoal(delta) {
             if (isReadOnlyMode) return;
             opponentGoals = Math.max(0, opponentGoals + delta);
+            renderScoreboard();
+            renderMatchModeCockpit();
+            syncLiveDraftToCloud();
+        }
+
+        function registerQuickGoal(scorerName) {
+            const minString = formatMatchMinuteString(timerActiveQuarter, timerSeconds);
+            matchGoals.push({ id: Date.now(), scorer: scorerName, minute: minString });
             renderScoreboard();
             renderMatchModeCockpit();
             syncLiveDraftToCloud();
@@ -1746,9 +1801,8 @@
             });
             sel.innerHTML += `<option value="Eigen doelpunt tegenstander">Eigen doelpunt tegenstander</option>`;
 
-            let currentMin = (timerActiveQuarter - 1) * 15 + Math.floor(timerSeconds / 60);
-            if (currentMin === 0 && isTimerRunning) currentMin = 1;
-            document.getElementById('goalMinuteInput').value = currentMin > 0 ? currentMin : "";
+            const minString = formatMatchMinuteString(timerActiveQuarter, timerSeconds);
+            document.getElementById('goalMinuteInput').value = isTimerRunning || timerSeconds > 0 ? minString : "";
 
             document.getElementById('goalModal').classList.remove('hidden');
         }
@@ -1781,7 +1835,8 @@
 
         function confirmSaveGoal() {
             const scorer = document.getElementById('goalScorerSelect').value;
-            const min = parseInt(document.getElementById('goalMinuteInput').value, 10) || null;
+            const minInput = document.getElementById('goalMinuteInput').value.trim();
+            const min = minInput || null;
 
             if (editingGoalId !== null) {
                 const g = matchGoals.find(x => x.id === editingGoalId);
@@ -4198,7 +4253,7 @@
         // =========================================================
         function getFullBackupObject() {
             return {
-                version: 15,
+                version: 16,
                 exportedAt: new Date().toISOString(),
                 team: "Oranje Nassau JO11-4",
                 basePlayers,
