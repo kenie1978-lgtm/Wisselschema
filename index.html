@@ -275,9 +275,7 @@
 
                     <div>
                         <div class="text-[11px] font-bold text-slate-400 mb-2">Wie scoorde er?</div>
-                        <div id="mmQuickScorerButtons" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                            <!-- Wordt dynamisch gevuld inclusief de rode Tegendoelpunt knop -->
-                        </div>
+                        <div id="mmQuickScorerButtons" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5"></div>
                     </div>
 
                     <div class="pt-3 border-t border-slate-800">
@@ -1188,7 +1186,6 @@
             renderPositionReportPlayerDropdown();
             renderPositionReport();
 
-            // Herstel bewaarde open/dicht standen van alle accordeons
             restoreAccordionStates();
 
             applyMatchModeUI();
@@ -1596,12 +1593,15 @@
             const now = Date.now();
 
             if (!isTimerRunning) {
+                // STARTEN of HERVATTEN
                 isTimerRunning = true;
                 timerStartedAt = now;
+                timerSeconds = calculateCurrentTimerSeconds();
             } else {
-                isTimerRunning = false;
+                // PAUZEREN
                 timerAccumulatedSeconds = calculateCurrentTimerSeconds();
                 timerSeconds = timerAccumulatedSeconds;
+                isTimerRunning = false;
                 timerStartedAt = null;
             }
 
@@ -1685,7 +1685,7 @@
 
         function resetMatchTimer() {
             if (isReadOnlyMode) return;
-            if (timerSeconds > 0 && !confirm("Weet je zeker dat je de tijd van deze periode wilt resetten naar 00:00?")) {
+            if (timerSeconds > 0 && !confirm(`Weet je zeker dat je de klok van Periode ${timerActiveQuarter} wilt stoppen en terugzetten naar 00:00?`)) {
                 return;
             }
             isTimerRunning = false;
@@ -3528,7 +3528,7 @@
                                 <span class="text-2xl">✏️</span>
                                 <div>
                                     <div class="text-xs font-black uppercase tracking-wider text-orange-700">Bewerk-Modus Actief</div>
-                                    <div class="text-sm font-extrabold">${matchTitle} (${mDate})</div>
+                                    <div class="text-sm font-extrabold">Je bewerkt nu: ${matchTitle} (${mDate})</div>
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
@@ -4273,7 +4273,7 @@
         // =========================================================
         function getFullBackupObject() {
             return {
-                version: 17,
+                version: 18,
                 exportedAt: new Date().toISOString(),
                 team: "Oranje Nassau JO11-4",
                 basePlayers,
