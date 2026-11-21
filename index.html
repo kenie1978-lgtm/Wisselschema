@@ -146,6 +146,11 @@
                     <span>Open Match Dashboard</span>
                 </button>
 
+                <button onclick="switchMainTab('settings'); toggleNavDrawer();" id="drawerTab-settings" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
+                    <span class="text-base">⚙️</span>
+                    <span>Instellingen & Weergave</span>
+                </button>
+
                 <button onclick="openBackupModal(); toggleNavDrawer();" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-3 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white">
                     <span class="text-base">📦</span>
                     <span>Backup & Exporteren</span>
@@ -454,7 +459,24 @@
             </div>
 
             <!-- HOOFD VIEW: HOOFDSCHERM (OPSTELLING & INVOER) -->
-            <div id="view-match" class="space-y-5">
+            <div id="view-match" class="space-y-4">
+
+                <!-- COMPACTE VOORBEREIDING ACCORDEON (WEDSTRIJD, KEEPER & AANWEZIGHEID) -->
+                <div id="uiCard-prep" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <button type="button" onclick="toggleAccordion('prepBundleContent', 'prepBundleChevron')" class="w-full p-3.5 sm:p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer text-left">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="text-base">📋</span>
+                            <div class="min-w-0">
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-800 block">Wedstrijd & Selectie</span>
+                                <span id="prepBundleSummary" class="text-[11px] text-slate-500 font-semibold truncate block">Details, keeper & aanwezigheid instellen</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-[10px] font-bold uppercase text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full">In/Uitklappen</span>
+                            <svg id="prepBundleChevron" class="w-5 h-5 text-slate-500 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </button>
+                    <div id="prepBundleContent" class="hidden p-3.5 sm:p-4 border-t border-slate-200 space-y-4 bg-slate-50/40">
 
                 <!-- Wedstrijddetails & Tegenstander -->
                 <div id="preMatchSetupArea" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
@@ -622,6 +644,9 @@
                     </div>
                 </div>
 
+                    </div>
+                </div>
+
                 <!-- Actieknoppenbalk & Weergave Selectie -->
                 <div id="actionControlsArea" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-2 editable-section">
@@ -784,7 +809,7 @@
                 </div>
 
                 <!-- 3. UITKLAPBARE SECTIE: HISTORISCHE SPEELTIJD & 5%-REGEL MONITOR -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div id="uiCard-historical" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <button type="button" onclick="toggleAccordion('historicalStatsContent', 'historicalStatsChevron')" class="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer text-left">
                         <div class="flex items-center gap-2.5">
                             <span class="text-base">⏱</span>
@@ -823,7 +848,7 @@
                 </div>
 
                 <!-- 4. UITKLAPBARE SECTIE: FORECAST SPEELTIJD & 5%-REGEL MONITOR (INCL. HUIDIGE WEDSTRIJD) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div id="uiCard-forecast" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <button type="button" onclick="toggleAccordion('forecastStatsContent', 'forecastStatsChevron')" class="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer text-left">
                         <div class="flex items-center gap-2.5">
                             <span class="text-base">🔮</span>
@@ -869,7 +894,7 @@
                 </div>
 
                 <!-- 5. UITKLAPBARE SECTIE: WEDSTRIJD SAMENVATTING -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div id="uiCard-summary" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <button type="button" onclick="toggleAccordion('matchSummaryContent', 'matchSummaryChevron')" class="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer text-left">
                         <div class="flex items-center gap-2.5">
                             <span class="text-base">📝</span>
@@ -900,8 +925,26 @@
 
             </div>
 
-            <!-- SEIZOENSMONITOR TAB (DONKERE STIJL) -->
-            <div id="view-season" class="hidden space-y-6 bg-slate-900 -mx-4 -my-4 sm:-my-6 p-4 sm:p-8 rounded-3xl shadow-2xl border-4 border-slate-800">
+            <!-- SEIZOENSMONITOR / STATS TAB (DONKERE STIJL MET SUBMENU'S) -->
+            <div id="view-season" class="hidden space-y-5 bg-slate-900 -mx-4 -my-4 sm:-my-6 p-4 sm:p-6 rounded-3xl shadow-2xl border-4 border-slate-800">
+                <!-- Sub-navigatie voor Stats -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+                    <button type="button" onclick="switchStatsSubTab('season')" id="statsSubBtn-season" class="py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer bg-orange-600 text-white shadow">
+                        📊 Seizoen
+                    </button>
+                    <button type="button" onclick="switchStatsSubTab('forecast')" id="statsSubBtn-forecast" class="py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer text-slate-300 hover:bg-slate-800 hover:text-white">
+                        🔮 Forecast
+                    </button>
+                    <button type="button" onclick="switchStatsSubTab('summary')" id="statsSubBtn-summary" class="py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer text-slate-300 hover:bg-slate-800 hover:text-white">
+                        📝 Samenvatting
+                    </button>
+                    <button type="button" onclick="switchStatsSubTab('positions')" id="statsSubBtn-positions" class="py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer text-slate-300 hover:bg-slate-800 hover:text-white">
+                        🗺️ Posities
+                    </button>
+                </div>
+
+                <!-- SUBTAB 1: SEIZOEN -->
+                <div id="statsSubView-season" class="space-y-6">
                 <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-5 sm:p-6 text-white">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-5 border-b border-slate-700 pb-4">
                         <div>
@@ -945,8 +988,51 @@
                     </div>
                 </div>
 
-                <!-- POSITIERAPPORTAGE (PER SPELER & PER WEDSTRIJD MET NOODWISSELS) -->
-                <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-5 sm:p-6 space-y-4 text-white">
+                </div><!-- einde statsSubView-season deel 1 -->
+
+                <!-- SUBTAB 2: FORECAST (IN STATS) -->
+                <div id="statsSubView-forecast" class="hidden bg-white rounded-2xl shadow-md border border-slate-700 p-4 sm:p-5 space-y-3 text-slate-800">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                        <div>
+                            <h3 class="text-sm sm:text-base font-black text-slate-900">🔮 Forecast Speeltijd & 5%-Regel</h3>
+                            <p class="text-xs text-slate-500">Seizoen inclusief huidige ingevulde wedstrijd (Oud → Nieuw). Groen = verbeterd, Rood = verslechterd.</p>
+                        </div>
+                        <span id="statsForecastTargetPill" class="bg-indigo-50 border border-indigo-200 text-indigo-800 text-[11px] font-extrabold px-2.5 py-1 rounded-full">
+                            Streef vandaag: 52.5 min
+                        </span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs min-w-[820px]">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 uppercase border-b border-slate-200">
+                                    <th class="p-2.5">Speler</th>
+                                    <th class="p-2.5 text-center">Duels (Oud → Nieuw)</th>
+                                    <th class="p-2.5 text-center">Veldmin. (Oud → Nieuw)</th>
+                                    <th class="p-2.5 text-center">Gem. Veldmin. (Oud → Nieuw)</th>
+                                    <th class="p-2.5 text-center">Streeftijd (Oud → Nieuw)</th>
+                                    <th class="p-2.5 text-center">Afwijking % (Oud → Nieuw)</th>
+                                    <th class="p-2.5 text-center">Nieuw 5% Advies</th>
+                                    <th class="p-2.5 text-center">Keepermin. (Oud → Nieuw)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statsForecastBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SUBTAB 3: WEDSTRIJD SAMENVATTING (IN STATS) -->
+                <div id="statsSubView-summary" class="hidden bg-white rounded-2xl shadow-md border border-slate-700 p-4 sm:p-5 space-y-4 text-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <label for="statsSummarySelect" class="text-xs font-extrabold uppercase tracking-wider text-slate-700 shrink-0">
+                            🏟️ Kies wedstrijd:
+                        </label>
+                        <select id="statsSummarySelect" onchange="syncSummarySelectFromStats(this.value)" class="w-full sm:w-auto sm:min-w-[320px] border border-slate-300 rounded-xl px-3 py-2 text-xs font-extrabold bg-white text-slate-800 outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"></select>
+                    </div>
+                    <div id="statsSummaryDisplay" class="space-y-4"></div>
+                </div>
+
+                <!-- SUBTAB 4: POSITIERAPPORTAGE -->
+                <div id="statsSubView-positions" class="hidden bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-5 sm:p-6 space-y-4 text-white">
                     <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-3 border-b border-slate-700 pb-4">
                         <div>
                             <span class="text-xs font-bold uppercase tracking-wider text-orange-400">Veldbezettingshistorie & Noodwissels</span>
@@ -996,8 +1082,8 @@
                     </div>
                 </div>
 
-                <!-- Opgeslagen wedstrijden lijst -->
-                <div class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-5 sm:p-6 text-white">
+                <!-- Opgeslagen wedstrijden lijst (zichtbaar in Seizoen subtab) -->
+                <div id="statsSubView-savedMatches" class="bg-slate-800/90 rounded-2xl shadow-md border border-slate-700 p-5 sm:p-6 text-white">
                     <div class="flex flex-wrap justify-between items-center gap-2 mb-4 border-b border-slate-700 pb-3">
                         <h3 class="text-base font-black uppercase tracking-wider text-white">📁 Opgeslagen Wedstrijden</h3>
                     </div>
@@ -1005,11 +1091,130 @@
                 </div>
             </div>
 
+            <!-- INSTELLINGEN & MEER TAB -->
+            <div id="view-settings" class="hidden space-y-5">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                    <div class="border-b border-slate-100 pb-3">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-orange-600">Weergave & Minimalisme</span>
+                        <h2 class="text-lg font-black text-slate-900">⚙️ Zichtbare Onderdelen op Hoofdscherm</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Zet onderdelen aan of uit om je hoofdscherm zo rustig mogelijk te houden. Alles blijft altijd bereikbaar via <strong>Stats</strong> of <strong>Meer</strong>.</p>
+                    </div>
+
+                    <div class="divide-y divide-slate-100">
+                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">📋 Wedstrijd & Selectie (Voorbereiding)</div>
+                                <div class="text-[11px] text-slate-500">Tegenstander, datum, keeper & aanwezigheid bovenaan Veld</div>
+                            </div>
+                            <input type="checkbox" id="prefToggle-prep" onchange="toggleUiPref('prep', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
+                        </label>
+
+                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">⏱ Historische 5%-Regel Monitor</div>
+                                <div class="text-[11px] text-slate-500">Inklapbare tabel onderaan het Veld-scherm</div>
+                            </div>
+                            <input type="checkbox" id="prefToggle-historical" onchange="toggleUiPref('historical', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
+                        </label>
+
+                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">🔮 Forecast Monitor (Oud → Nieuw)</div>
+                                <div class="text-[11px] text-slate-500">Inklapbare forecast-tabel onderaan het Veld-scherm</div>
+                            </div>
+                            <input type="checkbox" id="prefToggle-forecast" onchange="toggleUiPref('forecast', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
+                        </label>
+
+                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">📝 Wedstrijd Samenvatting</div>
+                                <div class="text-[11px] text-slate-500">Inklapbare samenvatting met pulldown onderaan het Veld-scherm</div>
+                            </div>
+                            <input type="checkbox" id="prefToggle-summary" onchange="toggleUiPref('summary', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
+                        </label>
+
+                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">💬 Zwevende AI Data Assistent</div>
+                                <div class="text-[11px] text-slate-500">Toon of verberg de oranje AI-chatknop rechtsonder</div>
+                            </div>
+                            <input type="checkbox" id="prefToggle-aiChat" onchange="toggleUiPref('aiChat', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-slate-500">Snelle Acties & Beheer</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button onclick="openRoleManagerModal()" class="p-3.5 rounded-xl bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-left flex items-center gap-3 transition cursor-pointer">
+                            <span class="text-lg">⚙️</span>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">Spelersrollen Wijzigen</div>
+                                <div class="text-[10px] text-slate-500">Voorkeursposities per speler aanpassen</div>
+                            </div>
+                        </button>
+                        <button onclick="openBackupModal()" class="p-3.5 rounded-xl bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-left flex items-center gap-3 transition cursor-pointer">
+                            <span class="text-lg">📦</span>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">Backup & Exporteren</div>
+                                <div class="text-[10px] text-slate-500">JSON backup of Excel CSV downloaden</div>
+                            </div>
+                        </button>
+                        <button onclick="copyWhatsApp()" class="p-3.5 rounded-xl bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-left flex items-center gap-3 transition cursor-pointer">
+                            <span class="text-lg">💬</span>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">Deel via WhatsApp</div>
+                                <div class="text-[10px] text-slate-500">Kopieer opstelling & doelpunten</div>
+                            </div>
+                        </button>
+                        <button onclick="toggleChatWindow()" class="p-3.5 rounded-xl bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-left flex items-center gap-3 transition cursor-pointer">
+                            <span class="text-lg">🤖</span>
+                            <div>
+                                <div class="text-xs font-extrabold text-slate-800">Open AI Data Assistent</div>
+                                <div class="text-[10px] text-slate-500">Stel vragen over topscorers & speeltijd</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <div class="text-xs font-black text-slate-800">Account & Sessie</div>
+                        <div id="settingsUserStatus" class="text-[11px] text-slate-500 font-semibold">Ingelogd</div>
+                    </div>
+                    <button onclick="logoutUser()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-extrabold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer">
+                        🔓 Uitloggen / Wissel gebruiker
+                    </button>
+                </div>
+            </div>
+
         </main>
+
+        <!-- VASTE GROTE ONDERBALK (BOTTOM NAVIGATION BAR) -->
+        <nav id="bottomNavBar" class="fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-2xl">
+            <div class="max-w-3xl mx-auto grid grid-cols-4 gap-1 px-2 py-2">
+                <button type="button" onclick="switchMainTab('match')" id="bottomNav-match" class="flex flex-col items-center justify-center py-2 rounded-2xl text-orange-400 bg-slate-800/80 transition cursor-pointer active:scale-95">
+                    <span class="text-xl leading-none">🏟️</span>
+                    <span class="text-[11px] font-black mt-1">Veld</span>
+                </button>
+                <button type="button" onclick="toggleMatchMode()" id="bottomNav-live" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
+                    <span class="text-xl leading-none">⏱️</span>
+                    <span class="text-[11px] font-black mt-1">Live</span>
+                </button>
+                <button type="button" onclick="switchMainTab('season')" id="bottomNav-season" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
+                    <span class="text-xl leading-none">📊</span>
+                    <span class="text-[11px] font-black mt-1">Stats</span>
+                </button>
+                <button type="button" onclick="switchMainTab('settings')" id="bottomNav-settings" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
+                    <span class="text-xl leading-none">☰</span>
+                    <span class="text-[11px] font-black mt-1">Meer</span>
+                </button>
+            </div>
+        </nav>
     </div>
 
     <!-- ZWEVENDE DATA & AI CHAT ASSISTENT -->
-    <div id="chatWidgetContainer" class="fixed bottom-4 right-4 z-50">
+    <div id="chatWidgetContainer" class="fixed bottom-20 right-4 z-50">
         <button onclick="toggleChatWindow()" id="chatFloatingBtn" class="bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 active:scale-95 text-white p-3.5 rounded-full shadow-2xl border-2 border-white flex items-center gap-2 cursor-pointer transition transform">
             <span class="text-xl">💬</span>
             <span class="text-xs font-black pr-1 hidden sm:inline">Data & AI Assistent</span>
@@ -1563,6 +1768,7 @@
             renderPositionReport();
 
             restoreAccordionStates();
+            applyUiPrefs();
             checkAuthSession();
             startSupporterSessionMonitor();
 
@@ -1600,6 +1806,7 @@
 
         function restoreAccordionStates() {
             const accordions = [
+                { contentId: 'prepBundleContent', chevronId: 'prepBundleChevron', defaultState: 'collapsed' },
                 { contentId: 'keeperSectionContent', chevronId: 'keeperSectionChevron', defaultState: 'collapsed' },
                 { contentId: 'attendanceSectionContent', chevronId: 'attendanceSectionChevron', defaultState: 'collapsed' },
                 { contentId: 'historicalStatsContent', chevronId: 'historicalStatsChevron', defaultState: 'collapsed' },
@@ -2481,6 +2688,73 @@
             pushFullStateToCloud();
         }
 
+        // =========================================================
+        // UI VOORKEUREN & SUB-TABS (MINIMALISTISCHE WEERGAVE)
+        // =========================================================
+        const DEFAULT_UI_PREFS = {
+            prep: true,
+            historical: false,
+            forecast: true,
+            summary: true,
+            aiChat: true
+        };
+        let uiPrefs = Object.assign({}, DEFAULT_UI_PREFS, JSON.parse(localStorage.getItem('ona_ui_prefs_v1') || '{}'));
+        let activeStatsSubTab = 'season';
+
+        function toggleUiPref(key, isEnabled) {
+            uiPrefs[key] = !!isEnabled;
+            localStorage.setItem('ona_ui_prefs_v1', JSON.stringify(uiPrefs));
+            applyUiPrefs();
+        }
+
+        function applyUiPrefs() {
+            const map = [
+                { key: 'prep', elId: 'uiCard-prep' },
+                { key: 'historical', elId: 'uiCard-historical' },
+                { key: 'forecast', elId: 'uiCard-forecast' },
+                { key: 'summary', elId: 'uiCard-summary' },
+                { key: 'aiChat', elId: 'chatWidgetContainer' }
+            ];
+            map.forEach(item => {
+                const el = document.getElementById(item.elId);
+                if (el) el.classList.toggle('hidden', !uiPrefs[item.key]);
+                const cb = document.getElementById('prefToggle-' + item.key);
+                if (cb) cb.checked = !!uiPrefs[item.key];
+            });
+            const statusEl = document.getElementById('settingsUserStatus');
+            if (statusEl) {
+                statusEl.innerText = currentUserRole === 'begeleiding'
+                    ? `🛡️ Ingelogd als Begeleiding (${currentUserName})`
+                    : (currentUserRole === 'supporter' ? '👀 Supporter (Alleen-lezen)' : 'Niet ingelogd');
+            }
+        }
+
+        function switchStatsSubTab(subTab) {
+            activeStatsSubTab = subTab;
+            ['season', 'forecast', 'summary', 'positions'].forEach(t => {
+                const btn = document.getElementById('statsSubBtn-' + t);
+                const view = document.getElementById('statsSubView-' + t);
+                if (btn) {
+                    btn.className = (t === subTab)
+                        ? "py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer bg-orange-600 text-white shadow"
+                        : "py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer text-slate-300 hover:bg-slate-800 hover:text-white";
+                }
+                if (view) view.classList.toggle('hidden', t !== subTab);
+            });
+            const savedListCard = document.getElementById('statsSubView-savedMatches');
+            if (savedListCard) savedListCard.classList.toggle('hidden', subTab !== 'season');
+
+            if (subTab === 'forecast') renderForecastMonitor();
+            if (subTab === 'summary') renderMatchSummary();
+            if (subTab === 'positions') renderPositionReport();
+        }
+
+        function syncSummarySelectFromStats(val) {
+            const mainSel = document.getElementById('matchSummarySelect');
+            if (mainSel) mainSel.value = val;
+            renderMatchSummaryDetails();
+        }
+
         function switchMainTab(tab, keepLoadedMatch = false) {
             if (tab === 'match' && !keepLoadedMatch && loadedMatchId !== null) {
                 startNewMatchMode(true);
@@ -2488,23 +2762,51 @@
 
             document.getElementById('view-match').classList.toggle('hidden', tab !== 'match');
             document.getElementById('view-season').classList.toggle('hidden', tab !== 'season');
+            const settingsView = document.getElementById('view-settings');
+            if (settingsView) settingsView.classList.toggle('hidden', tab !== 'settings');
 
             const body = document.getElementById('appBody');
             const drawerMatch = document.getElementById('drawerTab-match');
             const drawerSeason = document.getElementById('drawerTab-season');
+            const drawerSettings = document.getElementById('drawerTab-settings');
+
+            // Update Bottom Navigation Bar
+            ['match', 'season', 'settings'].forEach(t => {
+                const b = document.getElementById('bottomNav-' + t);
+                if (b) {
+                    b.className = (t === tab)
+                        ? "flex flex-col items-center justify-center py-2 rounded-2xl text-orange-400 bg-slate-800/90 transition cursor-pointer active:scale-95"
+                        : "flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95";
+                }
+            });
+
+            const activeDrawerCls = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-orange-600 text-white shadow-md";
+            const inactiveDrawerCls = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white";
+
+            if (drawerMatch) drawerMatch.className = (tab === 'match') ? activeDrawerCls : inactiveDrawerCls;
+            if (drawerSettings) drawerSettings.className = (tab === 'settings') ? activeDrawerCls : inactiveDrawerCls;
+            if (drawerSeason) {
+                drawerSeason.className = (tab === 'season')
+                    ? "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center justify-between bg-orange-600 text-white shadow-md"
+                    : "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center justify-between bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white";
+            }
 
             if (tab === 'season') {
-                body.className = "bg-slate-950 text-slate-100 min-h-screen pb-24 transition-colors duration-300";
-                if (drawerSeason) drawerSeason.className = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center justify-between bg-orange-600 text-white shadow-md";
-                if (drawerMatch) drawerMatch.className = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white";
+                body.className = "bg-slate-950 text-slate-100 min-h-screen pb-28 transition-colors duration-300";
                 renderSeasonOverview();
+                renderForecastMonitor();
+                renderMatchSummary();
                 renderPositionReport();
+                switchStatsSubTab(activeStatsSubTab);
+            } else if (tab === 'settings') {
+                body.className = "bg-slate-100 text-slate-800 min-h-screen pb-28 transition-colors duration-300";
+                applyUiPrefs();
             } else {
-                body.className = "bg-slate-100 text-slate-800 min-h-screen pb-24 transition-colors duration-300";
-                if (drawerMatch) drawerMatch.className = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-orange-600 text-white shadow-md";
-                if (drawerSeason) drawerSeason.className = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center justify-between bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white";
+                body.className = "bg-slate-100 text-slate-800 min-h-screen pb-28 transition-colors duration-300";
                 applyReadOnlyUIState();
+                applyUiPrefs();
             }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // =========================================================
@@ -4381,6 +4683,17 @@
                 `;
                 tbody.appendChild(tr);
             });
+
+            const statsTbody = document.getElementById('statsForecastBody');
+            if (statsTbody) statsTbody.innerHTML = tbody.innerHTML;
+            const statsPill = document.getElementById('statsForecastTargetPill');
+            if (statsPill) statsPill.innerText = `Streef vandaag: ${matchFieldTarget.toFixed(1)} min`;
+            const prepSum = document.getElementById('prepBundleSummary');
+            if (prepSum) {
+                const opp = selectedOpponent || 'Tegenstander';
+                const activeCount = getActivePlayers().length;
+                prepSum.innerText = `${isHomeMatch ? '🏠 Thuis' : '🚗 Uit'} vs ${opp} • ${activeCount} spelers • Keeper: ${isFixedKeeper ? fixedKeeperName : 'Wissel'}`;
+            }
         }
 
         // =========================================================
@@ -4434,6 +4747,11 @@
                 sel.value = "__LIVE__";
             }
 
+            const statsSel = document.getElementById('statsSummarySelect');
+            if (statsSel) {
+                statsSel.innerHTML = sel.innerHTML;
+                statsSel.value = sel.value;
+            }
             renderMatchSummaryDetails();
         }
 
@@ -4610,6 +4928,8 @@
                     ${emSubsHtml}
                 </div>
             `;
+            const statsDisplay = document.getElementById('statsSummaryDisplay');
+            if (statsDisplay) statsDisplay.innerHTML = container.innerHTML;
         }
 
         // =========================================================
