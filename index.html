@@ -822,6 +822,82 @@
                     </div>
                 </div>
 
+                <!-- 4. UITKLAPBARE SECTIE: FORECAST SPEELTIJD & 5%-REGEL MONITOR (INCL. HUIDIGE WEDSTRIJD) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <button type="button" onclick="toggleAccordion('forecastStatsContent', 'forecastStatsChevron')" class="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer text-left">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-base">🔮</span>
+                            <div>
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-800 block">Forecast Speeltijd & 5%-Regel Monitor</span>
+                                <span class="text-[10px] text-slate-500 font-normal">Seizoen inclusief huidige ingevulde wedstrijd (Oud → Nieuw)</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="forecastTargetPill" class="hidden sm:inline bg-indigo-50 border border-indigo-200 text-indigo-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
+                                Streef vandaag: 52.5 min
+                            </span>
+                            <svg id="forecastStatsChevron" class="w-5 h-5 text-slate-500 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </button>
+
+                    <div id="forecastStatsContent" class="hidden p-4 sm:p-5 border-t border-slate-200 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-600">
+                            <div class="flex flex-wrap items-center gap-3 font-semibold">
+                                <span class="inline-flex items-center gap-1 text-emerald-700 font-bold">🟢 Groen = verbeterd (dichter bij streeftijd / 0%)</span>
+                                <span class="inline-flex items-center gap-1 text-rose-700 font-bold">🔴 Rood = verslechterd (verder van streeftijd / 0%)</span>
+                            </div>
+                            <span id="forecastMatchLabel" class="font-bold text-slate-500"></span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs min-w-[820px]">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-500 uppercase border-b border-slate-200">
+                                        <th class="p-2.5">Speler</th>
+                                        <th class="p-2.5 text-center">Duels (Oud → Nieuw)</th>
+                                        <th class="p-2.5 text-center">Veldmin. (Oud → Nieuw)</th>
+                                        <th class="p-2.5 text-center">Gem. Veldmin. (Oud → Nieuw)</th>
+                                        <th class="p-2.5 text-center">Streeftijd (Oud → Nieuw)</th>
+                                        <th class="p-2.5 text-center">Afwijking % (Oud → Nieuw)</th>
+                                        <th class="p-2.5 text-center">Nieuw 5% Advies</th>
+                                        <th class="p-2.5 text-center">Keepermin. (Oud → Nieuw)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="forecastMonitorBody" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. UITKLAPBARE SECTIE: WEDSTRIJD SAMENVATTING -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <button type="button" onclick="toggleAccordion('matchSummaryContent', 'matchSummaryChevron')" class="w-full p-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100/80 transition cursor-pointer text-left">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-base">📝</span>
+                            <div>
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-800 block">Wedstrijd Samenvatting</span>
+                                <span class="text-[10px] text-slate-500 font-normal">Wedstrijd, uitslag, doelpuntenmakers en wissels per duel</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="matchSummaryCountBadge" class="hidden sm:inline bg-orange-50 border border-orange-200 text-orange-800 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">
+                                0 opgeslagen
+                            </span>
+                            <svg id="matchSummaryChevron" class="w-5 h-5 text-slate-500 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </button>
+
+                    <div id="matchSummaryContent" class="hidden p-4 sm:p-5 border-t border-slate-200 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <label for="matchSummarySelect" class="text-xs font-extrabold uppercase tracking-wider text-slate-700 shrink-0">
+                                🏟️ Kies wedstrijd:
+                            </label>
+                            <select id="matchSummarySelect" onchange="renderMatchSummaryDetails()" class="w-full sm:w-auto sm:min-w-[320px] border border-slate-300 rounded-xl px-3 py-2 text-xs font-extrabold bg-white text-slate-800 outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"></select>
+                        </div>
+
+                        <div id="matchSummaryDisplay" class="space-y-4"></div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- SEIZOENSMONITOR TAB (DONKERE STIJL) -->
@@ -1527,6 +1603,8 @@
                 { contentId: 'keeperSectionContent', chevronId: 'keeperSectionChevron', defaultState: 'collapsed' },
                 { contentId: 'attendanceSectionContent', chevronId: 'attendanceSectionChevron', defaultState: 'collapsed' },
                 { contentId: 'historicalStatsContent', chevronId: 'historicalStatsChevron', defaultState: 'collapsed' },
+                { contentId: 'forecastStatsContent', chevronId: 'forecastStatsChevron', defaultState: 'collapsed' },
+                { contentId: 'matchSummaryContent', chevronId: 'matchSummaryChevron', defaultState: 'collapsed' },
                 { contentId: 'mmPeriodSelectContent', chevronId: 'mmPeriodSelectChevron', defaultState: 'expanded' },
                 { contentId: 'mmActivePeriodContent', chevronId: 'mmActivePeriodChevron', defaultState: 'expanded' }
             ];
@@ -1693,6 +1771,10 @@
                         badgesList.appendChild(badge);
                     });
                 }
+            }
+
+            if (typeof renderMatchSummary === 'function') {
+                renderMatchSummary();
             }
         }
 
@@ -4131,6 +4213,403 @@
                 `;
                 tbody.appendChild(tr);
             });
+
+            renderForecastMonitor();
+            renderMatchSummary();
+        }
+
+        // =========================================================
+        // 18B. FORECAST MONITOR (INCL. HUIDIGE WEDSTRIJD)
+        // =========================================================
+        function renderForecastMonitor() {
+            const tbody = document.getElementById('forecastMonitorBody');
+            if (!tbody) return;
+
+            const hist = getSeasonHistoryStats(loadedMatchId);
+            const active = getActivePlayers();
+            const todayMins = calculateMatchMinutes();
+
+            let guestFieldMinutesToday = 0;
+            active.filter(p => p.isGuest).forEach(g => {
+                guestFieldMinutesToday += (todayMins[g.name]?.field || 0);
+            });
+
+            const fixedActive = active.filter(p => !p.isGuest);
+            let totalFixedOutfieldShares = 0;
+            fixedActive.forEach(p => {
+                const kMin = todayMins[p.name]?.keeper || 0;
+                totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
+            });
+
+            const netFieldForFixed = Math.max(0, 420 - guestFieldMinutesToday);
+            const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : 52.5;
+
+            const pillEl = document.getElementById('forecastTargetPill');
+            if (pillEl) {
+                pillEl.innerText = `Streef vandaag: ${matchFieldTarget.toFixed(1)} min`;
+            }
+
+            const matchLabelEl = document.getElementById('forecastMatchLabel');
+            if (matchLabelEl) {
+                const opp = selectedOpponent || 'Tegenstander';
+                matchLabelEl.innerText = `Incl. ${isHomeMatch ? 'ON vs ' + opp : opp + ' vs ON'}`;
+            }
+
+            tbody.innerHTML = '';
+
+            basePlayers.forEach(p => {
+                const h = hist[p.name] || { outfieldMatches: 0, fieldMinutes: 0, targetFieldMinutesSum: 0, presentMatches: 0, keeperMinutes: 0 };
+                const isPresentToday = attendance[p.name] !== false;
+
+                const todayK = isPresentToday ? (todayMins[p.name]?.keeper || 0) : 0;
+                const todayF = isPresentToday ? (todayMins[p.name]?.field || 0) : 0;
+                const outfieldFractionToday = isPresentToday ? Math.max(0, (60 - todayK) / 60) : 0;
+
+                const oldPresent = h.presentMatches;
+                const newPresent = oldPresent + (isPresentToday ? 1 : 0);
+
+                const oldField = h.fieldMinutes;
+                const newField = oldField + todayF;
+
+                const oldKeeper = h.keeperMinutes;
+                const newKeeper = oldKeeper + todayK;
+
+                const oldOutfieldMatches = h.outfieldMatches;
+                const newOutfieldMatches = oldOutfieldMatches + outfieldFractionToday;
+
+                const oldTargetSum = h.targetFieldMinutesSum;
+                const newTargetSum = oldTargetSum + (matchFieldTarget * outfieldFractionToday);
+
+                const oldAvgTarget = oldOutfieldMatches > 0 ? (oldTargetSum / oldOutfieldMatches) : 52.5;
+                const newAvgTarget = newOutfieldMatches > 0 ? (newTargetSum / newOutfieldMatches) : 52.5;
+
+                const oldAvgActual = oldOutfieldMatches > 0 ? (oldField / oldOutfieldMatches) : 0;
+                const newAvgActual = newOutfieldMatches > 0 ? (newField / newOutfieldMatches) : 0;
+
+                const oldPct = oldTargetSum > 0 ? ((oldField - oldTargetSum) / oldTargetSum) * 100 : 0;
+                const newPct = newTargetSum > 0 ? ((newField - newTargetSum) / newTargetSum) * 100 : 0;
+
+                // Kleurlogica voor Gem. Veldminuten (groen = dichter bij streeftijd, rood = verder weg)
+                let avgNewColorClass = "text-slate-700";
+                if (newOutfieldMatches > 0) {
+                    if (oldOutfieldMatches === 0) {
+                        avgNewColorClass = Math.abs(newPct) < 5.0 ? "text-emerald-700" : "text-rose-700";
+                    } else if (isPresentToday && outfieldFractionToday > 0) {
+                        const oldDist = Math.abs(oldAvgActual - oldAvgTarget);
+                        const newDist = Math.abs(newAvgActual - newAvgTarget);
+                        if (newDist < oldDist - 0.05) avgNewColorClass = "text-emerald-700";
+                        else if (newDist > oldDist + 0.05) avgNewColorClass = "text-rose-700";
+                    }
+                }
+
+                // Kleurlogica voor Afwijking (%) (groen = dichter bij 0%, rood = verder van 0%)
+                let pctNewBadgeClass = "bg-slate-100 text-slate-700";
+                if (newOutfieldMatches > 0) {
+                    if (oldOutfieldMatches === 0) {
+                        pctNewBadgeClass = Math.abs(newPct) < 5.0
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : "bg-rose-100 text-rose-800 border border-rose-300";
+                    } else if (isPresentToday && outfieldFractionToday > 0) {
+                        const oldAbs = Math.abs(oldPct);
+                        const newAbs = Math.abs(newPct);
+                        if (newAbs < oldAbs - 0.05) {
+                            pctNewBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-300";
+                        } else if (newAbs > oldAbs + 0.05) {
+                            pctNewBadgeClass = "bg-rose-100 text-rose-800 border border-rose-300";
+                        }
+                    }
+                }
+
+                // Nieuw 5% Advies
+                let newAdviceBadge = `<span class="text-amber-700 font-bold">Vaste Keeper</span>`;
+                if (newOutfieldMatches > 0) {
+                    if (newPct <= -5.0) {
+                        newAdviceBadge = `<span class="bg-rose-600 text-white px-2 py-0.5 rounded-md font-extrabold text-[10px]">⚠️ ≥5% Minder (60m spelen)</span>`;
+                    } else if (newPct >= 5.0) {
+                        newAdviceBadge = `<span class="bg-amber-600 text-white px-2 py-0.5 rounded-md font-extrabold text-[10px]">🔄 ≥5% Méér (Wisselen)</span>`;
+                    } else {
+                        newAdviceBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md font-bold text-[10px]">✅ Binnen 5% marge</span>`;
+                    }
+                }
+
+                const oldPctStr = oldOutfieldMatches > 0 ? `${oldPct > 0 ? '+' : ''}${oldPct.toFixed(1)}%` : '-';
+                const newPctStr = newOutfieldMatches > 0 ? `${newPct > 0 ? '+' : ''}${newPct.toFixed(1)}%` : '-';
+
+                const todayBadge = !isPresentToday
+                    ? `<span class="ml-1 text-[9px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-bold">Afwezig</span>`
+                    : (todayF > 0 ? `<span class="ml-1 text-[9px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded font-bold">+${todayF}m</span>` : (todayK > 0 ? `<span class="ml-1 text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">GK ${todayK}m</span>` : ''));
+
+                const tr = document.createElement('tr');
+                tr.className = isPresentToday ? "hover:bg-slate-50" : "bg-slate-50/70 opacity-75";
+                tr.innerHTML = `
+                    <td class="p-2.5 font-extrabold text-slate-800 whitespace-nowrap">
+                        ${p.name} <span class="text-[10px] font-semibold text-slate-400">(${p.badge})</span>${todayBadge}
+                    </td>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <span class="text-slate-400 font-semibold">${oldPresent}</span>
+                        <span class="text-slate-300 mx-1">→</span>
+                        <span class="font-extrabold text-slate-800">${newPresent}</span>
+                    </td>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <span class="text-slate-400 font-semibold">${oldField}m</span>
+                        <span class="text-slate-300 mx-1">→</span>
+                        <span class="font-extrabold text-slate-900">${newField}m</span>
+                    </td>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <span class="text-slate-400 font-semibold">${oldOutfieldMatches > 0 ? oldAvgActual.toFixed(1) + 'm' : '-'}</span>
+                        <span class="text-slate-300 mx-1">→</span>
+                        <span class="font-black ${avgNewColorClass}">${newOutfieldMatches > 0 ? newAvgActual.toFixed(1) + 'm' : '-'}</span>
+                    </td>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <span class="text-slate-400 font-semibold">${oldOutfieldMatches > 0 ? oldAvgTarget.toFixed(1) + 'm' : '-'}</span>
+                        <span class="text-slate-300 mx-1">→</span>
+                        <span class="font-bold text-slate-700">${newOutfieldMatches > 0 ? newAvgTarget.toFixed(1) + 'm' : '-'}</span>
+                    </td>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <span class="text-slate-400 font-semibold">${oldPctStr}</span>
+                        <span class="text-slate-300 mx-1">→</span>
+                        ${newOutfieldMatches > 0
+                            ? `<span class="px-2 py-0.5 rounded-full font-black ${pctNewBadgeClass}">${newPctStr}</span>`
+                            : `<span class="text-slate-400">-</span>`}
+                    </td>
+                    <td class="p-2.5 text-center">${newAdviceBadge}</td>
+                    <td class="p-2.5 text-center whitespace-nowrap">
+                        <span class="text-slate-400 font-semibold">${oldKeeper > 0 ? oldKeeper + 'm' : '-'}</span>
+                        <span class="text-slate-300 mx-1">→</span>
+                        <span class="font-bold text-amber-700">${newKeeper > 0 ? newKeeper + 'm' : '-'}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // =========================================================
+        // 18C. WEDSTRIJD SAMENVATTING (PULLDOWN & DETAILS)
+        // =========================================================
+        function renderMatchSummary() {
+            const sel = document.getElementById('matchSummarySelect');
+            const countBadge = document.getElementById('matchSummaryCountBadge');
+            if (!sel) return;
+
+            if (countBadge) {
+                countBadge.innerText = `${savedMatches.length} opgeslagen`;
+            }
+
+            const prevVal = sel.value;
+            sel.innerHTML = '';
+
+            const sortedMatches = [...savedMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Optie voor huidige / live wedstrijd op het hoofdscherm
+            const liveOpp = selectedOpponent || 'Tegenstander';
+            const liveDate = document.getElementById('matchDate')?.value || '';
+            const liveRes = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
+            const liveTitle = isHomeMatch ? `Oranje Nassau vs ${liveOpp}` : `${liveOpp} vs Oranje Nassau`;
+            sel.innerHTML += `<option value="__LIVE__">⚡ Huidig / Live: ${liveTitle} (${liveRes.scoreString})${liveDate ? ' • ' + liveDate : ''}</option>`;
+
+            if (sortedMatches.length > 0) {
+                const group = document.createElement('optgroup');
+                group.label = "Opgeslagen Wedstrijden";
+                sortedMatches.forEach(m => {
+                    const isHome = (m.isHomeMatch !== undefined) ? m.isHomeMatch : true;
+                    const onG = Array.isArray(m.goals) ? m.goals.length : 0;
+                    const oppG = m.opponentGoals || 0;
+                    const res = getMatchResultDetails(onG, oppG, isHome);
+                    const title = isHome ? `Oranje Nassau vs ${m.opponent}` : `${m.opponent} vs Oranje Nassau`;
+                    const opt = document.createElement('option');
+                    opt.value = String(m.id);
+                    opt.textContent = `${m.date || ''} • ${title} (${res.scoreString} - ${res.resultStatus})`;
+                    group.appendChild(opt);
+                });
+                sel.appendChild(group);
+            }
+
+            // Herstel eerdere keuze als die nog bestaat; anders meest recente opgeslagen duel (of live)
+            const validValues = Array.from(sel.options).map(o => o.value);
+            if (prevVal && validValues.includes(prevVal)) {
+                sel.value = prevVal;
+            } else if (sortedMatches.length > 0) {
+                sel.value = String(sortedMatches[0].id);
+            } else {
+                sel.value = "__LIVE__";
+            }
+
+            renderMatchSummaryDetails();
+        }
+
+        function renderMatchSummaryDetails() {
+            const sel = document.getElementById('matchSummarySelect');
+            const container = document.getElementById('matchSummaryDisplay');
+            if (!sel || !container) return;
+
+            let matchObj = null;
+            let isLiveSelection = (sel.value === '__LIVE__');
+
+            if (isLiveSelection) {
+                matchObj = {
+                    opponent: selectedOpponent || 'Tegenstander',
+                    isHomeMatch: isHomeMatch,
+                    date: document.getElementById('matchDate')?.value || new Date().toISOString().slice(0, 10),
+                    attendance: { ...attendance },
+                    guestPlayers: guestPlayers,
+                    lineup: lineup,
+                    emergencySubs: emergencySubs,
+                    goals: matchGoals,
+                    opponentGoals: opponentGoals
+                };
+            } else {
+                matchObj = savedMatches.find(m => String(m.id) === String(sel.value));
+            }
+
+            if (!matchObj) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-4">Geen wedstrijd geselecteerd.</p>`;
+                return;
+            }
+
+            const isHome = (matchObj.isHomeMatch !== undefined) ? matchObj.isHomeMatch : true;
+            const goals = Array.isArray(matchObj.goals) ? matchObj.goals : [];
+            const oppGoals = matchObj.opponentGoals || 0;
+            const onGoals = goals.length;
+            const homeScore = isHome ? onGoals : oppGoals;
+            const awayScore = isHome ? oppGoals : onGoals;
+            const homeName = isHome ? "Oranje Nassau" : (matchObj.opponent || "Tegenstander");
+            const awayName = isHome ? (matchObj.opponent || "Tegenstander") : "Oranje Nassau";
+
+            let resultLabel = "Gelijkspel";
+            let resultBadgeClass = "bg-amber-100 text-amber-800 border border-amber-300";
+            if (onGoals > oppGoals) {
+                resultLabel = "Gewonnen";
+                resultBadgeClass = "bg-emerald-100 text-emerald-800 border border-emerald-300";
+            } else if (onGoals < oppGoals) {
+                resultLabel = "Verloren";
+                resultBadgeClass = "bg-rose-100 text-rose-800 border border-rose-300";
+            }
+
+            // 1. Doelpuntenmakers HTML
+            let goalsHtml = `<p class="text-xs text-slate-400 italic">Geen doelpunten van Oranje Nassau geregistreerd.</p>`;
+            if (goals.length > 0) {
+                goalsHtml = `<div class="flex flex-wrap gap-2">` + goals.map((g, idx) => `
+                    <span class="inline-flex items-center gap-1.5 bg-orange-50 border border-orange-200 text-orange-950 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-2xs">
+                        <span>⚽</span>
+                        <span>${g.scorer}</span>
+                        ${g.minute ? `<span class="text-[11px] font-mono text-orange-600">(${g.minute}')</span>` : ''}
+                    </span>
+                `).join('') + `</div>`;
+            }
+
+            // 2. Wissels per blok berekenen
+            const presentNames = basePlayers
+                .filter(p => !matchObj.attendance || matchObj.attendance[p.name] !== false)
+                .map(p => p.name);
+            if (Array.isArray(matchObj.guestPlayers)) {
+                matchObj.guestPlayers.forEach(g => {
+                    if (g.name && g.name.trim()) presentNames.push(`${g.name.trim()} (Gast)`);
+                });
+            }
+
+            const mLineup = matchObj.lineup || { 1: {}, 2: {}, 3: {}, 4: {} };
+            const q1Pitch = Object.values(mLineup[1] || {}).filter(Boolean);
+            const q1Bench = presentNames.filter(n => !q1Pitch.includes(n));
+
+            let subsCardsHtml = `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                    <div class="text-[11px] font-black uppercase text-slate-500 mb-1">Start Blok 1 (0 - 15m)</div>
+                    <div class="text-xs font-bold text-slate-700">
+                        🔄 Begint op de bank: <span class="text-orange-700">${q1Bench.length > 0 ? q1Bench.join(', ') : 'Geen wissels'}</span>
+                    </div>
+                </div>
+            `;
+
+            for (let q = 2; q <= 4; q++) {
+                const prev = mLineup[q - 1] || {};
+                const curr = mLineup[q] || {};
+                const prevPitch = Object.values(prev).filter(Boolean);
+                const currPitch = Object.values(curr).filter(Boolean);
+
+                const subIn = currPitch.filter(n => !prevPitch.includes(n));
+                const subOut = prevPitch.filter(n => !currPitch.includes(n));
+                const keeperChanged = (prev["GK"] && curr["GK"] && prev["GK"] !== curr["GK"]);
+
+                subsCardsHtml += `
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-black uppercase text-slate-500">Wissel naar Blok ${q} (${(q - 1) * 15}m)</span>
+                            ${keeperChanged ? `<span class="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">🧤 Keeper: ${curr["GK"]}</span>` : ''}
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <div class="bg-emerald-50 border border-emerald-200 text-emerald-900 px-2.5 py-1.5 rounded-lg font-bold">
+                                ▶ Erin: ${subIn.length > 0 ? subIn.join(', ') : 'Geen wissel'}
+                            </div>
+                            <div class="bg-rose-50 border border-rose-200 text-rose-900 px-2.5 py-1.5 rounded-lg font-bold">
+                                ◀ Eruit: ${subOut.length > 0 ? subOut.join(', ') : 'Geen wissel'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 3. Tussentijdse noodwissels
+            const emSubs = Array.isArray(matchObj.emergencySubs) ? matchObj.emergencySubs : [];
+            let emSubsHtml = '';
+            if (emSubs.length > 0) {
+                emSubsHtml = `
+                    <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 space-y-1.5">
+                        <div class="text-[11px] font-black uppercase text-rose-700">🚨 Tussentijdse Noodwissels</div>
+                        ${emSubs.map(e => `
+                            <div class="text-xs text-rose-950 font-semibold">
+                                • Minuut <strong>${e.minute}'</strong> (Blok ${e.quarter}, ${e.posId}): <strong class="text-emerald-700">${e.in}</strong> erin voor <strong class="text-rose-700">${e.out}</strong>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <!-- Wedstrijd & Score Header -->
+                <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-4 sm:p-5 border border-slate-700 shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-700 text-slate-200">
+                                ${isHome ? '🏠 Thuis' : '🚗 Uit'}
+                            </span>
+                            <span class="text-xs font-bold text-slate-300">📅 ${matchObj.date || 'Onbekende datum'}</span>
+                            ${isLiveSelection ? `<span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-400/40">Live Concept</span>` : ''}
+                        </div>
+                        <span class="text-[11px] font-black px-2.5 py-0.5 rounded-full ${resultBadgeClass}">${resultLabel}</span>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-3 sm:gap-6 py-2">
+                        <div class="flex-1 text-right">
+                            <span class="text-sm sm:text-base font-black ${isHome ? 'text-orange-400' : 'text-white'}">${homeName}</span>
+                        </div>
+                        <div class="bg-slate-950 border border-slate-700 px-4 py-2 rounded-2xl text-2xl sm:text-3xl font-black tracking-wider shrink-0">
+                            ${homeScore} <span class="text-slate-500">-</span> ${awayScore}
+                        </div>
+                        <div class="flex-1 text-left">
+                            <span class="text-sm sm:text-base font-black ${!isHome ? 'text-orange-400' : 'text-white'}">${awayName}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doelpuntenmakers -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2.5">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                        ⚽ Doelpuntenmakers Oranje Nassau (${onGoals})
+                    </h4>
+                    ${goalsHtml}
+                </div>
+
+                <!-- Wissels -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2.5">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                        🔄 Wissels Overzicht
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                        ${subsCardsHtml}
+                    </div>
+                    ${emSubsHtml}
+                </div>
+            `;
         }
 
         // =========================================================
