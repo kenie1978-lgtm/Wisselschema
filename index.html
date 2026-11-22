@@ -1396,9 +1396,9 @@
         </div>
     </div>
 
-    <!-- MODAL: 5%-MARGE WAARSCHUWING BIJ OPSTELLEN -->
+    <!-- MODAL: 5%-MARGE WAARSCHUWING BIJ WIJZIGING -->
     <div id="marginWarningModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
             <div class="text-center space-y-1.5">
                 <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-2xl">
                     ⚠️
@@ -1407,24 +1407,14 @@
                 <p id="marginWarningSubtitle" class="text-xs text-slate-600 font-medium"></p>
             </div>
 
-            <div class="grid grid-cols-11 items-center gap-2">
-                <div class="col-span-5 bg-slate-100 border border-slate-200 rounded-2xl p-3 text-center">
-                    <div class="text-[10px] font-extrabold uppercase text-slate-500">Huidig</div>
-                    <div id="marginWarningOldPct" class="text-lg font-black text-slate-800 mt-0.5">0.0%</div>
-                </div>
-                <div class="col-span-1 text-center text-slate-400 font-black text-lg">→</div>
-                <div class="col-span-5 bg-rose-50 border border-rose-200 rounded-2xl p-3 text-center">
-                    <div class="text-[10px] font-extrabold uppercase text-rose-600">Na opstellen</div>
-                    <div id="marginWarningNewPct" class="text-lg font-black text-rose-700 mt-0.5">+6.0%</div>
-                </div>
-            </div>
+            <div id="marginWarningList" class="space-y-2.5 max-h-64 overflow-y-auto pr-0.5"></div>
 
             <div class="flex gap-2.5 pt-1">
                 <button type="button" onclick="cancelMarginWarning()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-3 rounded-2xl text-xs transition cursor-pointer">
                     Annuleren
                 </button>
                 <button type="button" onclick="confirmMarginWarning()" class="flex-1 bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-black py-3 rounded-2xl text-xs shadow-md transition cursor-pointer">
-                    Toch opstellen
+                    Toch doorvoeren
                 </button>
             </div>
         </div>
@@ -2148,10 +2138,12 @@
             if (bench.length === 0) {
                 benchContainer.innerHTML = `<span class="text-xs text-slate-500 italic">Geen wisselspelers in dit blok.</span>`;
             } else {
+                const mmBenchFMap = getForecastPctMap();
                 bench.forEach(p => {
                     benchContainer.innerHTML += `
                         <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold text-orange-300 flex items-center gap-1.5">
                             <span>${p.name}</span>
+                            ${getMarginArrowHTML(p.name, mmBenchFMap)}
                             <span class="text-[9px] bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded">${p.badge}</span>
                         </div>
                     `;
@@ -2978,25 +2970,58 @@
             const toQuarter = fromQuarter + 1;
             if (toQuarter > 4) return;
 
-            lineup[toQuarter] = { ...lineup[fromQuarter] };
-            quarterKeepers[toQuarter] = lineup[toQuarter]["GK"] || fixedKeeperName;
+            const simulatedLineup = JSON.parse(JSON.stringify(lineup));
+            simulatedLineup[toQuarter] = { ...lineup[fromQuarter] };
 
-            renderKeeperControls();
-            activeQuarterView = toQuarter;
-            selectActiveQuarter(toQuarter);
-            renderAllViews();
-            syncLiveDraftToCloud();
+            const affected = new Set([
+                ...Object.values(lineup[toQuarter] || {}),
+                ...Object.values(simulatedLineup[toQuarter] || {})
+            ].filter(Boolean));
+
+            const doCopy = () => {
+                lineup[toQuarter] = { ...lineup[fromQuarter] };
+                quarterKeepers[toQuarter] = lineup[toQuarter]["GK"] || fixedKeeperName;
+                renderKeeperControls();
+                activeQuarterView = toQuarter;
+                selectActiveQuarter(toQuarter);
+                renderAllViews();
+                syncLiveDraftToCloud();
+            };
+
+            checkLineupChangeAndWarn(
+                simulatedLineup,
+                Array.from(affected),
+                `Kopiëren van Blok ${fromQuarter} naar Blok ${toQuarter} zet speler(s) buiten de 5%-marge:`,
+                doCopy
+            );
         }
 
         function copyBlockToAllSubsequent(fromQuarter) {
             if (isEffectiveReadOnly()) return;
+            const simulatedLineup = JSON.parse(JSON.stringify(lineup));
+            const affected = new Set();
             for (let q = fromQuarter + 1; q <= 4; q++) {
-                lineup[q] = { ...lineup[fromQuarter] };
-                quarterKeepers[q] = lineup[q]["GK"] || fixedKeeperName;
+                Object.values(lineup[q] || {}).forEach(n => n && affected.add(n));
+                simulatedLineup[q] = { ...lineup[fromQuarter] };
+                Object.values(simulatedLineup[q] || {}).forEach(n => n && affected.add(n));
             }
-            renderKeeperControls();
-            renderAllViews();
-            syncLiveDraftToCloud();
+
+            const doCopyAll = () => {
+                for (let q = fromQuarter + 1; q <= 4; q++) {
+                    lineup[q] = { ...lineup[fromQuarter] };
+                    quarterKeepers[q] = lineup[q]["GK"] || fixedKeeperName;
+                }
+                renderKeeperControls();
+                renderAllViews();
+                syncLiveDraftToCloud();
+            };
+
+            checkLineupChangeAndWarn(
+                simulatedLineup,
+                Array.from(affected),
+                `Kopiëren van Blok ${fromQuarter} naar Blok ${fromQuarter + 1} t/m 4 zet speler(s) buiten de 5%-marge:`,
+                doCopyAll
+            );
         }
 
         // =========================================================
@@ -3304,7 +3329,7 @@
             return false;
         }
 
-        let pendingPositionChange = null;
+        let pendingMarginAction = null;
 
         function getForecastPctMap(customLineup = null) {
             const hist = getSeasonHistoryStats(loadedMatchId);
@@ -3356,6 +3381,84 @@
             return `${num > 0 ? '+' : ''}${num.toFixed(1)}%`;
         }
 
+        function getMarginArrowHTML(playerName, fMap = null) {
+            if (!playerName || !basePlayers.some(p => p.name === playerName)) return "";
+            const map = fMap || getForecastPctMap();
+            const info = map[playerName];
+            if (!info || !info.hasOutfield) return "";
+            if (info.newPct >= 5.0) {
+                return `<span class="text-rose-600 font-black text-xs leading-none shrink-0" title="Boven +5% marge (${formatSignedPct(info.newPct)})">▲</span>`;
+            }
+            if (info.newPct <= -5.0) {
+                return `<span class="text-rose-600 font-black text-xs leading-none shrink-0" title="Onder -5% marge (${formatSignedPct(info.newPct)})">▼</span>`;
+            }
+            return "";
+        }
+
+        function checkLineupChangeAndWarn(simulatedLineup, affectedPlayerNames, subtitleText, onConfirmCallback) {
+            const beforeMap = getForecastPctMap(lineup);
+            const afterMap = getForecastPctMap(simulatedLineup);
+            const affectedSet = new Set(affectedPlayerNames || []);
+            const warnings = [];
+
+            basePlayers.forEach(p => {
+                if (attendance[p.name] === false) return;
+                const beforeInfo = beforeMap[p.name];
+                const afterInfo = afterMap[p.name];
+                if (!afterInfo || !afterInfo.hasOutfield) return;
+
+                const beforePct = beforeInfo ? beforeInfo.newPct : 0;
+                const afterPct = afterInfo.newPct;
+                const pctChanged = Math.abs(afterPct - beforePct) > 0.05;
+                const isOutsideAfter = (afterPct >= 5.0 || afterPct <= -5.0);
+                const newlyCrossed = (Math.abs(beforePct) < 5.0 && isOutsideAfter);
+
+                // Waarschuw voor elke direct betrokken speler wiens percentage verandert en buiten ±5% valt,
+                // én voor andere spelers die door een streeftijd-verschuiving nieuw buiten ±5% komen.
+                if (isOutsideAfter && ((affectedSet.has(p.name) && pctChanged) || newlyCrossed)) {
+                    warnings.push({
+                        name: p.name,
+                        beforePct,
+                        afterPct,
+                        isAbove: afterPct >= 5.0
+                    });
+                }
+            });
+
+            if (warnings.length === 0) {
+                onConfirmCallback();
+                return;
+            }
+
+            pendingMarginAction = onConfirmCallback;
+            document.getElementById('marginWarningSubtitle').innerHTML = subtitleText;
+
+            const listEl = document.getElementById('marginWarningList');
+            listEl.innerHTML = warnings.map(w => `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-black text-slate-900">${w.name}</span>
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                            ${w.isAbove ? '▲ Boven +5%' : '▼ Onder -5%'}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-11 items-center gap-1.5">
+                        <div class="col-span-5 bg-white border border-slate-200 rounded-xl p-2 text-center">
+                            <div class="text-[9px] font-extrabold uppercase text-slate-400">Huidig</div>
+                            <div class="text-sm font-black text-slate-700">${formatSignedPct(w.beforePct)}</div>
+                        </div>
+                        <div class="col-span-1 text-center text-slate-400 font-black">→</div>
+                        <div class="col-span-5 bg-rose-50 border border-rose-200 rounded-xl p-2 text-center">
+                            <div class="text-[9px] font-extrabold uppercase text-rose-600">Na wijziging</div>
+                            <div class="text-sm font-black text-rose-700">${formatSignedPct(w.afterPct)}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('marginWarningModal').classList.remove('hidden');
+        }
+
         function commitPositionChange(quarter, posId, playerName) {
             if (!playerName) {
                 delete lineup[quarter][posId];
@@ -3384,50 +3487,47 @@
         function handlePositionChange(quarter, posId, playerName) {
             if (isEffectiveReadOnly()) return;
 
-            // Controleer 5%-marge bij het kiezen van een vaste veldspeler
-            const isBasePlayer = playerName && basePlayers.some(p => p.name === playerName);
-            if (isBasePlayer && posId !== "GK") {
-                const beforeMap = getForecastPctMap(lineup);
-                const simulatedLineup = JSON.parse(JSON.stringify(lineup));
+            const previousPlayer = lineup[quarter]?.[posId] || "";
+            const simulatedLineup = JSON.parse(JSON.stringify(lineup));
+
+            if (!playerName) {
+                delete simulatedLineup[quarter][posId];
+            } else {
                 simulatedLineup[quarter][posId] = playerName;
-                const afterMap = getForecastPctMap(simulatedLineup);
-
-                const beforeInfo = beforeMap[playerName];
-                const afterInfo = afterMap[playerName];
-
-                if (afterInfo && afterInfo.hasOutfield && (afterInfo.newPct >= 5.0 || afterInfo.newPct <= -5.0)) {
-                    const currentDisplayPct = beforeInfo ? beforeInfo.newPct : 0;
-                    pendingPositionChange = { quarter, posId, playerName };
-
-                    const directionText = afterInfo.newPct >= 5.0
-                        ? "boven de +5% streeftijd-marge"
-                        : "onder de -5% streeftijd-marge";
-
-                    document.getElementById('marginWarningSubtitle').innerHTML =
-                        `<strong>${playerName}</strong> komt ${directionText} uit als je hem in Blok ${quarter} opstelt.`;
-                    document.getElementById('marginWarningOldPct').innerText = formatSignedPct(currentDisplayPct);
-                    document.getElementById('marginWarningNewPct').innerText = formatSignedPct(afterInfo.newPct);
-                    document.getElementById('marginWarningModal').classList.remove('hidden');
-                    return;
+                if (posId === "GK" && isFixedKeeper) {
+                    for (let q = 1; q <= 4; q++) {
+                        for (let p in simulatedLineup[q]) {
+                            if (p !== "GK" && simulatedLineup[q][p] === playerName) delete simulatedLineup[q][p];
+                        }
+                        simulatedLineup[q]["GK"] = playerName;
+                    }
                 }
             }
 
-            commitPositionChange(quarter, posId, playerName);
+            const affected = [playerName, previousPlayer].filter(Boolean);
+            const subtitle = `Door deze wijziging in <strong>Blok ${quarter} (${posId})</strong> valt onderstaande speler buiten de 5%-marge van de streeftijd:`;
+
+            checkLineupChangeAndWarn(
+                simulatedLineup,
+                affected,
+                subtitle,
+                () => commitPositionChange(quarter, posId, playerName)
+            );
         }
 
         function cancelMarginWarning() {
-            pendingPositionChange = null;
+            pendingMarginAction = null;
             document.getElementById('marginWarningModal').classList.add('hidden');
             renderAllViews();
             renderMatchModeCockpit();
         }
 
         function confirmMarginWarning() {
-            const pending = pendingPositionChange;
-            pendingPositionChange = null;
+            const action = pendingMarginAction;
+            pendingMarginAction = null;
             document.getElementById('marginWarningModal').classList.add('hidden');
-            if (pending) {
-                commitPositionChange(pending.quarter, pending.posId, pending.playerName);
+            if (typeof action === 'function') {
+                action();
             }
         }
 
@@ -3491,18 +3591,7 @@
                 `;
             }
 
-            let marginArrowHtml = "";
-            if (selectedName && posId !== "GK" && basePlayers.some(p => p.name === selectedName)) {
-                const fMap = getForecastPctMap();
-                const info = fMap[selectedName];
-                if (info && info.hasOutfield) {
-                    if (info.newPct >= 5.0) {
-                        marginArrowHtml = `<span class="text-rose-600 font-black text-xs leading-none shrink-0" title="Boven +5% marge (${formatSignedPct(info.newPct)})">▲</span>`;
-                    } else if (info.newPct <= -5.0) {
-                        marginArrowHtml = `<span class="text-rose-600 font-black text-xs leading-none shrink-0" title="Onder -5% marge (${formatSignedPct(info.newPct)})">▼</span>`;
-                    }
-                }
-            }
+            const marginArrowHtml = (selectedName && posId !== "GK") ? getMarginArrowHTML(selectedName) : "";
 
             return `
                 <div class="bg-white/95 backdrop-blur-xs rounded-xl p-2 shadow-lg border-2 ${selectedName ? 'border-white' : 'border-rose-400'} w-full max-w-[175px] mx-auto transition transform hover:scale-[1.01]">
@@ -3674,10 +3763,11 @@
             if (benchActive.length === 0) {
                 sideBenchList.innerHTML = `<div class="text-xs text-slate-400 italic">Geen wisselspelers in dit blok.</div>`;
             } else {
+                const sideBenchFMap = getForecastPctMap();
                 benchActive.forEach(p => {
                     sideBenchList.innerHTML += `
                         <div class="flex items-center justify-between bg-orange-50 border border-orange-200 px-3 py-2 rounded-xl">
-                            <span class="font-extrabold text-xs text-orange-950">${p.name}</span>
+                            <span class="font-extrabold text-xs text-orange-950 inline-flex items-center gap-1">${p.name} ${getMarginArrowHTML(p.name, sideBenchFMap)}</span>
                             <span class="text-[10px] font-bold bg-white text-orange-700 px-2 py-0.5 rounded border border-orange-200">${p.role}</span>
                         </div>
                     `;
@@ -3740,19 +3830,33 @@
                 `;
                 tr.appendChild(tdLabel);
 
+                const matrixForecastMap = getForecastPctMap();
                 for (let q = 1; q <= 4; q++) {
                     const td = document.createElement('td');
                     td.className = "p-2";
-                    td.innerHTML = buildPositionSelectHTML(q, pos, "p-2");
+                    const selName = lineup[q]?.[pos.id] || "";
+                    const arrowHtml = (selName && pos.id !== "GK") ? getMarginArrowHTML(selName, matrixForecastMap) : "";
+                    td.innerHTML = `
+                        <div class="flex items-center gap-1">
+                            <div class="flex-1 min-w-0">${buildPositionSelectHTML(q, pos, "p-2")}</div>
+                            ${arrowHtml}
+                        </div>
+                    `;
                     tr.appendChild(td);
                 }
                 matrixBody.appendChild(tr);
             });
 
+            const benchForecastMap = getForecastPctMap();
             for (let q = 1; q <= 4; q++) {
                 const onPitch = Object.values(lineup[q] || {}).filter(Boolean);
-                const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
-                document.getElementById(`matrixBench-${q}`).innerText = bench.length ? bench.join(', ') : 'Geen wissel';
+                const bench = active.filter(p => !onPitch.includes(p.name));
+                const benchEl = document.getElementById(`matrixBench-${q}`);
+                if (benchEl) {
+                    benchEl.innerHTML = bench.length
+                        ? bench.map(p => `<span class="inline-flex items-center gap-0.5 mr-2">${p.name}${getMarginArrowHTML(p.name, benchForecastMap)}</span>`).join('')
+                        : 'Geen wissel';
+                }
             }
 
             applyReadOnlyUIState();
