@@ -214,7 +214,7 @@
     </header>
 
     <!-- DEDICATED MATCH DASHBOARD (STADION COCKPIT VOOR LANGS HET VELD) -->
-    <div id="dedicatedMatchModeContainer" class="hidden min-h-screen bg-slate-950 text-white p-3 sm:p-6 space-y-4">
+    <div id="dedicatedMatchModeContainer" class="hidden min-h-screen bg-slate-950 text-white p-3 sm:p-6 pb-28 space-y-4">
         <!-- STICKY MATCH DASHBOARD HEADER (Blijft altijd bovenaan bij scrollen) -->
         <div class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border border-slate-800 p-3 sm:p-4 rounded-3xl shadow-2xl flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
@@ -1189,29 +1189,29 @@
             </div>
 
         </main>
-
-        <!-- VASTE GROTE ONDERBALK (BOTTOM NAVIGATION BAR) -->
-        <nav id="bottomNavBar" class="fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-2xl">
-            <div class="max-w-3xl mx-auto grid grid-cols-4 gap-1 px-2 py-2">
-                <button type="button" onclick="switchMainTab('match')" id="bottomNav-match" class="flex flex-col items-center justify-center py-2 rounded-2xl text-orange-400 bg-slate-800/80 transition cursor-pointer active:scale-95">
-                    <span class="text-xl leading-none">🏟️</span>
-                    <span class="text-[11px] font-black mt-1">Veld</span>
-                </button>
-                <button type="button" onclick="toggleMatchMode()" id="bottomNav-live" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
-                    <span class="text-xl leading-none">⏱️</span>
-                    <span class="text-[11px] font-black mt-1">Live</span>
-                </button>
-                <button type="button" onclick="switchMainTab('season')" id="bottomNav-season" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
-                    <span class="text-xl leading-none">📊</span>
-                    <span class="text-[11px] font-black mt-1">Stats</span>
-                </button>
-                <button type="button" onclick="switchMainTab('settings')" id="bottomNav-settings" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
-                    <span class="text-xl leading-none">☰</span>
-                    <span class="text-[11px] font-black mt-1">Meer</span>
-                </button>
-            </div>
-        </nav>
     </div>
+
+    <!-- VASTE GROTE ONDERBALK (ALTIJD ZICHTBAAR, OOK IN LIVE) -->
+    <nav id="bottomNavBar" class="fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-2xl">
+        <div class="max-w-3xl mx-auto grid grid-cols-4 gap-1 px-2 py-2">
+            <button type="button" onclick="switchMainTab('match')" id="bottomNav-match" class="flex flex-col items-center justify-center py-2 rounded-2xl text-orange-400 bg-slate-800/90 transition cursor-pointer active:scale-95">
+                <span class="text-xl leading-none">🏟️</span>
+                <span class="text-[11px] font-black mt-1">Veld</span>
+            </button>
+            <button type="button" onclick="openLiveMatchMode()" id="bottomNav-live" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
+                <span class="text-xl leading-none">⏱️</span>
+                <span class="text-[11px] font-black mt-1">Live</span>
+            </button>
+            <button type="button" onclick="switchMainTab('season')" id="bottomNav-season" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
+                <span class="text-xl leading-none">📊</span>
+                <span class="text-[11px] font-black mt-1">Stats</span>
+            </button>
+            <button type="button" onclick="switchMainTab('settings')" id="bottomNav-settings" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
+                <span class="text-xl leading-none">☰</span>
+                <span class="text-[11px] font-black mt-1">Meer</span>
+            </button>
+        </div>
+    </nav>
 
     <!-- ZWEVENDE DATA & AI CHAT ASSISTENT -->
     <div id="chatWidgetContainer" class="fixed bottom-20 right-4 z-50">
@@ -1391,6 +1391,40 @@
                 </button>
                 <button onclick="confirmEmergencySub()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs shadow cursor-pointer">
                     Noodwissel Opslaan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: 5%-MARGE WAARSCHUWING BIJ OPSTELLEN -->
+    <div id="marginWarningModal" class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="text-center space-y-1.5">
+                <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-2xl">
+                    ⚠️
+                </div>
+                <h3 class="text-base font-black text-slate-900">Let op: Buiten 5%-marge</h3>
+                <p id="marginWarningSubtitle" class="text-xs text-slate-600 font-medium"></p>
+            </div>
+
+            <div class="grid grid-cols-11 items-center gap-2">
+                <div class="col-span-5 bg-slate-100 border border-slate-200 rounded-2xl p-3 text-center">
+                    <div class="text-[10px] font-extrabold uppercase text-slate-500">Huidig</div>
+                    <div id="marginWarningOldPct" class="text-lg font-black text-slate-800 mt-0.5">0.0%</div>
+                </div>
+                <div class="col-span-1 text-center text-slate-400 font-black text-lg">→</div>
+                <div class="col-span-5 bg-rose-50 border border-rose-200 rounded-2xl p-3 text-center">
+                    <div class="text-[10px] font-extrabold uppercase text-rose-600">Na opstellen</div>
+                    <div id="marginWarningNewPct" class="text-lg font-black text-rose-700 mt-0.5">+6.0%</div>
+                </div>
+            </div>
+
+            <div class="flex gap-2.5 pt-1">
+                <button type="button" onclick="cancelMarginWarning()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-3 rounded-2xl text-xs transition cursor-pointer">
+                    Annuleren
+                </button>
+                <button type="button" onclick="confirmMarginWarning()" class="flex-1 bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-black py-3 rounded-2xl text-xs shadow-md transition cursor-pointer">
+                    Toch opstellen
                 </button>
             </div>
         </div>
@@ -2002,6 +2036,29 @@
         // =========================================================
         // 4. MATCH DASHBOARD (STADION COCKPIT VOOR LANGS HET VELD)
         // =========================================================
+        let currentMainTab = 'match';
+
+        function updateBottomNavActive(activeKey) {
+            ['match', 'live', 'season', 'settings'].forEach(k => {
+                const b = document.getElementById('bottomNav-' + k);
+                if (b) {
+                    b.className = (k === activeKey)
+                        ? "flex flex-col items-center justify-center py-2 rounded-2xl text-orange-400 bg-slate-800/90 transition cursor-pointer active:scale-95"
+                        : "flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95";
+                }
+            });
+        }
+
+        function openLiveMatchMode() {
+            if (!isMatchMode) {
+                isMatchMode = true;
+                localStorage.setItem('ona_jo11_4_match_mode', 'true');
+                applyMatchModeUI();
+            } else {
+                updateBottomNavActive('live');
+            }
+        }
+
         function toggleMatchMode() {
             isMatchMode = !isMatchMode;
             localStorage.setItem('ona_jo11_4_match_mode', isMatchMode ? 'true' : 'false');
@@ -2020,6 +2077,7 @@
                 dedicatedContainer.classList.remove('hidden');
 
                 activeQuarterView = timerActiveQuarter;
+                updateBottomNavActive('live');
 
                 renderScoreboard();
                 renderMatchModeCockpit();
@@ -2028,6 +2086,7 @@
                 dedicatedContainer.classList.add('hidden');
                 mainHeader.classList.remove('hidden');
                 standardContainer.classList.remove('hidden');
+                updateBottomNavActive(currentMainTab || 'match');
 
                 if (launchBtn) {
                     launchBtn.className = "bg-gradient-to-r from-rose-700 via-rose-600 to-orange-600 hover:from-rose-800 hover:to-orange-700 active:scale-95 text-white px-3.5 sm:px-4 py-2.5 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-2 shadow-md border border-rose-400";
@@ -2756,6 +2815,14 @@
         }
 
         function switchMainTab(tab, keepLoadedMatch = false) {
+            currentMainTab = tab;
+            if (isMatchMode) {
+                isMatchMode = false;
+                localStorage.setItem('ona_jo11_4_match_mode', 'false');
+                document.getElementById('dedicatedMatchModeContainer')?.classList.add('hidden');
+                document.getElementById('mainHeader')?.classList.remove('hidden');
+                document.getElementById('standardAppContainer')?.classList.remove('hidden');
+            }
             if (tab === 'match' && !keepLoadedMatch && loadedMatchId !== null) {
                 startNewMatchMode(true);
             }
@@ -2770,15 +2837,7 @@
             const drawerSeason = document.getElementById('drawerTab-season');
             const drawerSettings = document.getElementById('drawerTab-settings');
 
-            // Update Bottom Navigation Bar
-            ['match', 'season', 'settings'].forEach(t => {
-                const b = document.getElementById('bottomNav-' + t);
-                if (b) {
-                    b.className = (t === tab)
-                        ? "flex flex-col items-center justify-center py-2 rounded-2xl text-orange-400 bg-slate-800/90 transition cursor-pointer active:scale-95"
-                        : "flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95";
-                }
-            });
+            updateBottomNavActive(tab);
 
             const activeDrawerCls = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-orange-600 text-white shadow-md";
             const inactiveDrawerCls = "w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white";
@@ -3245,8 +3304,59 @@
             return false;
         }
 
-        function handlePositionChange(quarter, posId, playerName) {
-            if (isEffectiveReadOnly()) return;
+        let pendingPositionChange = null;
+
+        function getForecastPctMap(customLineup = null) {
+            const hist = getSeasonHistoryStats(loadedMatchId);
+            const active = getActivePlayers();
+            const todayMins = calculateMatchMinutes(customLineup);
+
+            let guestFieldMinutesToday = 0;
+            active.filter(p => p.isGuest).forEach(g => {
+                guestFieldMinutesToday += (todayMins[g.name]?.field || 0);
+            });
+
+            const fixedActive = active.filter(p => !p.isGuest);
+            let totalFixedOutfieldShares = 0;
+            fixedActive.forEach(p => {
+                const kMin = todayMins[p.name]?.keeper || 0;
+                totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
+            });
+
+            const netFieldForFixed = Math.max(0, 420 - guestFieldMinutesToday);
+            const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : 52.5;
+
+            const result = {};
+            basePlayers.forEach(p => {
+                const h = hist[p.name] || { outfieldMatches: 0, fieldMinutes: 0, targetFieldMinutesSum: 0 };
+                const isPresentToday = attendance[p.name] !== false;
+                const todayK = isPresentToday ? (todayMins[p.name]?.keeper || 0) : 0;
+                const todayF = isPresentToday ? (todayMins[p.name]?.field || 0) : 0;
+                const outfieldFractionToday = isPresentToday ? Math.max(0, (60 - todayK) / 60) : 0;
+
+                const newField = h.fieldMinutes + todayF;
+                const newOutfieldMatches = h.outfieldMatches + outfieldFractionToday;
+                const newTargetSum = h.targetFieldMinutesSum + (matchFieldTarget * outfieldFractionToday);
+
+                const oldPct = h.targetFieldMinutesSum > 0 ? ((h.fieldMinutes - h.targetFieldMinutesSum) / h.targetFieldMinutesSum) * 100 : 0;
+                const newPct = newTargetSum > 0 ? ((newField - newTargetSum) / newTargetSum) * 100 : 0;
+
+                result[p.name] = {
+                    oldPct,
+                    newPct,
+                    hasOutfield: newOutfieldMatches > 0,
+                    hasHist: h.outfieldMatches > 0
+                };
+            });
+            return result;
+        }
+
+        function formatSignedPct(val) {
+            const num = Number(val) || 0;
+            return `${num > 0 ? '+' : ''}${num.toFixed(1)}%`;
+        }
+
+        function commitPositionChange(quarter, posId, playerName) {
             if (!playerName) {
                 delete lineup[quarter][posId];
             } else {
@@ -3269,6 +3379,56 @@
             checkConsecutiveBenchWarning();
             renderMatchModeCockpit();
             syncLiveDraftToCloud();
+        }
+
+        function handlePositionChange(quarter, posId, playerName) {
+            if (isEffectiveReadOnly()) return;
+
+            // Controleer 5%-marge bij het kiezen van een vaste veldspeler
+            const isBasePlayer = playerName && basePlayers.some(p => p.name === playerName);
+            if (isBasePlayer && posId !== "GK") {
+                const beforeMap = getForecastPctMap(lineup);
+                const simulatedLineup = JSON.parse(JSON.stringify(lineup));
+                simulatedLineup[quarter][posId] = playerName;
+                const afterMap = getForecastPctMap(simulatedLineup);
+
+                const beforeInfo = beforeMap[playerName];
+                const afterInfo = afterMap[playerName];
+
+                if (afterInfo && afterInfo.hasOutfield && (afterInfo.newPct >= 5.0 || afterInfo.newPct <= -5.0)) {
+                    const currentDisplayPct = beforeInfo ? beforeInfo.newPct : 0;
+                    pendingPositionChange = { quarter, posId, playerName };
+
+                    const directionText = afterInfo.newPct >= 5.0
+                        ? "boven de +5% streeftijd-marge"
+                        : "onder de -5% streeftijd-marge";
+
+                    document.getElementById('marginWarningSubtitle').innerHTML =
+                        `<strong>${playerName}</strong> komt ${directionText} uit als je hem in Blok ${quarter} opstelt.`;
+                    document.getElementById('marginWarningOldPct').innerText = formatSignedPct(currentDisplayPct);
+                    document.getElementById('marginWarningNewPct').innerText = formatSignedPct(afterInfo.newPct);
+                    document.getElementById('marginWarningModal').classList.remove('hidden');
+                    return;
+                }
+            }
+
+            commitPositionChange(quarter, posId, playerName);
+        }
+
+        function cancelMarginWarning() {
+            pendingPositionChange = null;
+            document.getElementById('marginWarningModal').classList.add('hidden');
+            renderAllViews();
+            renderMatchModeCockpit();
+        }
+
+        function confirmMarginWarning() {
+            const pending = pendingPositionChange;
+            pendingPositionChange = null;
+            document.getElementById('marginWarningModal').classList.add('hidden');
+            if (pending) {
+                commitPositionChange(pending.quarter, pending.posId, pending.playerName);
+            }
         }
 
         function buildPositionSelectHTML(quarter, posObj, extraClasses = "") {
@@ -3331,6 +3491,19 @@
                 `;
             }
 
+            let marginArrowHtml = "";
+            if (selectedName && posId !== "GK" && basePlayers.some(p => p.name === selectedName)) {
+                const fMap = getForecastPctMap();
+                const info = fMap[selectedName];
+                if (info && info.hasOutfield) {
+                    if (info.newPct >= 5.0) {
+                        marginArrowHtml = `<span class="text-rose-600 font-black text-xs leading-none shrink-0" title="Boven +5% marge (${formatSignedPct(info.newPct)})">▲</span>`;
+                    } else if (info.newPct <= -5.0) {
+                        marginArrowHtml = `<span class="text-rose-600 font-black text-xs leading-none shrink-0" title="Onder -5% marge (${formatSignedPct(info.newPct)})">▼</span>`;
+                    }
+                }
+            }
+
             return `
                 <div class="bg-white/95 backdrop-blur-xs rounded-xl p-2 shadow-lg border-2 ${selectedName ? 'border-white' : 'border-rose-400'} w-full max-w-[175px] mx-auto transition transform hover:scale-[1.01]">
                     <div class="flex items-center justify-between mb-1">
@@ -3339,7 +3512,12 @@
                         </span>
                         <span class="text-[9px] font-bold text-slate-400 truncate ml-1">${roleSub}</span>
                     </div>
-                    ${buildPositionSelectHTML(quarter, posObj, "p-1.5 text-[11px]")}
+                    <div class="flex items-center gap-1">
+                        <div class="flex-1 min-w-0">
+                            ${buildPositionSelectHTML(quarter, posObj, "p-1.5 text-[11px]")}
+                        </div>
+                        ${marginArrowHtml}
+                    </div>
                     ${emergencyBadgeHtml}
                 </div>
             `;
@@ -4437,7 +4615,8 @@
         // =========================================================
         // 18. LIVE SPEELTIJD MONITOR (ALLEEN AFGESLOTEN WEDSTRIJDEN)
         // =========================================================
-        function calculateMatchMinutes() {
+        function calculateMatchMinutes(customLineup = null) {
+            const srcLineup = customLineup || lineup;
             const active = getActivePlayers();
             const mins = {};
             active.forEach(p => {
@@ -4445,9 +4624,9 @@
             });
 
             for (let q = 1; q <= 4; q++) {
-                const pitchNames = Object.values(lineup[q] || {}).filter(Boolean);
-                for (let posId in lineup[q]) {
-                    const pName = lineup[q][posId];
+                const pitchNames = Object.values(srcLineup[q] || {}).filter(Boolean);
+                for (let posId in srcLineup[q]) {
+                    const pName = srcLineup[q][posId];
                     if (pName && mins[pName]) {
                         if (posId === "GK") mins[pName].keeper += 15;
                         else mins[pName].field += 15;
