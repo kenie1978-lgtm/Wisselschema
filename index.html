@@ -194,8 +194,8 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="text-base sm:text-lg font-black tracking-tight text-white leading-tight">ON Almelo JO11-4</h1>
-                            <span class="hidden sm:inline bg-orange-500/20 border border-orange-400/40 text-orange-300 text-[10px] font-bold px-2 py-0.2 rounded-full">
-                                8v8 • 4x 15m
+                            <span id="headerFormationBadge" class="inline bg-orange-500/20 border border-orange-400/40 text-orange-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                8v8 • 1-3-3-1 • 4x 15m
                             </span>
                         </div>
                         <p class="text-slate-400 text-[10px] leading-none mt-0.5 truncate max-w-[190px] sm:max-w-none">Live Match Tracker & Wisselplanner</p>
@@ -1099,6 +1099,75 @@
 
             <!-- INSTELLINGEN & MEER TAB -->
             <div id="view-settings" class="hidden space-y-5">
+                <!-- SPELSYSTEEM & FORMATIE INSTELLINGEN -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+                    <div class="border-b border-slate-100 pb-3 flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                            <span class="text-[11px] font-black uppercase tracking-wider text-orange-600">Tactiek & Velduitlijning</span>
+                            <h2 class="text-lg font-black text-slate-900">🏟️ Spelsysteem & Formatie</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Kies het aantal spelers op het veld (7 t/m 10) en de verdeling per linie (1 t/m 4). Er staat altijd 1 keeper op doel.</p>
+                        </div>
+                        <span id="settingsFormationBadge" class="bg-slate-900 text-orange-400 font-black text-xs px-3 py-1.5 rounded-xl border border-slate-700">
+                            1-3-3-1
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                        <div>
+                            <label for="formationTotalPlayersSelect" class="block text-[11px] font-extrabold uppercase text-slate-500 mb-1.5">Aantal spelers op het veld</label>
+                            <select id="formationTotalPlayersSelect" onchange="setFormationTotalPlayers(this.value)" class="w-full border-2 border-slate-300 rounded-xl p-2.5 text-xs font-black bg-slate-50 text-slate-800 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 cursor-pointer editable-control">
+                                <option value="7">7 spelers (7v7)</option>
+                                <option value="8" selected>8 spelers (8v8)</option>
+                                <option value="9">9 spelers (9v9)</option>
+                                <option value="10">10 spelers (10v10)</option>
+                            </select>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5 flex items-center justify-between">
+                            <span class="text-xs font-extrabold text-amber-900">🧤 Keeper</span>
+                            <span class="text-xs font-black bg-white text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-lg">1 (Altijd vast)</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 pt-1">
+                        <!-- Verdedigers -->
+                        <div class="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+                            <div>
+                                <div class="text-xs font-black text-blue-900">🛡️ Verdedigers</div>
+                                <div id="formationDefLabels" class="text-[10px] font-semibold text-slate-500">LV • CV • RV</div>
+                            </div>
+                            <div id="formationDefBtns" class="flex items-center gap-1.5"></div>
+                        </div>
+
+                        <!-- Middenvelders -->
+                        <div class="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+                            <div>
+                                <div class="text-xs font-black text-emerald-900">⚙️ Middenvelders</div>
+                                <div id="formationMidLabels" class="text-[10px] font-semibold text-slate-500">LM • CM • RM</div>
+                            </div>
+                            <div id="formationMidBtns" class="flex items-center gap-1.5"></div>
+                        </div>
+
+                        <!-- Aanvallers -->
+                        <div class="flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+                            <div>
+                                <div class="text-xs font-black text-rose-900">⚡ Aanvallers</div>
+                                <div id="formationAttLabels" class="text-[10px] font-semibold text-slate-500">SP</div>
+                            </div>
+                            <div id="formationAttBtns" class="flex items-center gap-1.5"></div>
+                        </div>
+                    </div>
+
+                    <div id="formationSummaryBar" class="bg-slate-900 text-white rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+                        <div class="text-xs font-black">
+                            Actief systeem: <span id="formationSummaryString" class="text-orange-400">1-3-3-1</span>
+                        </div>
+                        <span id="formationCountStatusBadge" class="text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                            8 / 8 spelers
+                        </span>
+                    </div>
+                    <p id="formationHintText" class="hidden text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2"></p>
+                </div>
+
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
                     <div class="border-b border-slate-100 pb-3">
                         <span class="text-[11px] font-black uppercase tracking-wider text-orange-600">Weergave & Minimalisme</span>
@@ -1504,21 +1573,120 @@
 
         let basePlayers = JSON.parse(localStorage.getItem('ona_jo11_4_custom_roles')) || DEFAULT_PLAYERS;
 
-        const POSITIONS = [
-            { id: "SP", short: "SP", label: "Spits (SP)", line: "Aanval" },
-            { id: "LM", short: "LM", label: "Linkermidden (LM)", line: "Middenveld" },
-            { id: "CM", short: "CM (CVM)", label: "Centraal / CVM (CM)", line: "Middenveld" },
-            { id: "RM", short: "RM", label: "Rechtermidden (RM)", line: "Middenveld" },
-            { id: "LV", short: "LV", label: "Linksachter (LV)", line: "Verdediging" },
-            { id: "CV", short: "CV", label: "Centraal Achter (CV)", line: "Verdediging" },
-            { id: "RV", short: "RV", label: "Rechtsachter (RV)", line: "Verdediging" },
-            { id: "GK", short: "GK", label: "Keeper (GK)", line: "Keeper" }
-        ];
+        const DEFAULT_FORMATION_CONFIG = { totalPlayers: 8, def: 3, mid: 3, att: 1 };
 
-        const TABLE_POSITIONS = [
-            POSITIONS[7], POSITIONS[4], POSITIONS[5], POSITIONS[6],
-            POSITIONS[1], POSITIONS[2], POSITIONS[3], POSITIONS[0]
-        ];
+        const LINE_POSITION_TEMPLATES = {
+            Aanval: {
+                1: [
+                    { id: "SP", short: "SP", label: "Spits (SP)", line: "Aanval" }
+                ],
+                2: [
+                    { id: "LA", short: "LA", label: "Linkeraanvaller (LA)", line: "Aanval" },
+                    { id: "RA", short: "RA", label: "Rechteraanvaller (RA)", line: "Aanval" }
+                ],
+                3: [
+                    { id: "LA", short: "LA", label: "Linksbuiten (LA)", line: "Aanval" },
+                    { id: "SP", short: "SP", label: "Spits (SP)", line: "Aanval" },
+                    { id: "RA", short: "RA", label: "Rechtsbuiten (RA)", line: "Aanval" }
+                ],
+                4: [
+                    { id: "LA", short: "LA", label: "Linksbuiten (LA)", line: "Aanval" },
+                    { id: "LSP", short: "LSP", label: "Linkerspits (LSP)", line: "Aanval" },
+                    { id: "RSP", short: "RSP", label: "Rechterspits (RSP)", line: "Aanval" },
+                    { id: "RA", short: "RA", label: "Rechtsbuiten (RA)", line: "Aanval" }
+                ]
+            },
+            Middenveld: {
+                1: [
+                    { id: "CM", short: "CM (CVM)", label: "Centraal / CVM (CM)", line: "Middenveld" }
+                ],
+                2: [
+                    { id: "LM", short: "LM", label: "Linkermidden (LM)", line: "Middenveld" },
+                    { id: "RM", short: "RM", label: "Rechtermidden (RM)", line: "Middenveld" }
+                ],
+                3: [
+                    { id: "LM", short: "LM", label: "Linkermidden (LM)", line: "Middenveld" },
+                    { id: "CM", short: "CM (CVM)", label: "Centraal / CVM (CM)", line: "Middenveld" },
+                    { id: "RM", short: "RM", label: "Rechtermidden (RM)", line: "Middenveld" }
+                ],
+                4: [
+                    { id: "LM", short: "LM", label: "Linkermidden (LM)", line: "Middenveld" },
+                    { id: "LCM", short: "LCM", label: "Links Centraal (LCM)", line: "Middenveld" },
+                    { id: "RCM", short: "RCM", label: "Rechts Centraal (RCM)", line: "Middenveld" },
+                    { id: "RM", short: "RM", label: "Rechtermidden (RM)", line: "Middenveld" }
+                ]
+            },
+            Verdediging: {
+                1: [
+                    { id: "CV", short: "CV", label: "Centraal Achter (CV)", line: "Verdediging" }
+                ],
+                2: [
+                    { id: "LV", short: "LV", label: "Linksachter (LV)", line: "Verdediging" },
+                    { id: "RV", short: "RV", label: "Rechtsachter (RV)", line: "Verdediging" }
+                ],
+                3: [
+                    { id: "LV", short: "LV", label: "Linksachter (LV)", line: "Verdediging" },
+                    { id: "CV", short: "CV", label: "Centraal Achter (CV)", line: "Verdediging" },
+                    { id: "RV", short: "RV", label: "Rechtsachter (RV)", line: "Verdediging" }
+                ],
+                4: [
+                    { id: "LV", short: "LV", label: "Linksachter (LV)", line: "Verdediging" },
+                    { id: "LCV", short: "LCV", label: "Links Centraal (LCV)", line: "Verdediging" },
+                    { id: "RCV", short: "RCV", label: "Rechts Centraal (RCV)", line: "Verdediging" },
+                    { id: "RV", short: "RV", label: "Rechtsachter (RV)", line: "Verdediging" }
+                ]
+            },
+            Keeper: {
+                1: [
+                    { id: "GK", short: "GK", label: "Keeper (GK)", line: "Keeper" }
+                ]
+            }
+        };
+
+        function sanitizeFormationConfig(cfg) {
+            const c = Object.assign({}, DEFAULT_FORMATION_CONFIG, cfg || {});
+            let total = parseInt(c.totalPlayers, 10);
+            if (![7, 8, 9, 10].includes(total)) total = 8;
+            let def = Math.min(4, Math.max(1, parseInt(c.def, 10) || 1));
+            let mid = Math.min(4, Math.max(1, parseInt(c.mid, 10) || 1));
+            let att = Math.min(4, Math.max(1, parseInt(c.att, 10) || 1));
+            // Zorg dat 1 + def + mid + att nooit groter is dan total
+            while (1 + def + mid + att > total) {
+                if (att > 1 && att >= def && att >= mid) att--;
+                else if (mid > 1 && mid >= def) mid--;
+                else if (def > 1) def--;
+                else break;
+            }
+            return { totalPlayers: total, def, mid, att };
+        }
+
+        let formationConfig = sanitizeFormationConfig(JSON.parse(localStorage.getItem('ona_jo11_4_formation_v1') || 'null'));
+        let POSITIONS = [];
+        let TABLE_POSITIONS = [];
+
+        function getFormationString(cfg = formationConfig) {
+            return `1-${cfg.def}-${cfg.mid}-${cfg.att}`;
+        }
+
+        function getActiveOutfieldCount(cfg = formationConfig) {
+            return (cfg.def || 0) + (cfg.mid || 0) + (cfg.att || 0);
+        }
+
+        function getActiveTotalOnPitch(cfg = formationConfig) {
+            return 1 + getActiveOutfieldCount(cfg);
+        }
+
+        function rebuildPositionsFromFormation() {
+            const attList = LINE_POSITION_TEMPLATES.Aanval[formationConfig.att] || LINE_POSITION_TEMPLATES.Aanval[1];
+            const midList = LINE_POSITION_TEMPLATES.Middenveld[formationConfig.mid] || LINE_POSITION_TEMPLATES.Middenveld[3];
+            const defList = LINE_POSITION_TEMPLATES.Verdediging[formationConfig.def] || LINE_POSITION_TEMPLATES.Verdediging[3];
+            const gkList = LINE_POSITION_TEMPLATES.Keeper[1];
+
+            POSITIONS = [...attList, ...midList, ...defList, ...gkList];
+            TABLE_POSITIONS = [...gkList, ...defList, ...midList, ...attList];
+        }
+
+        rebuildPositionsFromFormation();
 
         const DEFAULT_OPPONENTS = [
             { name: "avc Heracles O11-2JM", locked: false },
@@ -2784,6 +2952,13 @@
                             localStorage.setItem('ona_jo11_4_custom_roles', JSON.stringify(basePlayers));
                         }
 
+                        if (data.formationConfig && loadedMatchId === null) {
+                            formationConfig = sanitizeFormationConfig(data.formationConfig);
+                            localStorage.setItem('ona_jo11_4_formation_v1', JSON.stringify(formationConfig));
+                            rebuildPositionsFromFormation();
+                            renderFormationSettingsUI();
+                        }
+
                         if (data.liveDraft) {
                             latestCloudLiveDraft = JSON.parse(JSON.stringify(data.liveDraft));
                         }
@@ -2859,7 +3034,8 @@
                 updatedBy: clientSessionId,
                 savedMatches: JSON.parse(JSON.stringify(savedMatches)),
                 opponentsList: JSON.parse(JSON.stringify(opponentsList)),
-                basePlayers: JSON.parse(JSON.stringify(basePlayers))
+                basePlayers: JSON.parse(JSON.stringify(basePlayers)),
+                formationConfig: { ...formationConfig }
             };
 
             if (loadedMatchId === null) {
@@ -2939,6 +3115,129 @@
                     ? `🛡️ Ingelogd als Begeleiding (${currentUserName})`
                     : (currentUserRole === 'supporter' ? '👀 Supporter (Alleen-lezen)' : 'Niet ingelogd');
             }
+            renderFormationSettingsUI();
+        }
+
+        function pruneLineupToCurrentPositions() {
+            const validIds = new Set(POSITIONS.map(p => p.id));
+            for (let q = 1; q <= 4; q++) {
+                if (!lineup[q]) lineup[q] = {};
+                Object.keys(lineup[q]).forEach(posId => {
+                    if (!validIds.has(posId)) delete lineup[q][posId];
+                });
+                if (!lineup[q]["GK"]) {
+                    lineup[q]["GK"] = isFixedKeeper ? fixedKeeperName : (quarterKeepers[q] || fixedKeeperName);
+                }
+            }
+        }
+
+        function applyFormationChange(newCfg, shouldSync = true) {
+            formationConfig = sanitizeFormationConfig(newCfg);
+            localStorage.setItem('ona_jo11_4_formation_v1', JSON.stringify(formationConfig));
+            rebuildPositionsFromFormation();
+            pruneLineupToCurrentPositions();
+            renderFormationSettingsUI();
+            renderAllViews();
+            renderMatchModeCockpit();
+            if (shouldSync) syncLiveDraftToCloud();
+        }
+
+        function setFormationTotalPlayers(val) {
+            if (isEffectiveReadOnly()) return;
+            const total = parseInt(val, 10);
+            if (![7, 8, 9, 10].includes(total)) return;
+
+            const defaultsBySize = {
+                7: { totalPlayers: 7, def: 2, mid: 3, att: 1 },
+                8: { totalPlayers: 8, def: 3, mid: 3, att: 1 },
+                9: { totalPlayers: 9, def: 3, mid: 3, att: 2 },
+                10: { totalPlayers: 10, def: 3, mid: 4, att: 2 }
+            };
+            applyFormationChange(defaultsBySize[total], true);
+        }
+
+        function setFormationLineCount(lineKey, count) {
+            if (isEffectiveReadOnly()) return;
+            const next = { ...formationConfig, [lineKey]: count };
+            if (1 + next.def + next.mid + next.att > next.totalPlayers) return;
+            applyFormationChange(next, true);
+        }
+
+        function renderFormationSettingsUI() {
+            const fStr = getFormationString();
+            const used = getActiveTotalOnPitch();
+            const total = formationConfig.totalPlayers;
+
+            const headerBadge = document.getElementById('headerFormationBadge');
+            if (headerBadge) {
+                headerBadge.innerText = `${total}v${total} • ${fStr} • 4x 15m`;
+            }
+
+            const sel = document.getElementById('formationTotalPlayersSelect');
+            if (sel) sel.value = String(total);
+
+            const badge = document.getElementById('settingsFormationBadge');
+            if (badge) badge.innerText = fStr;
+
+            const sumStr = document.getElementById('formationSummaryString');
+            if (sumStr) sumStr.innerText = fStr;
+
+            const statusBadge = document.getElementById('formationCountStatusBadge');
+            const hintEl = document.getElementById('formationHintText');
+            if (statusBadge) {
+                if (used === total) {
+                    statusBadge.className = "text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40";
+                    statusBadge.innerText = `${used} / ${total} spelers ✓`;
+                    if (hintEl) hintEl.classList.add('hidden');
+                } else {
+                    const diff = total - used;
+                    statusBadge.className = "text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40";
+                    statusBadge.innerText = `${used} / ${total} spelers`;
+                    if (hintEl) {
+                        hintEl.classList.remove('hidden');
+                        hintEl.innerText = `💡 Je hebt nog ${diff} veldspeler${diff > 1 ? 's' : ''} over om te verdelen over Verdediging, Middenveld of Aanval.`;
+                    }
+                }
+            }
+
+            const defPos = LINE_POSITION_TEMPLATES.Verdediging[formationConfig.def] || [];
+            const midPos = LINE_POSITION_TEMPLATES.Middenveld[formationConfig.mid] || [];
+            const attPos = LINE_POSITION_TEMPLATES.Aanval[formationConfig.att] || [];
+
+            const defLbl = document.getElementById('formationDefLabels');
+            const midLbl = document.getElementById('formationMidLabels');
+            const attLbl = document.getElementById('formationAttLabels');
+            if (defLbl) defLbl.innerText = defPos.map(p => p.id).join(' • ');
+            if (midLbl) midLbl.innerText = midPos.map(p => p.id).join(' • ');
+            if (attLbl) attLbl.innerText = attPos.map(p => p.id).join(' • ');
+
+            const effRO = isEffectiveReadOnly();
+            const configs = [
+                { key: 'def', containerId: 'formationDefBtns', current: formationConfig.def, othersSum: 1 + formationConfig.mid + formationConfig.att },
+                { key: 'mid', containerId: 'formationMidBtns', current: formationConfig.mid, othersSum: 1 + formationConfig.def + formationConfig.att },
+                { key: 'att', containerId: 'formationAttBtns', current: formationConfig.att, othersSum: 1 + formationConfig.def + formationConfig.mid }
+            ];
+
+            configs.forEach(c => {
+                const wrap = document.getElementById(c.containerId);
+                if (!wrap) return;
+                wrap.innerHTML = [1, 2, 3, 4].map(n => {
+                    const isActive = (n === c.current);
+                    const exceeds = (c.othersSum + n > total);
+                    const disabled = effRO || exceeds;
+                    let cls = "w-9 h-9 rounded-xl text-xs font-black transition ";
+                    if (isActive) {
+                        cls += "bg-orange-600 text-white shadow-sm cursor-pointer";
+                    } else if (exceeds) {
+                        cls += "bg-slate-200/70 text-slate-400 cursor-not-allowed";
+                    } else if (effRO) {
+                        cls += "bg-white border border-slate-200 text-slate-400 cursor-not-allowed";
+                    } else {
+                        cls += "bg-white border border-slate-300 text-slate-700 hover:border-orange-400 hover:text-orange-600 cursor-pointer";
+                    }
+                    return `<button type="button" ${disabled ? 'disabled' : ''} onclick="setFormationLineCount('${c.key}', ${n})" class="${cls}" title="${exceeds ? 'Totaal mag niet meer zijn dan ' + total + ' spelers' : ''}">${n}</button>`;
+                }).join('');
+            });
         }
 
         function switchStatsSubTab(subTab) {
@@ -3509,8 +3808,9 @@
                 totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
-            const netFieldForFixed = Math.max(0, 420 - guestFieldMinutesToday);
-            const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : 52.5;
+            const totalMatchFieldMins = getActiveOutfieldCount() * 60;
+            const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
+            const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
             const result = {};
             basePlayers.forEach(p => {
@@ -3773,6 +4073,35 @@
             `;
         }
 
+        function renderPitchLineHTML(quarter, lineName, badgeColorClass, extraWrapperClass = "", showArrows = false) {
+            const linePositions = POSITIONS.filter(p => p.line === lineName);
+            const count = linePositions.length;
+            if (count === 0) return "";
+
+            let gridClass = "grid grid-cols-1 justify-items-center";
+            if (count === 2) gridClass = "grid grid-cols-2 gap-3 sm:gap-6 max-w-md mx-auto items-center";
+            else if (count === 3) gridClass = "grid grid-cols-3 gap-2 sm:gap-4 items-center";
+            else if (count >= 4) gridClass = "grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 items-center";
+
+            const labelText = `${showArrows ? '⬆ ' : ''}${lineName} (${linePositions.map(p => p.short).join(' • ')})${showArrows ? ' ⬆' : ''}`;
+
+            const cardsHtml = linePositions.map(pos => {
+                const isCvmCenter = (lineName === "Middenveld" && count === 3 && pos.id === "CM");
+                const cardBadge = isCvmCenter ? "bg-emerald-200 text-emerald-950" : badgeColorClass;
+                const card = createPitchCardHTML(quarter, pos.id, cardBadge);
+                return isCvmCenter ? `<div class="transform translate-y-2">${card}</div>` : card;
+            }).join('');
+
+            return `
+                <div class="relative z-10 ${extraWrapperClass}">
+                    <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1.5">${labelText}</div>
+                    <div class="${gridClass}">
+                        ${cardsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
         function generatePitchHTMLForQuarter(quarter, compact = false) {
             const active = getActivePlayers();
             const onPitch = Object.values(lineup[quarter] || {}).filter(Boolean);
@@ -3792,6 +4121,7 @@
                         <div class="flex items-center gap-2">
                             <span class="bg-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-lg">BLOK ${quarter}</span>
                             <span class="text-xs font-bold text-slate-300">Minuut ${qStart} - ${qEnd}</span>
+                            <span class="text-[10px] font-black bg-slate-800 text-orange-300 border border-slate-700 px-2 py-0.5 rounded-full">${getFormationString()}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-orange-300">
@@ -3807,32 +4137,9 @@
                         <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-56 h-24 border-t-2 border-x-2 pitch-line bg-white/5"></div>
                         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-12 border-b-2 border-x-2 pitch-line bg-white/5"></div>
 
-                        <div class="relative z-10 pt-1">
-                            <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1">⬆ Aanval (Spits) ⬆</div>
-                            <div class="grid grid-cols-1 justify-items-center">
-                                ${createPitchCardHTML(quarter, "SP", "bg-rose-100 text-rose-800")}
-                            </div>
-                        </div>
-
-                        <div class="relative z-10">
-                            <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1.5">Middenveld (LM • CVM • RM)</div>
-                            <div class="grid grid-cols-3 gap-2 sm:gap-4 items-center">
-                                ${createPitchCardHTML(quarter, "LM", "bg-emerald-100 text-emerald-800")}
-                                <div class="transform translate-y-2">
-                                    ${createPitchCardHTML(quarter, "CM", "bg-emerald-200 text-emerald-950")}
-                                </div>
-                                ${createPitchCardHTML(quarter, "RM", "bg-emerald-100 text-emerald-800")}
-                            </div>
-                        </div>
-
-                        <div class="relative z-10">
-                            <div class="text-center text-[10px] font-extrabold uppercase tracking-widest text-white/80 mb-1.5">Verdediging (LV • CV • RV)</div>
-                            <div class="grid grid-cols-3 gap-2 sm:gap-4 items-center">
-                                ${createPitchCardHTML(quarter, "LV", "bg-blue-100 text-blue-800")}
-                                ${createPitchCardHTML(quarter, "CV", "bg-blue-100 text-blue-800")}
-                                ${createPitchCardHTML(quarter, "RV", "bg-blue-100 text-blue-800")}
-                            </div>
-                        </div>
+                        ${renderPitchLineHTML(quarter, "Aanval", "bg-rose-100 text-rose-800", "pt-1", true)}
+                        ${renderPitchLineHTML(quarter, "Middenveld", "bg-emerald-100 text-emerald-800", "", false)}
+                        ${renderPitchLineHTML(quarter, "Verdediging", "bg-blue-100 text-blue-800", "", false)}
 
                         <div class="relative z-10 pb-1">
                             <div class="grid grid-cols-1 justify-items-center">
@@ -4099,8 +4406,9 @@
         function askFairLineupConfirmation() {
             if (isEffectiveReadOnly()) return;
             const active = getActivePlayers();
-            if (active.length < 8) {
-                alert("Zet minimaal 8 spelers op aanwezig om een 8v8 opstelling te maken.");
+            const minNeeded = getActiveTotalOnPitch();
+            if (active.length < minNeeded) {
+                alert(`Zet minimaal ${minNeeded} spelers op aanwezig om een ${formationConfig.totalPlayers}v${formationConfig.totalPlayers} (${getFormationString()}) opstelling te maken.`);
                 return;
             }
             document.getElementById('fairLineupModal').classList.remove('hidden');
@@ -4164,7 +4472,9 @@
             if (isEffectiveReadOnly()) return;
 
             const active = getActivePlayers();
-            if (active.length < 8) return;
+            const requiredOnPitch = getActiveTotalOnPitch();
+            const outfieldCount = getActiveOutfieldCount();
+            if (active.length < requiredOnPitch) return;
 
             const keepersPerQ = {};
             for (let q = 1; q <= 4; q++) {
@@ -4183,7 +4493,7 @@
                 totalOutfieldPlayerQuartersAvailable += (4 - kCount);
             });
 
-            const totalFieldSlots = 28;
+            const totalFieldSlots = outfieldCount * 4;
             const hist = getSeasonHistoryStats(loadedMatchId);
             const outfieldCandidates = active.filter(p => maxOutfieldQuarters[p.name] > 0);
 
@@ -4277,7 +4587,7 @@
 
             for (let q = 1; q <= 4; q++) {
                 const availableOutfieldInQ = active.filter(p => keepersPerQ[q] !== p.name);
-                const neededBenchInQ = Math.max(0, availableOutfieldInQ.length - 7);
+                const neededBenchInQ = Math.max(0, availableOutfieldInQ.length - outfieldCount);
 
                 let candidates = availableOutfieldInQ
                     .filter(p => (benchTurnsNeeded[p.name] || 0) > 0)
@@ -4298,7 +4608,7 @@
             }
 
             lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
-            const fieldSlotIds = ["LV", "CV", "RV", "LM", "CM", "RM", "SP"];
+            const fieldSlotIds = POSITIONS.filter(p => p.id !== "GK").map(p => p.id);
 
             lineup[1]["GK"] = keepersPerQ[1];
             const sevenFieldPlayersB1 = active.filter(p => keepersPerQ[1] !== p.name && !benchPerQ[1].includes(p.name));
@@ -4359,25 +4669,33 @@
                 return null;
             }
 
-            let sp = pick(p => p.pos1 === "Aanval") || pick(p => p.pos2 === "Aanval") || pick(p => p.name === "Arthur" || p.name === "Noud");
-            if (sp) block["SP"] = sp.name;
+            const attSlots = POSITIONS.filter(p => p.line === "Aanval").map(p => p.id);
+            const midSlots = POSITIONS.filter(p => p.line === "Middenveld").map(p => p.id);
+            const defSlots = POSITIONS.filter(p => p.line === "Verdediging").map(p => p.id);
 
-            let cm = pick(p => p.name === "Kerem") || pick(p => p.pos1 === "Middenveld");
-            if (cm) block["CM"] = cm.name;
+            attSlots.forEach(slot => {
+                const att = pick(p => p.pos1 === "Aanval") || pick(p => p.pos2 === "Aanval");
+                if (att) block[slot] = att.name;
+            });
 
-            ["LV", "CV", "RV"].forEach(slot => {
-                let def = pick(p => p.pos1 === "Verdediging") || pick(p => p.pos2 === "Verdediging");
+            if (midSlots.includes("CM")) {
+                const cm = pick(p => p.name === "Kerem") || pick(p => p.pos1 === "Middenveld");
+                if (cm) block["CM"] = cm.name;
+            }
+
+            defSlots.forEach(slot => {
+                const def = pick(p => p.pos1 === "Verdediging") || pick(p => p.pos2 === "Verdediging");
                 if (def) block[slot] = def.name;
             });
 
-            ["CM", "LM", "RM"].forEach(slot => {
+            midSlots.forEach(slot => {
                 if (!block[slot]) {
-                    let mid = pick(p => p.pos1 === "Middenveld") || pick(p => p.pos2 === "Middenveld") || pick(() => true);
+                    const mid = pick(p => p.pos1 === "Middenveld") || pick(p => p.pos2 === "Middenveld");
                     if (mid) block[slot] = mid.name;
                 }
             });
 
-            ["SP", "LV", "CV", "RV", "CM", "LM", "RM"].forEach(slot => {
+            [...attSlots, ...defSlots, ...midSlots].forEach(slot => {
                 if (!block[slot] && pool.length > 0) block[slot] = pool.shift().name;
             });
 
@@ -4408,7 +4726,7 @@
                     if (!assigned || assigned.trim() === "") {
                         return {
                             valid: false,
-                            error: `Blok ${q} heeft nog een lege plek op positie: ${pos.label}. Vul alle 8 posities in voordat je de wedstrijd opslaat!`
+                            error: `Blok ${q} heeft nog een lege plek op positie: ${pos.label}. Vul alle ${POSITIONS.length} posities in voordat je de wedstrijd opslaat!`
                         };
                     }
                 }
@@ -4483,8 +4801,9 @@
                 totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
-            const netFieldForFixed = Math.max(0, 420 - guestFieldMinutesToday);
-            const targetFieldMinutesPerOutfielder = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : 52.5;
+            const totalMatchFieldMins = getActiveOutfieldCount() * 60;
+            const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
+            const targetFieldMinutesPerOutfielder = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
             const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
 
@@ -4498,6 +4817,7 @@
                 isFixedKeeper,
                 fixedKeeperName,
                 quarterKeepers: { ...quarterKeepers },
+                formationConfig: { ...formationConfig },
                 lineup: JSON.parse(JSON.stringify(lineup)),
                 minutes: todayMins,
                 targetFieldMinutesPerOutfielder,
@@ -4575,6 +4895,9 @@
             document.getElementById('fixedKeeperBox').classList.toggle('hidden', !isFixedKeeper);
             document.getElementById('splitKeeperBox').classList.toggle('hidden', isFixedKeeper);
 
+            formationConfig = sanitizeFormationConfig(m.formationConfig || DEFAULT_FORMATION_CONFIG);
+            rebuildPositionsFromFormation();
+            renderFormationSettingsUI();
             lineup = m.lineup ? JSON.parse(JSON.stringify(m.lineup)) : { 1: { GK: fixedKeeperName }, 2: { GK: fixedKeeperName }, 3: { GK: fixedKeeperName }, 4: { GK: fixedKeeperName } };
             emergencySubs = m.emergencySubs ? JSON.parse(JSON.stringify(m.emergencySubs)) : [];
             matchGoals = m.goals ? JSON.parse(JSON.stringify(m.goals)) : [];
@@ -4641,6 +4964,9 @@
         function startNewMatchMode(restoreDraftIfAvailable = true) {
             loadedMatchId = null;
             isReadOnlyMode = false;
+            formationConfig = sanitizeFormationConfig(JSON.parse(localStorage.getItem('ona_jo11_4_formation_v1') || 'null'));
+            rebuildPositionsFromFormation();
+            renderFormationSettingsUI();
             if (restoreDraftIfAvailable && latestCloudLiveDraft) {
                 isApplyingRemoteUpdate = true;
                 try {
@@ -4991,8 +5317,9 @@
                 totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
-            const netFieldForFixed = Math.max(0, 420 - guestFieldMinutesToday);
-            const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : 52.5;
+            const totalMatchFieldMins = getActiveOutfieldCount() * 60;
+            const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
+            const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
             const pillEl = document.getElementById('forecastTargetPill');
             if (pillEl) {
@@ -5553,9 +5880,9 @@
 
         function getPosBadgeColorClass(posId) {
             if (posId === "GK") return "bg-amber-950 text-amber-300 border border-amber-600";
-            if (["LV", "CV", "RV"].includes(posId)) return "bg-blue-950 text-blue-300 border border-blue-600";
-            if (["LM", "CM", "RM"].includes(posId)) return "bg-emerald-950 text-emerald-300 border border-emerald-600";
-            if (posId === "SP") return "bg-rose-950 text-rose-300 border border-rose-600";
+            if (["LV", "LCV", "CV", "RCV", "RV"].includes(posId)) return "bg-blue-950 text-blue-300 border border-blue-600";
+            if (["LM", "LCM", "CM", "RCM", "RM"].includes(posId)) return "bg-emerald-950 text-emerald-300 border border-emerald-600";
+            if (["LA", "LSP", "SP", "RSP", "RA"].includes(posId)) return "bg-rose-950 text-rose-300 border border-rose-600";
             return "bg-slate-700 text-slate-200 border border-slate-600";
         }
 
@@ -5672,8 +5999,8 @@
             if (!sel || !sel.value) return;
 
             const playerName = sel.value;
-            const posCounts = { GK: 0, LV: 0, CV: 0, RV: 0, LM: 0, CM: 0, RM: 0, SP: 0, Wissel: 0 };
-            const posMinutes = { GK: 0, LV: 0, CV: 0, RV: 0, LM: 0, CM: 0, RM: 0, SP: 0, Wissel: 0 };
+            const posCounts = { GK: 0, Wissel: 0 };
+            const posMinutes = { GK: 0, Wissel: 0 };
 
             const sortedMatches = [...savedMatches].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -5890,7 +6217,7 @@
             const hist = getSeasonHistoryStats(null);
             
             let context = `=== TEAM INFORMATIE ===\n`;
-            context += `Team: v.v. Oranje Nassau Almelo JO11-4 (8 tegen 8, 4 kwartieren van 15 minuten).\n\n`;
+            context += `Team: v.v. Oranje Nassau Almelo JO11-4 (${formationConfig.totalPlayers} tegen ${formationConfig.totalPlayers}, systeem ${getFormationString()}, 4 kwartieren van 15 minuten).\n\n`;
 
             context += `=== SPELERSSTATISTIEKEN DIT SEIZOEN ===\n`;
             basePlayers.forEach(p => {
@@ -6073,9 +6400,9 @@
                     for (let b = 1; b <= 4; b++) {
                         const l = m.lineup?.[b] || {};
                         if (l["GK"]) posCounts.Keeper++;
-                        ["LV", "CV", "RV"].forEach(p => { if (l[p]) posCounts.Verdediging++; });
-                        ["LM", "CM", "RM"].forEach(p => { if (l[p]) posCounts.Middenveld++; });
-                        if (l["SP"]) posCounts.Aanval++;
+                        ["LV", "LCV", "CV", "RCV", "RV"].forEach(p => { if (l[p]) posCounts.Verdediging++; });
+                        ["LM", "LCM", "CM", "RCM", "RM"].forEach(p => { if (l[p]) posCounts.Middenveld++; });
+                        ["LA", "LSP", "SP", "RSP", "RA"].forEach(p => { if (l[p]) posCounts.Aanval++; });
                     }
                 });
 
@@ -6229,6 +6556,7 @@
                 team: "Oranje Nassau JO11-4",
                 basePlayers,
                 opponentsList,
+                formationConfig,
                 savedMatches
             };
         }
@@ -6297,6 +6625,11 @@
             if (Array.isArray(parsed.basePlayers)) {
                 basePlayers = parsed.basePlayers;
                 localStorage.setItem('ona_jo11_4_custom_roles', JSON.stringify(basePlayers));
+            }
+            if (parsed.formationConfig) {
+                formationConfig = sanitizeFormationConfig(parsed.formationConfig);
+                localStorage.setItem('ona_jo11_4_formation_v1', JSON.stringify(formationConfig));
+                rebuildPositionsFromFormation();
             }
             localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
             pushFullStateToCloud();
