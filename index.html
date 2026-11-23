@@ -141,7 +141,7 @@
                     <span id="drawerSavedCountBadge" class="text-[11px] bg-slate-700 text-orange-300 font-bold px-2 py-0.5 rounded-full">0</span>
                 </button>
 
-                <button onclick="toggleMatchMode(); toggleNavDrawer();" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-gradient-to-r from-rose-700 to-orange-600 text-white shadow-md">
+                <button id="drawerTab-live" onclick="toggleMatchMode(); toggleNavDrawer();" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-gradient-to-r from-rose-700 to-orange-600 text-white shadow-md">
                     <span class="text-base">⏱️</span>
                     <span>Open Match Dashboard</span>
                 </button>
@@ -151,7 +151,7 @@
                     <span>Instellingen & Weergave</span>
                 </button>
 
-                <button onclick="openBackupModal(); toggleNavDrawer();" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-3 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white">
+                <button id="drawerTab-backup" onclick="openBackupModal(); toggleNavDrawer();" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-3 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white">
                     <span class="text-base">📦</span>
                     <span>Backup & Exporteren</span>
                 </button>
@@ -388,6 +388,18 @@
                 </button>
             </div>
 
+            <!-- MELDING ALS BEGELEIDING ALLE ONDERDELEN VOOR SUPPORTERS HEEFT VERBORGEN -->
+            <div id="supporterEmptyStateBox" class="hidden bg-white rounded-3xl p-8 shadow-sm border border-slate-200 text-center space-y-3">
+                <div class="text-4xl">🔒</div>
+                <h3 class="text-base font-black text-slate-900">Geen onderdelen gedeeld</h3>
+                <p class="text-xs text-slate-500 max-w-sm mx-auto">De begeleiding heeft momenteel alle onderdelen voor supporters verborgen. Probeer het later opnieuw of log in als begeleiding.</p>
+                <div class="pt-2">
+                    <button onclick="logoutUser()" class="bg-orange-600 hover:bg-orange-700 text-white font-black px-5 py-2.5 rounded-xl text-xs shadow cursor-pointer transition">
+                        🔄 Inloggen als Begeleiding
+                    </button>
+                </div>
+            </div>
+
             <!-- HOOFD VIEW: HOOFDSCHERM (OPSTELLING & INVOER) -->
             <div id="view-match" class="space-y-4">
 
@@ -395,7 +407,7 @@
                 <div id="loadedMatchBanner" class="hidden rounded-2xl p-4 shadow-md border-2"></div>
 
                 <!-- LIVE SCOREBORD & TIMER BALK (ALLEEN ZICHTBAAR IN VELD & LIVE) -->
-                <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-4 sm:p-5 shadow-md border border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div id="scoreboardBannerCard" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl p-4 sm:p-5 shadow-md border border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div class="flex items-center gap-3 sm:gap-6" id="scoreboardContainer">
                         <div class="text-center" id="scoreLeftTeamBlock">
                             <span id="scoreLeftTeamName" class="block text-[10px] font-extrabold uppercase tracking-wider truncate max-w-[130px] sm:max-w-[150px] text-orange-400">Oranje Nassau</span>
@@ -653,6 +665,8 @@
                     </div>
                 </div>
 
+                <!-- WRAPPER VOOR OPSTELLING & VELDWEERGAVE -->
+                <div id="pitchSectionWrapper" class="space-y-4">
                 <!-- Actieknoppenbalk & Weergave Selectie -->
                 <div id="actionControlsArea" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-2 editable-section">
@@ -813,6 +827,8 @@
                         </table>
                     </div>
                 </div>
+
+                </div><!-- einde pitchSectionWrapper -->
 
                 <!-- 3. UITKLAPBARE SECTIE: HISTORISCHE SPEELTIJD & 5%-REGEL MONITOR -->
                 <div id="uiCard-historical" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1168,6 +1184,35 @@
                     <p id="formationHintText" class="hidden text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2"></p>
                 </div>
 
+                <!-- ZICHTBAARHEID VOOR SUPPORTERS (ALLEEN BEGELEIDING) -->
+                <div id="supporterVisibilityCard" class="hidden bg-white rounded-2xl shadow-sm border-2 border-sky-200 p-5 space-y-4">
+                    <div class="border-b border-slate-100 pb-3 flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-black uppercase tracking-wider text-sky-600">Privacy & Delen</span>
+                                <span class="text-[10px] font-black bg-sky-100 text-sky-800 border border-sky-200 px-2 py-0.5 rounded-full">🛡️ Alleen Begeleiding</span>
+                            </div>
+                            <h2 class="text-lg font-black text-slate-900 mt-0.5">👀 Zichtbaarheid voor Supporters</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Bepaal exact welke onderdelen supporters mogen zien. Wijzigingen worden direct via de Cloud doorgevoerd.</p>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="setAllSupporterVisibility(true)" class="bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-extrabold px-2.5 py-1.5 rounded-xl text-[11px] transition cursor-pointer">
+                                Alles aan
+                            </button>
+                            <button type="button" onclick="setAllSupporterVisibility(false)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-extrabold px-2.5 py-1.5 rounded-xl text-[11px] transition cursor-pointer">
+                                Alles uit
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="supporterVisibilityTogglesList" class="divide-y divide-slate-100"></div>
+
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-[11px] font-bold text-emerald-800 flex items-center gap-2">
+                        <span>☁️</span>
+                        <span>Direct actief voor alle supporters via Cloud</span>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
                     <div class="border-b border-slate-100 pb-3">
                         <span class="text-[11px] font-black uppercase tracking-wider text-orange-600">Weergave & Minimalisme</span>
@@ -1268,7 +1313,7 @@
 
     <!-- VASTE GROTE ONDERBALK (ALTIJD ZICHTBAAR, OOK IN LIVE) -->
     <nav id="bottomNavBar" class="fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-2xl">
-        <div class="max-w-3xl mx-auto grid grid-cols-4 gap-1 px-2 py-2">
+        <div id="bottomNavGrid" class="max-w-3xl mx-auto grid grid-cols-4 gap-1 px-2 py-2">
             <button type="button" onclick="switchMainTab('match')" id="bottomNav-match" class="flex flex-col items-center justify-center py-2 rounded-2xl text-orange-400 bg-slate-800/90 transition cursor-pointer active:scale-95">
                 <span class="text-xl leading-none">🏟️</span>
                 <span class="text-[11px] font-black mt-1">Veld</span>
@@ -1928,6 +1973,7 @@
             renderAllViews();
             renderSeasonOverview();
             renderMatchModeCockpit();
+            applySupporterVisibility();
         }
 
         let chatChartInstance = null;
@@ -2248,6 +2294,7 @@
         }
 
         function openLiveMatchMode() {
+            if (currentUserRole === 'supporter' && !supporterVisibility.live) return;
             if (!isMatchMode) {
                 isMatchMode = true;
                 localStorage.setItem('ona_jo11_4_match_mode', 'true');
@@ -2258,6 +2305,7 @@
         }
 
         function toggleMatchMode() {
+            if (!isMatchMode && currentUserRole === 'supporter' && !supporterVisibility.live) return;
             isMatchMode = !isMatchMode;
             localStorage.setItem('ona_jo11_4_match_mode', isMatchMode ? 'true' : 'false');
             applyMatchModeUI();
@@ -2959,6 +3007,11 @@
                             renderFormationSettingsUI();
                         }
 
+                        if (data.supporterVisibility && typeof data.supporterVisibility === 'object') {
+                            supporterVisibility = Object.assign({}, DEFAULT_SUPPORTER_VISIBILITY, data.supporterVisibility);
+                            localStorage.setItem('ona_supporter_visibility_v1', JSON.stringify(supporterVisibility));
+                        }
+
                         if (data.liveDraft) {
                             latestCloudLiveDraft = JSON.parse(JSON.stringify(data.liveDraft));
                         }
@@ -3011,6 +3064,7 @@
                         checkConsecutiveBenchWarning();
                         renderPositionReport();
                         renderMatchModeCockpit();
+                        applySupporterVisibility();
                     } finally {
                         isApplyingRemoteUpdate = false;
                     }
@@ -3035,7 +3089,8 @@
                 savedMatches: JSON.parse(JSON.stringify(savedMatches)),
                 opponentsList: JSON.parse(JSON.stringify(opponentsList)),
                 basePlayers: JSON.parse(JSON.stringify(basePlayers)),
-                formationConfig: { ...formationConfig }
+                formationConfig: { ...formationConfig },
+                supporterVisibility: { ...supporterVisibility }
             };
 
             if (loadedMatchId === null) {
@@ -3089,6 +3144,214 @@
         let uiPrefs = Object.assign({}, DEFAULT_UI_PREFS, JSON.parse(localStorage.getItem('ona_ui_prefs_v1') || '{}'));
         let activeStatsSubTab = 'season';
 
+        const SUPPORTER_VISIBILITY_ITEMS = [
+            { key: 'scoreboard', label: '⏱️ Scorebord & Klok', desc: 'Live stand, wedstrijdklok & doelpuntenbadges op Veld' },
+            { key: 'prep', label: '📋 Wedstrijd & Selectie', desc: 'Voorbereidingskaart (tegenstander, keeper, aanwezigheid)' },
+            { key: 'pitch', label: '🏟️ Opstelling & Veldweergave', desc: 'Veld (Per Blok), 4 Veldjes, Matrix & wisselbank' },
+            { key: 'live', label: '🔴 Live Match Dashboard', desc: 'Toegang tot het Live-scherm & START MATCH DASHBOARD knop' },
+            { key: 'historical', label: '⏱ Historische 5%-Regel Monitor', desc: 'Historische speeltijd- & 5%-tabel op het Veld-scherm' },
+            { key: 'seasonTable', label: '📊 Seizoensoverzicht (Speeltijd & 5%)', desc: 'Tabel met speeltijden en 5%-afwijkingen onder Stats → Seizoen' },
+            { key: 'savedMatches', label: '📁 Opgeslagen Wedstrijden', desc: 'Lijst met gespeelde duels onder Stats → Seizoen' },
+            { key: 'forecast', label: '🔮 Forecast Monitor', desc: 'Oud → Nieuw vooruitblik op Veld en onder Stats → Forecast' },
+            { key: 'summary', label: '📝 Wedstrijd Samenvatting', desc: 'Uitslag, chronologisch doelpuntenverloop en wissels' },
+            { key: 'positions', label: '🗺️ Positierapportage', desc: 'Overzicht waar en wanneer spelers hebben gespeeld' },
+            { key: 'aiChat', label: '💬 AI Data Assistent', desc: 'Zwevende oranje chatknop rechtsonder' },
+            { key: 'settingsTab', label: '☰ Meer / Acties (Backup & WhatsApp)', desc: 'Tabblad Meer en menu-optie Backup & Exporteren' }
+        ];
+
+        const DEFAULT_SUPPORTER_VISIBILITY = {
+            scoreboard: true,
+            prep: true,
+            pitch: true,
+            live: true,
+            historical: true,
+            seasonTable: true,
+            savedMatches: true,
+            forecast: true,
+            summary: true,
+            positions: true,
+            aiChat: true,
+            settingsTab: true
+        };
+        let supporterVisibility = Object.assign({}, DEFAULT_SUPPORTER_VISIBILITY, JSON.parse(localStorage.getItem('ona_supporter_visibility_v1') || '{}'));
+
+        function toggleSupporterVisibility(key, isEnabled) {
+            if (currentUserRole !== 'begeleiding') return;
+            supporterVisibility[key] = !!isEnabled;
+            localStorage.setItem('ona_supporter_visibility_v1', JSON.stringify(supporterVisibility));
+            pushFullStateToCloud();
+            renderSupporterVisibilitySettingsUI();
+        }
+
+        function setAllSupporterVisibility(isEnabled) {
+            if (currentUserRole !== 'begeleiding') return;
+            SUPPORTER_VISIBILITY_ITEMS.forEach(item => {
+                supporterVisibility[item.key] = !!isEnabled;
+            });
+            localStorage.setItem('ona_supporter_visibility_v1', JSON.stringify(supporterVisibility));
+            pushFullStateToCloud();
+            renderSupporterVisibilitySettingsUI();
+        }
+
+        function renderSupporterVisibilitySettingsUI() {
+            const card = document.getElementById('supporterVisibilityCard');
+            const list = document.getElementById('supporterVisibilityTogglesList');
+            if (!card || !list) return;
+
+            const isCoach = (currentUserRole === 'begeleiding');
+            card.classList.toggle('hidden', !isCoach);
+            if (!isCoach) return;
+
+            list.innerHTML = SUPPORTER_VISIBILITY_ITEMS.map(item => `
+                <label class="py-2.5 flex items-center justify-between gap-3 cursor-pointer">
+                    <div>
+                        <div class="text-xs font-extrabold text-slate-800">${item.label}</div>
+                        <div class="text-[11px] text-slate-500">${item.desc}</div>
+                    </div>
+                    <input type="checkbox" ${supporterVisibility[item.key] ? 'checked' : ''} onchange="toggleSupporterVisibility('${item.key}', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer shrink-0">
+                </label>
+            `).join('');
+        }
+
+        function applySupporterVisibility() {
+            const isSup = (currentUserRole === 'supporter');
+            const sv = supporterVisibility;
+
+            const emptyBox = document.getElementById('supporterEmptyStateBox');
+            const scoreboardCard = document.getElementById('scoreboardBannerCard');
+            const goalsBox = document.getElementById('goalsOverviewBox');
+            const pitchWrapper = document.getElementById('pitchSectionWrapper');
+            const launchBtn = document.getElementById('matchModeLaunchBtn');
+            const bNavBar = document.getElementById('bottomNavBar');
+            const bNavGrid = document.getElementById('bottomNavGrid');
+
+            renderSupporterVisibilitySettingsUI();
+
+            if (!isSup) {
+                if (emptyBox) emptyBox.classList.add('hidden');
+                if (scoreboardCard) scoreboardCard.classList.remove('hidden');
+                if (pitchWrapper) pitchWrapper.classList.remove('hidden');
+                if (launchBtn) launchBtn.classList.remove('hidden');
+                ['bottomNav-match', 'bottomNav-live', 'bottomNav-season', 'bottomNav-settings',
+                 'drawerTab-match', 'drawerTab-live', 'drawerTab-season', 'drawerTab-settings', 'drawerTab-backup',
+                 'statsSubBtn-season', 'statsSubBtn-forecast', 'statsSubBtn-summary', 'statsSubBtn-positions'].forEach(id => {
+                    document.getElementById(id)?.classList.remove('hidden');
+                });
+                if (bNavBar) bNavBar.classList.remove('hidden');
+                if (bNavGrid) bNavGrid.className = "max-w-3xl mx-auto grid grid-cols-4 gap-1 px-2 py-2";
+                return;
+            }
+
+            // Supporter is actief: bepaal zichtbaarheid per onderdeel
+            const hasAnyMatchContent = sv.scoreboard || sv.prep || sv.pitch || sv.historical || sv.forecast || sv.summary;
+            const hasSeasonTab = sv.seasonTable || sv.savedMatches;
+            const hasAnyStatsContent = hasSeasonTab || sv.forecast || sv.summary || sv.positions;
+            const hasLive = !!sv.live;
+            const hasSettings = !!sv.settingsTab;
+            const hasAnythingAtAll = hasAnyMatchContent || hasAnyStatsContent || hasLive || hasSettings;
+
+            // Als live uit staat maar supporter zat erin -> verlaat live
+            if (!hasLive && isMatchMode) {
+                isMatchMode = false;
+                localStorage.setItem('ona_jo11_4_match_mode', 'false');
+                document.getElementById('dedicatedMatchModeContainer')?.classList.add('hidden');
+                document.getElementById('mainHeader')?.classList.remove('hidden');
+                document.getElementById('standardAppContainer')?.classList.remove('hidden');
+            }
+
+            if (launchBtn) launchBtn.classList.toggle('hidden', !hasLive);
+
+            // Veld-scherm onderdelen
+            if (scoreboardCard) scoreboardCard.classList.toggle('hidden', !sv.scoreboard);
+            if (goalsBox && !sv.scoreboard) goalsBox.classList.add('hidden');
+            document.getElementById('uiCard-prep')?.classList.toggle('hidden', !sv.prep);
+            if (pitchWrapper) pitchWrapper.classList.toggle('hidden', !sv.pitch);
+            document.getElementById('uiCard-historical')?.classList.toggle('hidden', !sv.historical);
+            document.getElementById('uiCard-forecast')?.classList.toggle('hidden', !sv.forecast);
+            document.getElementById('uiCard-summary')?.classList.toggle('hidden', !sv.summary);
+            document.getElementById('chatWidgetContainer')?.classList.toggle('hidden', !sv.aiChat);
+
+            // Stats sub-tabs
+            document.getElementById('statsSubBtn-season')?.classList.toggle('hidden', !hasSeasonTab);
+            document.getElementById('statsSubBtn-forecast')?.classList.toggle('hidden', !sv.forecast);
+            document.getElementById('statsSubBtn-summary')?.classList.toggle('hidden', !sv.summary);
+            document.getElementById('statsSubBtn-positions')?.classList.toggle('hidden', !sv.positions);
+
+            if (activeStatsSubTab === 'season') {
+                document.getElementById('statsSubView-season')?.classList.toggle('hidden', !sv.seasonTable);
+                document.getElementById('statsSubView-savedMatches')?.classList.toggle('hidden', !sv.savedMatches);
+            }
+
+            // Als huidige stats-subtab verborgen is, schakel naar eerste zichtbare subtab
+            const visibleStatsSubs = [
+                hasSeasonTab ? 'season' : null,
+                sv.forecast ? 'forecast' : null,
+                sv.summary ? 'summary' : null,
+                sv.positions ? 'positions' : null
+            ].filter(Boolean);
+            if (visibleStatsSubs.length > 0 && !visibleStatsSubs.includes(activeStatsSubTab)) {
+                activeStatsSubTab = visibleStatsSubs[0];
+                ['season', 'forecast', 'summary', 'positions'].forEach(t => {
+                    const btn = document.getElementById('statsSubBtn-' + t);
+                    const view = document.getElementById('statsSubView-' + t);
+                    if (btn) {
+                        btn.className = (t === activeStatsSubTab)
+                            ? "py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer bg-orange-600 text-white shadow"
+                            : "py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer text-slate-300 hover:bg-slate-800 hover:text-white";
+                    }
+                    if (view) view.classList.toggle('hidden', t !== activeStatsSubTab);
+                });
+                if (activeStatsSubTab === 'season') {
+                    document.getElementById('statsSubView-season')?.classList.toggle('hidden', !sv.seasonTable);
+                    document.getElementById('statsSubView-savedMatches')?.classList.toggle('hidden', !sv.savedMatches);
+                } else {
+                    document.getElementById('statsSubView-savedMatches')?.classList.add('hidden');
+                }
+            }
+
+            // Navigatieknoppen (onderbalk + zijmenu)
+            document.getElementById('bottomNav-match')?.classList.toggle('hidden', !hasAnyMatchContent);
+            document.getElementById('bottomNav-live')?.classList.toggle('hidden', !hasLive);
+            document.getElementById('bottomNav-season')?.classList.toggle('hidden', !hasAnyStatsContent);
+            document.getElementById('bottomNav-settings')?.classList.toggle('hidden', !hasSettings);
+
+            document.getElementById('drawerTab-match')?.classList.toggle('hidden', !hasAnyMatchContent);
+            document.getElementById('drawerTab-live')?.classList.toggle('hidden', !hasLive);
+            document.getElementById('drawerTab-season')?.classList.toggle('hidden', !hasAnyStatsContent);
+            document.getElementById('drawerTab-settings')?.classList.toggle('hidden', !hasSettings);
+            document.getElementById('drawerTab-backup')?.classList.toggle('hidden', !hasSettings);
+
+            const visibleNavCount = [hasAnyMatchContent, hasLive, hasAnyStatsContent, hasSettings].filter(Boolean).length;
+            if (bNavBar) bNavBar.classList.toggle('hidden', visibleNavCount === 0);
+            if (bNavGrid && visibleNavCount > 0) {
+                bNavGrid.className = `max-w-3xl mx-auto grid grid-cols-${visibleNavCount} gap-1 px-2 py-2`;
+            }
+
+            // Empty state als alles uit staat
+            if (!hasAnythingAtAll) {
+                document.getElementById('view-match')?.classList.add('hidden');
+                document.getElementById('view-season')?.classList.add('hidden');
+                document.getElementById('view-settings')?.classList.add('hidden');
+                if (emptyBox) emptyBox.classList.remove('hidden');
+                return;
+            }
+
+            if (emptyBox) emptyBox.classList.add('hidden');
+
+            // Zorg dat supporter niet op een verborgen hoofdtab blijft hangen
+            const tabAllowed = {
+                match: hasAnyMatchContent,
+                season: hasAnyStatsContent,
+                settings: hasSettings
+            };
+            if (!isMatchMode && !tabAllowed[currentMainTab]) {
+                if (hasAnyMatchContent) switchMainTab('match');
+                else if (hasAnyStatsContent) switchMainTab('season');
+                else if (hasSettings) switchMainTab('settings');
+                else if (hasLive) openLiveMatchMode();
+            }
+        }
+
         function toggleUiPref(key, isEnabled) {
             uiPrefs[key] = !!isEnabled;
             localStorage.setItem('ona_ui_prefs_v1', JSON.stringify(uiPrefs));
@@ -3116,6 +3379,7 @@
                     : (currentUserRole === 'supporter' ? '👀 Supporter (Alleen-lezen)' : 'Niet ingelogd');
             }
             renderFormationSettingsUI();
+            applySupporterVisibility();
         }
 
         function pruneLineupToCurrentPositions() {
@@ -3258,6 +3522,7 @@
             if (subTab === 'forecast') renderForecastMonitor();
             if (subTab === 'summary') renderMatchSummary();
             if (subTab === 'positions') renderPositionReport();
+            applySupporterVisibility();
         }
 
         function syncSummarySelectFromStats(val) {
@@ -6758,6 +7023,7 @@
                 basePlayers,
                 opponentsList,
                 formationConfig,
+                supporterVisibility,
                 savedMatches
             };
         }
@@ -6838,6 +7104,10 @@
                 formationConfig = sanitizeFormationConfig(parsed.formationConfig);
                 localStorage.setItem('ona_jo11_4_formation_v1', JSON.stringify(formationConfig));
                 rebuildPositionsFromFormation();
+            }
+            if (parsed.supporterVisibility && typeof parsed.supporterVisibility === 'object') {
+                supporterVisibility = Object.assign({}, DEFAULT_SUPPORTER_VISIBILITY, parsed.supporterVisibility);
+                localStorage.setItem('ona_supporter_visibility_v1', JSON.stringify(supporterVisibility));
             }
             localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
             pushFullStateToCloud();
