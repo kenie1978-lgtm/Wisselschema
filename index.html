@@ -2218,6 +2218,14 @@
                 `;
             });
 
+            // 3. Snelle knop voor Eigen doelpunt tegenstander (Goal voor Oranje Nassau)
+            quickGoalContainer.innerHTML += `
+                <button onclick="registerQuickGoal('Eigen doelpunt tegenstander')" class="p-3 bg-amber-950/60 hover:bg-orange-600 border border-amber-500/50 hover:border-orange-400 active:scale-95 text-amber-200 hover:text-white rounded-2xl text-xs font-black transition text-left flex items-center justify-between cursor-pointer col-span-2 sm:col-span-3">
+                    <span class="truncate pr-1">⚽ Eigen doelpunt tegenstander <span class="text-[10px] font-semibold opacity-80">(Goal voor Oranje Nassau)</span></span>
+                    <span class="text-[10px] text-amber-300 bg-slate-900/60 px-2 py-0.5 rounded font-bold">+1</span>
+                </button>
+            `;
+
             syncGoalIdsAndOpponentLog();
             const goalsList = document.getElementById('mmGoalsListContainer');
             document.getElementById('mmGoalsCountBadge').innerText = matchGoals.length;
