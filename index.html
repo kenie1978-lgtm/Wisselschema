@@ -446,10 +446,16 @@
                     </div>
                 </div>
 
-                <!-- Doelpuntenlijst badges -->
-                <div id="goalsOverviewBox" class="hidden bg-white rounded-xl p-3 border border-slate-200 text-xs flex flex-wrap items-center gap-2 shadow-2xs">
-                    <span class="font-extrabold text-slate-700">⚽ Doelpunten ON:</span>
-                    <div id="goalsBadgesList" class="flex flex-wrap gap-1.5"></div>
+                <!-- Doelpuntenlijst badges (ON + Tegendoelpunten met bewerken van minuut) -->
+                <div id="goalsOverviewBox" class="hidden bg-white rounded-xl p-3 border border-slate-200 text-xs space-y-2 shadow-2xs">
+                    <div id="onGoalsBadgesRow" class="hidden flex flex-wrap items-center gap-2">
+                        <span class="font-extrabold text-slate-700 shrink-0">⚽ Doelpunten ON:</span>
+                        <div id="goalsBadgesList" class="flex flex-wrap gap-1.5"></div>
+                    </div>
+                    <div id="oppGoalsBadgesRow" class="hidden flex flex-wrap items-center gap-2 pt-1.5 border-t border-slate-100">
+                        <span class="font-extrabold text-rose-700 shrink-0">🚨 Tegendoelpunten:</span>
+                        <div id="oppGoalsBadgesList" class="flex flex-wrap gap-1.5"></div>
+                    </div>
                 </div>
 
                 <!-- Waarschuwing 2x op rij wissel -->
@@ -1291,13 +1297,13 @@
                 </h3>
                 <button onclick="closeGoalModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg cursor-pointer">✕</button>
             </div>
-            <div>
+            <div id="goalScorerFieldWrapper">
                 <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Doelpuntenmaker</label>
                 <select id="goalScorerSelect" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-white"></select>
             </div>
             <div>
                 <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Minuut in de wedstrijd (bijv. 12 of 15+2)</label>
-                <input type="text" id="goalMinuteInput" placeholder="Bijv. 14 of 15+2" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500">
+                <input type="text" id="goalMinuteInput" placeholder="Bijv. 14 of 15+2" onkeydown="if(event.key==='Enter') confirmSaveGoal()" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-extrabold bg-slate-50 outline-none focus:ring-2 focus:ring-orange-500">
             </div>
             <div class="flex gap-2 pt-2">
                 <button onclick="closeGoalModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs cursor-pointer">
@@ -1542,6 +1548,7 @@
         let opponentGoals = 0;
         let opponentGoalsLog = [];
         let editingGoalId = null;
+        let editingGoalType = 'on';
         let activeQuarterView = 1;
         let displayMode = "pitch";
 
@@ -1981,27 +1988,58 @@
                 }
             }
 
+            syncGoalIdsAndOpponentLog();
+
             const container = document.getElementById('goalsOverviewBox');
+            const onRow = document.getElementById('onGoalsBadgesRow');
             const badgesList = document.getElementById('goalsBadgesList');
+            const oppRow = document.getElementById('oppGoalsBadgesRow');
+            const oppBadgesList = document.getElementById('oppGoalsBadgesList');
 
             if (container && badgesList) {
-                if (matchGoals.length === 0) {
+                if (matchGoals.length === 0 && opponentGoals === 0) {
                     container.classList.add('hidden');
                 } else {
                     container.classList.remove('hidden');
+
+                    if (onRow) {
+                        onRow.classList.toggle('hidden', matchGoals.length === 0);
+                    }
                     badgesList.innerHTML = '';
                     matchGoals.forEach((g) => {
                         const badge = document.createElement('span');
                         badge.className = "bg-orange-100 text-orange-900 border border-orange-200 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5";
                         badge.innerHTML = `
-                            <span>${g.scorer}${g.minute ? ` (${g.minute}')` : ''}</span>
+                            <span>${g.scorer}${g.minute ? ` (${g.minute}')` : ' <em class="text-orange-600/80 font-normal">(geen min.)</em>'}</span>
                             ${!isEffectiveReadOnly() ? `
-                                <button onclick="editGoal(${g.id})" class="text-slate-500 hover:text-slate-800 font-bold ml-1" title="Doelpunt bewerken">✏️</button>
-                                <button onclick="removeGoalById(${g.id})" class="text-rose-500 hover:text-rose-700 font-bold ml-0.5" title="Verwijderen">✕</button>
+                                <button onclick="editGoal(${g.id})" class="text-slate-500 hover:text-slate-800 font-bold ml-1 cursor-pointer" title="Doelpunt / minuut bewerken">✏️</button>
+                                <button onclick="removeGoalById(${g.id})" class="text-rose-500 hover:text-rose-700 font-bold ml-0.5 cursor-pointer" title="Verwijderen">✕</button>
                             ` : ''}
                         `;
                         badgesList.appendChild(badge);
                     });
+
+                    if (oppRow && oppBadgesList) {
+                        oppRow.classList.toggle('hidden', opponentGoals === 0);
+                        if (matchGoals.length === 0) {
+                            oppRow.classList.remove('pt-1.5', 'border-t', 'border-slate-100');
+                        } else {
+                            oppRow.classList.add('pt-1.5', 'border-t', 'border-slate-100');
+                        }
+                        oppBadgesList.innerHTML = '';
+                        opponentGoalsLog.forEach((og, idx) => {
+                            const badge = document.createElement('span');
+                            badge.className = "bg-rose-50 text-rose-900 border border-rose-200 px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5";
+                            badge.innerHTML = `
+                                <span>#${idx + 1}${og.minute ? ` (${og.minute}')` : ' <em class="text-rose-500/80 font-normal">(geen min.)</em>'}</span>
+                                ${!isEffectiveReadOnly() ? `
+                                    <button onclick="editOpponentGoal(${og.id})" class="text-slate-500 hover:text-slate-800 font-bold ml-1 cursor-pointer" title="Minuut tegendoelpunt bewerken">✏️</button>
+                                    <button onclick="removeOpponentGoalById(${og.id})" class="text-rose-500 hover:text-rose-700 font-bold ml-0.5 cursor-pointer" title="Verwijderen">✕</button>
+                                ` : ''}
+                            `;
+                            oppBadgesList.appendChild(badge);
+                        });
+                    }
                 }
             }
 
@@ -2180,17 +2218,36 @@
                 `;
             });
 
+            syncGoalIdsAndOpponentLog();
             const goalsList = document.getElementById('mmGoalsListContainer');
             document.getElementById('mmGoalsCountBadge').innerText = matchGoals.length;
             goalsList.innerHTML = '';
-            if (matchGoals.length === 0) {
-                goalsList.innerHTML = `<span class="text-xs text-slate-500 italic">Nog geen doelpunten gescoord door Oranje Nassau.</span>`;
+            if (matchGoals.length === 0 && opponentGoals === 0) {
+                goalsList.innerHTML = `<span class="text-xs text-slate-500 italic">Nog geen doelpunten geregistreerd.</span>`;
             } else {
                 matchGoals.forEach(g => {
                     goalsList.innerHTML += `
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 px-3.5 py-2 rounded-xl text-xs">
-                            <span class="font-extrabold text-white">⚽ ${g.scorer} ${g.minute ? `<span class="text-orange-400 font-mono">(${g.minute}')</span>` : ''}</span>
-                            <button onclick="removeGoalById(${g.id})" class="text-rose-400 hover:text-rose-200 font-bold ml-2 p-1">✕</button>
+                            <span class="font-extrabold text-white">⚽ ${g.scorer} ${g.minute ? `<span class="text-orange-400 font-mono">(${g.minute}')</span>` : '<span class="text-slate-500 font-normal">(geen min.)</span>'}</span>
+                            ${!isEffectiveReadOnly() ? `
+                                <div class="flex items-center gap-1">
+                                    <button onclick="editGoal(${g.id})" class="text-slate-300 hover:text-white font-bold p-1 cursor-pointer" title="Minuut / speler bewerken">✏️</button>
+                                    <button onclick="removeGoalById(${g.id})" class="text-rose-400 hover:text-rose-200 font-bold p-1 cursor-pointer" title="Verwijderen">✕</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                opponentGoalsLog.forEach((og, idx) => {
+                    goalsList.innerHTML += `
+                        <div class="flex items-center justify-between bg-rose-950/50 border border-rose-800/60 px-3.5 py-2 rounded-xl text-xs">
+                            <span class="font-bold text-rose-200">🚨 Tegendoelpunt #${idx + 1} ${og.minute ? `<span class="text-rose-300 font-mono">(${og.minute}')</span>` : '<span class="text-rose-400/70 font-normal">(geen min.)</span>'}</span>
+                            ${!isEffectiveReadOnly() ? `
+                                <div class="flex items-center gap-1">
+                                    <button onclick="editOpponentGoal(${og.id})" class="text-slate-300 hover:text-white font-bold p-1 cursor-pointer" title="Minuut bewerken">✏️</button>
+                                    <button onclick="removeOpponentGoalById(${og.id})" class="text-rose-400 hover:text-rose-200 font-bold p-1 cursor-pointer" title="Verwijderen">✕</button>
+                                </div>
+                            ` : ''}
                         </div>
                     `;
                 });
@@ -2458,10 +2515,38 @@
             syncLiveDraftToCloud();
         }
 
+        function syncGoalIdsAndOpponentLog() {
+            const baseTs = Date.now();
+            const usedOnIds = new Set();
+            matchGoals.forEach((g, idx) => {
+                if (!g.id || usedOnIds.has(g.id)) {
+                    g.id = baseTs + idx + 1;
+                }
+                usedOnIds.add(g.id);
+            });
+
+            if (!Array.isArray(opponentGoalsLog)) opponentGoalsLog = [];
+            while (opponentGoalsLog.length < opponentGoals) {
+                opponentGoalsLog.push({ id: baseTs + 10000 + opponentGoalsLog.length, minute: null });
+            }
+            if (opponentGoalsLog.length > opponentGoals) {
+                opponentGoalsLog = opponentGoalsLog.slice(0, opponentGoals);
+            }
+            const usedOppIds = new Set();
+            opponentGoalsLog.forEach((og, idx) => {
+                if (!og.id || usedOppIds.has(og.id)) {
+                    og.id = baseTs + 20000 + idx;
+                }
+                usedOppIds.add(og.id);
+            });
+        }
+
         function openGoalModal() {
             if (isEffectiveReadOnly()) return;
             editingGoalId = null;
+            editingGoalType = 'on';
             document.getElementById('goalModalTitle').innerText = "⚽ Doelpunt Oranje Nassau Toevoegen";
+            document.getElementById('goalScorerFieldWrapper')?.classList.remove('hidden');
 
             const sel = document.getElementById('goalScorerSelect');
             sel.innerHTML = '';
@@ -2478,44 +2563,80 @@
 
         function editGoal(goalId) {
             if (isEffectiveReadOnly()) return;
-            const g = matchGoals.find(x => x.id === goalId);
+            syncGoalIdsAndOpponentLog();
+            const g = matchGoals.find(x => String(x.id) === String(goalId));
             if (!g) return;
 
-            editingGoalId = goalId;
-            document.getElementById('goalModalTitle').innerText = "✏️ Doelpunt Bewerken";
+            editingGoalId = g.id;
+            editingGoalType = 'on';
+            document.getElementById('goalModalTitle').innerText = "✏️ Doelpunt & Minuut Bewerken";
+            document.getElementById('goalScorerFieldWrapper')?.classList.remove('hidden');
 
             const sel = document.getElementById('goalScorerSelect');
             sel.innerHTML = '';
+            const activeNames = [];
             getActivePlayers().forEach(p => {
+                activeNames.push(p.name);
                 const isSel = (p.name === g.scorer) ? "selected" : "";
                 sel.innerHTML += `<option value="${p.name}" ${isSel}>${p.name}</option>`;
             });
+            if (g.scorer && g.scorer !== "Eigen doelpunt tegenstander" && !activeNames.includes(g.scorer)) {
+                sel.innerHTML += `<option value="${g.scorer}" selected>${g.scorer}</option>`;
+            }
             const isOwnSel = (g.scorer === "Eigen doelpunt tegenstander") ? "selected" : "";
             sel.innerHTML += `<option value="Eigen doelpunt tegenstander" ${isOwnSel}>Eigen doelpunt tegenstander</option>`;
 
-            document.getElementById('goalMinuteInput').value = g.minute || "";
+            const minInput = document.getElementById('goalMinuteInput');
+            minInput.value = g.minute || "";
             document.getElementById('goalModal').classList.remove('hidden');
+            setTimeout(() => minInput.focus(), 50);
+        }
+
+        function editOpponentGoal(oppGoalId) {
+            if (isEffectiveReadOnly()) return;
+            syncGoalIdsAndOpponentLog();
+            const idx = opponentGoalsLog.findIndex(x => String(x.id) === String(oppGoalId));
+            if (idx === -1) return;
+
+            editingGoalId = opponentGoalsLog[idx].id;
+            editingGoalType = 'opp';
+            document.getElementById('goalModalTitle').innerText = `🚨 Minuut Tegendoelpunt #${idx + 1} Bewerken`;
+            document.getElementById('goalScorerFieldWrapper')?.classList.add('hidden');
+
+            const minInput = document.getElementById('goalMinuteInput');
+            minInput.value = opponentGoalsLog[idx].minute || "";
+            document.getElementById('goalModal').classList.remove('hidden');
+            setTimeout(() => minInput.focus(), 50);
         }
 
         function closeGoalModal() {
             editingGoalId = null;
+            editingGoalType = 'on';
+            document.getElementById('goalScorerFieldWrapper')?.classList.remove('hidden');
             document.getElementById('goalModal').classList.add('hidden');
         }
 
         function confirmSaveGoal() {
             if (isEffectiveReadOnly()) return;
-            const scorer = document.getElementById('goalScorerSelect').value;
             const minInput = document.getElementById('goalMinuteInput').value.trim();
             const min = minInput || null;
 
-            if (editingGoalId !== null) {
-                const g = matchGoals.find(x => x.id === editingGoalId);
-                if (g) {
-                    g.scorer = scorer;
-                    g.minute = min;
+            if (editingGoalType === 'opp' && editingGoalId !== null) {
+                const og = opponentGoalsLog.find(x => String(x.id) === String(editingGoalId));
+                if (og) {
+                    og.minute = min;
                 }
             } else {
-                matchGoals.push({ id: Date.now(), scorer, minute: min });
+                const scorer = document.getElementById('goalScorerSelect').value;
+                if (editingGoalId !== null) {
+                    const g = matchGoals.find(x => String(x.id) === String(editingGoalId));
+                    if (g) {
+                        g.scorer = scorer;
+                        g.minute = min;
+                    }
+                } else {
+                    matchGoals.push({ id: Date.now(), scorer, minute: min });
+                }
             }
 
             closeGoalModal();
@@ -2526,7 +2647,20 @@
 
         function removeGoalById(goalId) {
             if (isEffectiveReadOnly()) return;
-            matchGoals = matchGoals.filter(g => g.id !== goalId);
+            matchGoals = matchGoals.filter(g => String(g.id) !== String(goalId));
+            renderScoreboard();
+            renderMatchModeCockpit();
+            syncLiveDraftToCloud();
+        }
+
+        function removeOpponentGoalById(oppGoalId) {
+            if (isEffectiveReadOnly()) return;
+            syncGoalIdsAndOpponentLog();
+            const beforeLen = opponentGoalsLog.length;
+            opponentGoalsLog = opponentGoalsLog.filter(og => String(og.id) !== String(oppGoalId));
+            if (opponentGoalsLog.length < beforeLen) {
+                opponentGoals = Math.max(0, opponentGoalsLog.length);
+            }
             renderScoreboard();
             renderMatchModeCockpit();
             syncLiveDraftToCloud();
@@ -5070,6 +5204,19 @@
             let isLiveSelection = (sel.value === '__LIVE__');
 
             if (isLiveSelection) {
+                matchObj = {
+                    opponent: selectedOpponent || 'Tegenstander',
+                    isHomeMatch: isHomeMatch,
+                    date: document.getElementById('matchDate')?.value || new Date().toISOString().slice(0, 10),
+                    attendance: { ...attendance },
+                    guestPlayers: guestPlayers,
+                    lineup: lineup,
+                    emergencySubs: emergencySubs,
+                    goals: matchGoals,
+                    opponentGoals: opponentGoals,
+                    opponentGoalsLog: opponentGoalsLog
+                };
+            } else if (loadedMatchId !== null && String(loadedMatchId) === String(sel.value) && !isReadOnlyMode) {
                 matchObj = {
                     opponent: selectedOpponent || 'Tegenstander',
                     isHomeMatch: isHomeMatch,
