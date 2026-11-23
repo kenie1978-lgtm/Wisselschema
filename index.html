@@ -4467,6 +4467,69 @@
             return stats;
         }
 
+        function getGuestSeasonHistoryStats(excludeMatchId = null) {
+            const baseNames = new Set(basePlayers.map(p => p.name));
+            const stats = {};
+
+            function ensureGuest(name) {
+                if (!stats[name]) {
+                    stats[name] = {
+                        name,
+                        presentMatches: 0,
+                        outfieldMatches: 0,
+                        fieldMinutes: 0,
+                        keeperMinutes: 0,
+                        goals: 0
+                    };
+                }
+                return stats[name];
+            }
+
+            savedMatches.forEach(m => {
+                if (excludeMatchId && m.id === excludeMatchId) return;
+
+                const matchGuestNames = new Set();
+                if (Array.isArray(m.guestPlayers)) {
+                    m.guestPlayers.forEach(g => {
+                        if (g && g.name && g.name.trim()) {
+                            matchGuestNames.add(`${g.name.trim()} (Gast)`);
+                        }
+                    });
+                }
+                if (m.minutes && typeof m.minutes === 'object') {
+                    Object.keys(m.minutes).forEach(k => {
+                        if (!baseNames.has(k) && k.trim()) {
+                            matchGuestNames.add(k);
+                        }
+                    });
+                }
+
+                matchGuestNames.forEach(gName => {
+                    const entry = ensureGuest(gName);
+                    entry.presentMatches++;
+                    const pMin = (m.minutes && m.minutes[gName]) ? m.minutes[gName] : { field: 0, keeper: 0 };
+                    const kMin = pMin.keeper || 0;
+                    const fMin = pMin.field || 0;
+                    entry.fieldMinutes += fMin;
+                    entry.keeperMinutes += kMin;
+                    const outfieldFraction = Math.max(0, (60 - kMin) / 60);
+                    if (outfieldFraction > 0) {
+                        entry.outfieldMatches += outfieldFraction;
+                    }
+                });
+
+                if (Array.isArray(m.goals)) {
+                    m.goals.forEach(g => {
+                        if (g && g.scorer && !baseNames.has(g.scorer) && g.scorer !== "Eigen doelpunt tegenstander") {
+                            ensureGuest(g.scorer).goals++;
+                        }
+                    });
+                }
+            });
+
+            return stats;
+        }
+
         function executeFairLineup(ignorePositions) {
             closeFairLineupModal();
             if (isEffectiveReadOnly()) return;
@@ -5290,6 +5353,33 @@
                 tbody.appendChild(tr);
             });
 
+            const guestHist = getGuestSeasonHistoryStats(null);
+            const guestNames = Object.keys(guestHist).sort();
+            if (guestNames.length > 0) {
+                const sepTr = document.createElement('tr');
+                sepTr.className = "bg-slate-100/90";
+                sepTr.innerHTML = `<td colspan="8" class="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500">➕ Gastspelers (Alleen ter weergave — tellen niet mee voor streeftijd)</td>`;
+                tbody.appendChild(sepTr);
+
+                guestNames.forEach(gName => {
+                    const h = guestHist[gName];
+                    const avgActual = h.outfieldMatches > 0 ? (h.fieldMinutes / h.outfieldMatches) : 0;
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 bg-slate-50/40";
+                    tr.innerHTML = `
+                        <td class="p-2.5 font-extrabold text-slate-700">${gName} <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-600">GAST</span></td>
+                        <td class="p-2.5 text-center font-bold text-slate-600">${h.presentMatches} duel(s)</td>
+                        <td class="p-2.5 text-center font-extrabold text-slate-800">${h.fieldMinutes} min</td>
+                        <td class="p-2.5 text-center font-extrabold text-orange-600">${h.outfieldMatches > 0 ? avgActual.toFixed(1) + 'm' : '-'}</td>
+                        <td class="p-2.5 text-center text-slate-400">-</td>
+                        <td class="p-2.5 text-center text-slate-400">-</td>
+                        <td class="p-2.5 text-center"><span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-bold text-[10px]">Gast (n.v.t.)</span></td>
+                        <td class="p-2.5 text-center font-bold text-amber-700">${h.keeperMinutes > 0 ? h.keeperMinutes + 'm' : '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
             renderForecastMonitor();
             renderMatchSummary();
         }
@@ -5458,6 +5548,75 @@
                 `;
                 tbody.appendChild(tr);
             });
+
+            const guestHist = getGuestSeasonHistoryStats(loadedMatchId);
+            const todayGuests = active.filter(p => p.isGuest);
+            const allGuestNames = Array.from(new Set([
+                ...Object.keys(guestHist),
+                ...todayGuests.map(g => g.name)
+            ])).sort();
+
+            if (allGuestNames.length > 0) {
+                const sepTr = document.createElement('tr');
+                sepTr.className = "bg-slate-100/90";
+                sepTr.innerHTML = `<td colspan="8" class="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-500">➕ Gastspelers (Alleen ter weergave — geen invloed op streeftijd)</td>`;
+                tbody.appendChild(sepTr);
+
+                allGuestNames.forEach(gName => {
+                    const h = guestHist[gName] || { presentMatches: 0, outfieldMatches: 0, fieldMinutes: 0, keeperMinutes: 0 };
+                    const isPresentToday = todayGuests.some(g => g.name === gName);
+                    const todayK = isPresentToday ? (todayMins[gName]?.keeper || 0) : 0;
+                    const todayF = isPresentToday ? (todayMins[gName]?.field || 0) : 0;
+                    const outfieldFractionToday = isPresentToday ? Math.max(0, (60 - todayK) / 60) : 0;
+
+                    const oldPresent = h.presentMatches;
+                    const newPresent = oldPresent + (isPresentToday ? 1 : 0);
+                    const oldField = h.fieldMinutes;
+                    const newField = oldField + todayF;
+                    const oldKeeper = h.keeperMinutes;
+                    const newKeeper = oldKeeper + todayK;
+                    const oldOutfieldMatches = h.outfieldMatches;
+                    const newOutfieldMatches = oldOutfieldMatches + outfieldFractionToday;
+                    const oldAvgActual = oldOutfieldMatches > 0 ? (oldField / oldOutfieldMatches) : 0;
+                    const newAvgActual = newOutfieldMatches > 0 ? (newField / newOutfieldMatches) : 0;
+
+                    const todayBadge = isPresentToday
+                        ? (todayF > 0 ? `<span class="ml-1 text-[9px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded font-bold">+${todayF}m</span>` : (todayK > 0 ? `<span class="ml-1 text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">GK ${todayK}m</span>` : ''))
+                        : '';
+
+                    const tr = document.createElement('tr');
+                    tr.className = isPresentToday ? "hover:bg-slate-50 bg-slate-50/40" : "bg-slate-50/60 opacity-75";
+                    tr.innerHTML = `
+                        <td class="p-2.5 font-extrabold text-slate-700 whitespace-nowrap">
+                            ${gName} <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-600">GAST</span>${todayBadge}
+                        </td>
+                        <td class="p-2.5 text-center whitespace-nowrap">
+                            <span class="text-slate-400 font-semibold">${oldPresent}</span>
+                            <span class="text-slate-300 mx-1">→</span>
+                            <span class="font-extrabold text-slate-800">${newPresent}</span>
+                        </td>
+                        <td class="p-2.5 text-center whitespace-nowrap">
+                            <span class="text-slate-400 font-semibold">${oldField}m</span>
+                            <span class="text-slate-300 mx-1">→</span>
+                            <span class="font-extrabold text-slate-900">${newField}m</span>
+                        </td>
+                        <td class="p-2.5 text-center whitespace-nowrap">
+                            <span class="text-slate-400 font-semibold">${oldOutfieldMatches > 0 ? oldAvgActual.toFixed(1) + 'm' : '-'}</span>
+                            <span class="text-slate-300 mx-1">→</span>
+                            <span class="font-black text-slate-700">${newOutfieldMatches > 0 ? newAvgActual.toFixed(1) + 'm' : '-'}</span>
+                        </td>
+                        <td class="p-2.5 text-center text-slate-400">-</td>
+                        <td class="p-2.5 text-center text-slate-400">-</td>
+                        <td class="p-2.5 text-center"><span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-bold text-[10px]">Gast (n.v.t.)</span></td>
+                        <td class="p-2.5 text-center whitespace-nowrap">
+                            <span class="text-slate-400 font-semibold">${oldKeeper > 0 ? oldKeeper + 'm' : '-'}</span>
+                            <span class="text-slate-300 mx-1">→</span>
+                            <span class="font-bold text-amber-700">${newKeeper > 0 ? newKeeper + 'm' : '-'}</span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
 
             const statsTbody = document.getElementById('statsForecastBody');
             if (statsTbody) statsTbody.innerHTML = tbody.innerHTML;
@@ -5858,6 +6017,16 @@
                 const isSel = (p.name === currentVal) ? "selected" : "";
                 sel.innerHTML += `<option value="${p.name}" ${isSel}>${p.name}</option>`;
             });
+            const guestNames = Object.keys(getGuestSeasonHistoryStats(null)).sort();
+            if (guestNames.length > 0) {
+                let gHtml = `<optgroup label="Gastspelers">`;
+                guestNames.forEach(gName => {
+                    const isSel = (gName === currentVal) ? "selected" : "";
+                    gHtml += `<option value="${gName}" ${isSel}>${gName}</option>`;
+                });
+                gHtml += `</optgroup>`;
+                sel.innerHTML += gHtml;
+            }
         }
 
         function renderPositionReportMatchDropdown() {
@@ -6008,7 +6177,11 @@
                 const isHome = (m.isHomeMatch !== undefined) ? m.isHomeMatch : true;
                 const matchTitle = isHome ? `ON vs ${m.opponent} (Thuis)` : `${m.opponent} vs ON (Uit)`;
 
-                const wasPresent = m.attendance && m.attendance[playerName] !== false;
+                const isBase = basePlayers.some(bp => bp.name === playerName);
+                const wasPresent = isBase
+                    ? (m.attendance && m.attendance[playerName] !== false)
+                    : ((Array.isArray(m.guestPlayers) && m.guestPlayers.some(g => g.name && `${g.name.trim()} (Gast)` === playerName)) || (m.minutes && m.minutes[playerName] !== undefined));
+                if (!isBase && !wasPresent) return;
                 if (!wasPresent) {
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-800 text-slate-400 bg-slate-950/40";
@@ -6468,6 +6641,34 @@
                 tbody.appendChild(tr);
             });
 
+            const guestHist = getGuestSeasonHistoryStats(null);
+            const guestNames = Object.keys(guestHist).sort();
+            if (guestNames.length > 0) {
+                const sepTr = document.createElement('tr');
+                sepTr.className = "bg-slate-950/80";
+                sepTr.innerHTML = `<td colspan="9" class="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-400">➕ Gastspelers (Alleen ter weergave — tellen niet mee voor streefgemiddelde)</td>`;
+                tbody.appendChild(sepTr);
+
+                guestNames.forEach(gName => {
+                    const h = guestHist[gName];
+                    const avgField = h.outfieldMatches > 0 ? (h.fieldMinutes / h.outfieldMatches) : 0;
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-800/80 transition bg-slate-900/40";
+                    tr.innerHTML = `
+                        <td class="p-3 font-extrabold text-slate-200">${gName} <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 ml-1">GAST</span></td>
+                        <td class="p-3 text-center font-bold text-emerald-400">${h.presentMatches}</td>
+                        <td class="p-3 text-center text-slate-500">-</td>
+                        <td class="p-3 text-center font-extrabold text-white">${h.fieldMinutes} min</td>
+                        <td class="p-3 text-center font-extrabold text-orange-400">${h.outfieldMatches > 0 ? avgField.toFixed(1) + 'm' : '-'}</td>
+                        <td class="p-3 text-center text-slate-500">-</td>
+                        <td class="p-3 text-center"><span class="bg-slate-700/80 text-slate-300 px-2 py-0.5 rounded-full font-bold text-[10px]">Gast (n.v.t.)</span></td>
+                        <td class="p-3 text-center font-black text-orange-400">${h.goals > 0 ? '⚽ ' + h.goals : '-'}</td>
+                        <td class="p-3 text-center font-bold text-amber-400">${h.keeperMinutes} min</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
             const list = document.getElementById('savedMatchesList');
             list.innerHTML = '';
             if (savedMatches.length === 0) {
@@ -6593,6 +6794,13 @@
                 const avgField = h.outfieldMatches > 0 ? (h.fieldMinutes / h.outfieldMatches).toFixed(1) : "0.0";
                 const targetAvg = h.outfieldMatches > 0 ? (h.targetFieldMinutesSum / h.outfieldMatches).toFixed(1) : "52.5";
                 csv += `${p.name};${p.role};${h.presentMatches};${h.absentMatches};${h.fieldMinutes};${avgField};${targetAvg};${h.goals};${h.keeperMinutes}\n`;
+            });
+
+            const guestHist = getGuestSeasonHistoryStats(null);
+            Object.keys(guestHist).sort().forEach(gName => {
+                const h = guestHist[gName];
+                const avgField = h.outfieldMatches > 0 ? (h.fieldMinutes / h.outfieldMatches).toFixed(1) : "0.0";
+                csv += `${gName};Gastspeler;${h.presentMatches};-;${h.fieldMinutes};${avgField};n.v.t.;${h.goals};${h.keeperMinutes}\n`;
             });
 
             const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
