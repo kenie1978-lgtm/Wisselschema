@@ -1540,6 +1540,7 @@
         let emergencySubs = [];
         let matchGoals = [];
         let opponentGoals = 0;
+        let opponentGoalsLog = [];
         let editingGoalId = null;
         let activeQuarterView = 1;
         let displayMode = "pitch";
@@ -2016,6 +2017,7 @@
             if (confirm("Weet je zeker dat je de stand en alle doelpuntenmakers wilt wissen naar 0 - 0?")) {
                 matchGoals = [];
                 opponentGoals = 0;
+                opponentGoalsLog = [];
                 editingGoalId = null;
                 renderScoreboard();
                 if (isMatchMode) renderMatchModeCockpit();
@@ -2436,7 +2438,21 @@
         // =========================================================
         function adjustOpponentGoal(delta) {
             if (isEffectiveReadOnly()) return;
-            opponentGoals = Math.max(0, opponentGoals + delta);
+            const newCount = Math.max(0, opponentGoals + delta);
+            if (newCount > opponentGoals) {
+                const added = newCount - opponentGoals;
+                const minString = (isTimerRunning || timerSeconds > 0)
+                    ? formatMatchMinuteString(timerActiveQuarter, timerSeconds)
+                    : null;
+                for (let i = 0; i < added; i++) {
+                    opponentGoalsLog.push({ id: Date.now() + i, minute: minString });
+                }
+            } else if (newCount < opponentGoals) {
+                while (opponentGoalsLog.length > newCount) {
+                    opponentGoalsLog.pop();
+                }
+            }
+            opponentGoals = newCount;
             renderScoreboard();
             renderMatchModeCockpit();
             syncLiveDraftToCloud();
@@ -2655,6 +2671,8 @@
                             if (Array.isArray(d.emergencySubs)) emergencySubs = d.emergencySubs;
                             if (Array.isArray(d.matchGoals)) matchGoals = d.matchGoals;
                             if (d.opponentGoals !== undefined) opponentGoals = d.opponentGoals;
+                            if (Array.isArray(d.opponentGoalsLog)) opponentGoalsLog = d.opponentGoalsLog;
+                            else if (d.opponentGoals !== undefined) opponentGoalsLog = [];
 
                             if (d.timerActiveQuarter !== undefined) timerActiveQuarter = d.timerActiveQuarter;
                             if (d.isTimerRunning !== undefined) isTimerRunning = d.isTimerRunning;
@@ -2716,6 +2734,7 @@
                     emergencySubs: JSON.parse(JSON.stringify(emergencySubs)),
                     matchGoals: JSON.parse(JSON.stringify(matchGoals)),
                     opponentGoals,
+                    opponentGoalsLog: JSON.parse(JSON.stringify(opponentGoalsLog)),
                     timerActiveQuarter,
                     isTimerRunning,
                     timerStartedAt,
@@ -4270,6 +4289,7 @@
 
             matchGoals = [];
             opponentGoals = 0;
+            opponentGoalsLog = [];
             editingGoalId = null;
 
             emergencySubs = [];
@@ -4342,6 +4362,7 @@
                 emergencySubs: JSON.parse(JSON.stringify(emergencySubs)),
                 goals: JSON.parse(JSON.stringify(matchGoals)),
                 opponentGoals,
+                opponentGoalsLog: JSON.parse(JSON.stringify(opponentGoalsLog)),
                 resultStatus: res.resultStatus,
                 scoreString: res.scoreString
             };
@@ -4416,6 +4437,7 @@
             emergencySubs = m.emergencySubs ? JSON.parse(JSON.stringify(m.emergencySubs)) : [];
             matchGoals = m.goals ? JSON.parse(JSON.stringify(m.goals)) : [];
             opponentGoals = m.opponentGoals || 0;
+            opponentGoalsLog = Array.isArray(m.opponentGoalsLog) ? JSON.parse(JSON.stringify(m.opponentGoalsLog)) : [];
 
             setHomeAway(isHomeMatch);
             renderOpponentDropdown();
@@ -4464,6 +4486,7 @@
             if (Array.isArray(d.emergencySubs)) emergencySubs = JSON.parse(JSON.stringify(d.emergencySubs));
             if (Array.isArray(d.matchGoals)) matchGoals = JSON.parse(JSON.stringify(d.matchGoals));
             if (d.opponentGoals !== undefined) opponentGoals = d.opponentGoals;
+            opponentGoalsLog = Array.isArray(d.opponentGoalsLog) ? JSON.parse(JSON.stringify(d.opponentGoalsLog)) : [];
             if (d.timerActiveQuarter !== undefined) timerActiveQuarter = d.timerActiveQuarter;
             if (d.isTimerRunning !== undefined) isTimerRunning = d.isTimerRunning;
             if (d.timerStartedAt !== undefined) timerStartedAt = d.timerStartedAt;
@@ -5056,7 +5079,8 @@
                     lineup: lineup,
                     emergencySubs: emergencySubs,
                     goals: matchGoals,
-                    opponentGoals: opponentGoals
+                    opponentGoals: opponentGoals,
+                    opponentGoalsLog: opponentGoalsLog
                 };
             } else {
                 matchObj = savedMatches.find(m => String(m.id) === String(sel.value));
@@ -5086,16 +5110,109 @@
                 resultBadgeClass = "bg-rose-100 text-rose-800 border border-rose-300";
             }
 
-            // 1. Doelpuntenmakers HTML
-            let goalsHtml = `<p class="text-xs text-slate-400 italic">Geen doelpunten van Oranje Nassau geregistreerd.</p>`;
-            if (goals.length > 0) {
-                goalsHtml = `<div class="flex flex-wrap gap-2">` + goals.map((g, idx) => `
-                    <span class="inline-flex items-center gap-1.5 bg-orange-50 border border-orange-200 text-orange-950 px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-2xs">
-                        <span>⚽</span>
-                        <span>${g.scorer}</span>
-                        ${g.minute ? `<span class="text-[11px] font-mono text-orange-600">(${g.minute}')</span>` : ''}
-                    </span>
-                `).join('') + `</div>`;
+            // 1. Chronologisch doelpunten- & wedstrijdverloop (Oranje Nassau + Tegendoelpunten)
+            function parseGoalMinuteSortValue(minStr) {
+                if (minStr === null || minStr === undefined) return null;
+                const s = String(minStr).trim();
+                if (!s) return null;
+                const m = s.match(/^(\d+)(?:\+(\d+))?$/);
+                if (m) {
+                    return parseInt(m[1], 10) + (m[2] ? parseInt(m[2], 10) * 0.01 : 0);
+                }
+                const num = parseFloat(s.replace(',', '.'));
+                return isNaN(num) ? null : num;
+            }
+
+            const oppLog = Array.isArray(matchObj.opponentGoalsLog) ? matchObj.opponentGoalsLog : [];
+            const timelineEvents = [];
+
+            goals.forEach((g, idx) => {
+                timelineEvents.push({
+                    team: 'on',
+                    label: g.scorer || 'Oranje Nassau',
+                    minute: g.minute || null,
+                    sortMin: parseGoalMinuteSortValue(g.minute),
+                    ts: Number(g.id) || (1000 + idx),
+                    isLegacy: false
+                });
+            });
+
+            const loggedOppCount = Math.min(oppGoals, oppLog.length);
+            for (let i = 0; i < loggedOppCount; i++) {
+                const og = oppLog[i] || {};
+                timelineEvents.push({
+                    team: 'opp',
+                    label: 'Tegendoelpunt',
+                    minute: og.minute || null,
+                    sortMin: parseGoalMinuteSortValue(og.minute),
+                    ts: Number(og.id) || (2000 + i),
+                    isLegacy: false
+                });
+            }
+
+            // Fallback voor eerder opgeslagen wedstrijden zonder minuten bij tegendoelpunten
+            for (let i = loggedOppCount; i < oppGoals; i++) {
+                timelineEvents.push({
+                    team: 'opp',
+                    label: 'Tegendoelpunt',
+                    minute: null,
+                    sortMin: null,
+                    ts: 9007199254740000 + i,
+                    isLegacy: true
+                });
+            }
+
+            timelineEvents.sort((a, b) => {
+                const aHasMin = a.sortMin !== null;
+                const bHasMin = b.sortMin !== null;
+                if (aHasMin && bHasMin) {
+                    if (a.sortMin !== b.sortMin) return a.sortMin - b.sortMin;
+                    return a.ts - b.ts;
+                }
+                if (aHasMin && !bHasMin) return -1;
+                if (!aHasMin && bHasMin) return 1;
+                return a.ts - b.ts;
+            });
+
+            let goalsHtml = `<p class="text-xs text-slate-400 italic">Nog geen doelpunten geregistreerd (0 - 0).</p>`;
+            if (timelineEvents.length > 0) {
+                let runOn = 0;
+                let runOpp = 0;
+                const rowsHtml = timelineEvents.map((ev, idx) => {
+                    if (ev.team === 'on') runOn++;
+                    else runOpp++;
+
+                    const runHome = isHome ? runOn : runOpp;
+                    const runAway = isHome ? runOpp : runOn;
+                    const scorePill = `${runHome} - ${runAway}`;
+                    const isLast = (idx === timelineEvents.length - 1);
+
+                    if (ev.team === 'on') {
+                        return `
+                            <div class="relative flex items-center justify-between gap-3 py-2.5 ${!isLast ? 'border-b border-slate-100' : ''}">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-orange-500 ring-4 ring-orange-100 shrink-0"></span>
+                                    <span class="bg-orange-500 text-white font-black text-[11px] px-2.5 py-0.5 rounded-lg shrink-0 min-w-[44px] text-center shadow-2xs">${scorePill}</span>
+                                    <span class="text-xs font-extrabold text-slate-800 truncate">⚽ ${ev.label}</span>
+                                </div>
+                                <span class="text-[11px] font-mono font-bold text-slate-500 shrink-0">${ev.minute ? ev.minute + "'" : '-'}</span>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="relative flex items-center justify-between gap-3 py-2.5 ${!isLast ? 'border-b border-slate-100' : ''}">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-100 shrink-0"></span>
+                                    <span class="bg-rose-100 text-rose-800 border border-rose-200 font-black text-[11px] px-2.5 py-0.5 rounded-lg shrink-0 min-w-[44px] text-center">${scorePill}</span>
+                                    <span class="text-xs font-bold text-rose-800 truncate">🚨 ${ev.label}</span>
+                                </div>
+                                <span class="text-[11px] font-mono font-bold text-rose-500 shrink-0">${ev.minute ? ev.minute + "'" : '-'}</span>
+                            </div>
+                        `;
+                    }
+                }).join('');
+
+                goalsHtml = `<div class="divide-y-0 px-1">${rowsHtml}</div>`;
             }
 
             // 2. Wissels per blok berekenen
@@ -5192,11 +5309,17 @@
                     </div>
                 </div>
 
-                <!-- Doelpuntenmakers -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2.5">
-                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                        ⚽ Doelpuntenmakers Oranje Nassau (${onGoals})
-                    </h4>
+                <!-- Doelpunten & Wedstrijdverloop -->
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-1 border-b border-slate-100">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            ⚽ Doelpunten & Wedstrijdverloop
+                        </h4>
+                        <div class="flex items-center gap-2 text-[10px] font-bold">
+                            <span class="bg-orange-50 text-orange-800 border border-orange-200 px-2 py-0.5 rounded-full">ON: ${onGoals}</span>
+                            <span class="bg-rose-50 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full">Tegen: ${oppGoals}</span>
+                        </div>
+                    </div>
                     ${goalsHtml}
                 </div>
 
