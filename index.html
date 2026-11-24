@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CVV Oranje Nassau JO11-4 • Match Dashboard & Speeltijdplanner</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -42,29 +43,110 @@
         /* Touch optimization */
         button, select, input { touch-action: manipulation; }
     
-        /* Commercial Brand & UI Polish - CVV Oranje Nassau (Koningsblauw & Oranje) */
+        /* =====================================================================
+           COMMERCIAL PRO DESIGN SYSTEM — CVV ORANJE NASSAU (KONINGSBLAUW & ORANJE)
+           ===================================================================== */
         :root {
-            --on-royal-blue: #002B7F;
-            --on-royal-dark: #001B54;
-            --on-club-orange: #F97316;
-            --on-club-orange-dark: #EA580C;
+            --on-royal: #002B7F;
+            --on-royal-deep: #00143D;
+            --on-orange: #F97316;
+            --on-orange-vivid: #FF6B00;
         }
-        .commercial-card {
-            border-radius: 1.25rem;
-            box-shadow: 0 4px 20px -2px rgba(0, 43, 127, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-            border: 1px solid #e2e8f0;
+
+        body {
+            background: radial-gradient(circle at top right, rgba(0, 43, 127, 0.06), transparent 45%),
+                        radial-gradient(circle at bottom left, rgba(249, 115, 22, 0.07), transparent 45%),
+                        #f1f5f9;
         }
+
+        /* Sleek Commercial Top Header */
         #mainHeader {
-            background: linear-gradient(135deg, #001B54 0%, #002B7F 55%, #7c2d12 100%) !important;
+            background: linear-gradient(125deg, #00143D 0%, #002B7F 55%, #1E293B 100%) !important;
             border-bottom: 4px solid #F97316 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 20, 61, 0.35), 0 0 15px rgba(249, 115, 22, 0.16) !important;
         }
-        #bottomNavBar {
-            background: rgba(0, 27, 84, 0.96) !important;
-            border-top: 1px solid rgba(249, 115, 22, 0.28) !important;
-        }
+
+        /* Integrated Score & Timer Strip */
         #scoreboardBannerCard {
-            background: linear-gradient(135deg, #001B54 0%, #002B7F 65%, #1e293b 100%) !important;
-            border-color: rgba(249, 115, 22, 0.35) !important;
+            background: linear-gradient(135deg, #00143D 0%, #002B7F 60%, #0F172A 100%) !important;
+            border: 1px solid rgba(249, 115, 22, 0.4) !important;
+            box-shadow: 0 12px 26px -8px rgba(0, 20, 61, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+        }
+
+        /* Commercial Cards & Elevation */
+        .bg-white.rounded-2xl,
+        .bg-white.rounded-3xl {
+            border-color: rgba(0, 43, 127, 0.11) !important;
+            box-shadow: 0 8px 24px -6px rgba(0, 27, 84, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+            transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .bg-white.rounded-2xl:hover,
+        .bg-white.rounded-3xl:hover {
+            border-color: rgba(249, 115, 22, 0.30) !important;
+        }
+
+        /* Tactical Pitch Depth & Sheen */
+        .soccer-pitch {
+            background:
+                radial-gradient(ellipse at center, rgba(255, 255, 255, 0.08) 0%, transparent 70%),
+                repeating-linear-gradient(
+                    0deg,
+                    #15803d 0px,
+                    #15803d 36px,
+                    #166534 36px,
+                    #166534 72px
+                ) !important;
+            border: 3px solid rgba(255, 255, 255, 0.9) !important;
+            box-shadow: inset 0 0 36px rgba(0, 20, 61, 0.35), 0 12px 24px -8px rgba(0, 20, 61, 0.2) !important;
+        }
+
+        /* iOS / Commercial Toggle Switch Styling */
+        .commercial-toggle {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .commercial-toggle input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .commercial-toggle-track {
+            width: 44px;
+            height: 24px;
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+            transition: background-color 0.2s ease;
+            position: relative;
+        }
+        .commercial-toggle input:checked + .commercial-toggle-track {
+            background-color: #F97316;
+        }
+        .commercial-toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: #ffffff;
+            border-radius: 9999px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .commercial-toggle input:checked + .commercial-toggle-track .commercial-toggle-thumb {
+            transform: translateX(20px);
+        }
+
+        /* Persistent Bottom Navigation Bar */
+        #bottomNavBar {
+            background: rgba(0, 20, 61, 0.96) !important;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-top: 2px solid rgba(249, 115, 22, 0.45) !important;
+            box-shadow: 0 -10px 30px -5px rgba(0, 20, 61, 0.35) !important;
         }
 
     </style>
@@ -975,6 +1057,22 @@
 
             <!-- SEIZOENSMONITOR / STATS TAB (DONKERE STIJL MET SUBMENU'S) -->
             <div id="view-season" class="hidden space-y-5 bg-slate-900 -mx-2 sm:mx-0 p-4 sm:p-6 rounded-3xl shadow-2xl border-4 border-slate-800">
+                <!-- Compacte Commerciële KPI-Strip -->
+                <div id="statsKpiStrip" class="grid grid-cols-3 gap-2.5 sm:gap-3">
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 text-center">
+                        <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Streeftijd</div>
+                        <div id="kpiTargetMinutes" class="text-sm sm:text-base font-black text-orange-400 mt-0.5">52.5 min</div>
+                    </div>
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 text-center">
+                        <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Balans (W-G-V)</div>
+                        <div id="kpiSeasonBalance" class="text-sm sm:text-base font-black text-emerald-400 mt-0.5">0W - 0G - 0V</div>
+                    </div>
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 text-center">
+                        <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Doelsaldo</div>
+                        <div id="kpiGoalDiff" class="text-sm sm:text-base font-black text-white mt-0.5">0</div>
+                    </div>
+                </div>
+
                 <!-- Sub-navigatie voor Stats -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
                     <button type="button" onclick="switchStatsSubTab('season')" id="statsSubBtn-season" class="py-2.5 px-3 rounded-xl text-xs font-black transition cursor-pointer bg-orange-600 text-white shadow">
@@ -1199,6 +1297,9 @@
                         </div>
                     </div>
 
+                    <!-- Visuele Mini-Veldpreview Formatie -->
+                    <div id="formationMiniPitchPreview" class="soccer-pitch rounded-2xl p-3.5 flex flex-col justify-between gap-2.5 min-h-[190px] border-2 border-white/80"></div>
+
                     <div id="formationSummaryBar" class="bg-slate-900 text-white rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2">
                         <div class="text-xs font-black">
                             Actief systeem: <span id="formationSummaryString" class="text-orange-400">1-3-3-1</span>
@@ -1247,45 +1348,60 @@
                     </div>
 
                     <div class="divide-y divide-slate-100">
-                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                        <div class="py-3 flex items-center justify-between gap-3">
                             <div>
-                                <div class="text-xs font-extrabold text-slate-800">📋 Wedstrijd & Selectie (Voorbereiding)</div>
-                                <div class="text-[11px] text-slate-500">Tegenstander, datum, keeper & aanwezigheid bovenaan Veld</div>
+                                <div class="text-xs font-extrabold text-slate-800">Wedstrijd & Selectie (Voorbereiding)</div>
+                                <div class="text-[11px] text-slate-500">Tegenstander, datum, keeper & aanwezigheid bovenaan Startscherm</div>
                             </div>
-                            <input type="checkbox" id="prefToggle-prep" onchange="toggleUiPref('prep', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
-                        </label>
+                            <label class="commercial-toggle">
+                                <input type="checkbox" id="prefToggle-prep" onchange="toggleUiPref('prep', this.checked)">
+                                <span class="commercial-toggle-track"><span class="commercial-toggle-thumb"></span></span>
+                            </label>
+                        </div>
 
-                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                        <div class="py-3 flex items-center justify-between gap-3">
                             <div>
-                                <div class="text-xs font-extrabold text-slate-800">⏱ Historische 5%-Regel Monitor</div>
-                                <div class="text-[11px] text-slate-500">Inklapbare tabel onderaan het Veld-scherm</div>
+                                <div class="text-xs font-extrabold text-slate-800">Historische 5%-Regel Monitor</div>
+                                <div class="text-[11px] text-slate-500">Inklapbare tabel onderaan het Startscherm</div>
                             </div>
-                            <input type="checkbox" id="prefToggle-historical" onchange="toggleUiPref('historical', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
-                        </label>
+                            <label class="commercial-toggle">
+                                <input type="checkbox" id="prefToggle-historical" onchange="toggleUiPref('historical', this.checked)">
+                                <span class="commercial-toggle-track"><span class="commercial-toggle-thumb"></span></span>
+                            </label>
+                        </div>
 
-                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                        <div class="py-3 flex items-center justify-between gap-3">
                             <div>
-                                <div class="text-xs font-extrabold text-slate-800">🔮 Forecast Monitor (Oud → Nieuw)</div>
-                                <div class="text-[11px] text-slate-500">Inklapbare forecast-tabel onderaan het Veld-scherm</div>
+                                <div class="text-xs font-extrabold text-slate-800">Forecast Monitor (Oud → Nieuw)</div>
+                                <div class="text-[11px] text-slate-500">Inklapbare forecast-tabel onderaan het Startscherm</div>
                             </div>
-                            <input type="checkbox" id="prefToggle-forecast" onchange="toggleUiPref('forecast', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
-                        </label>
+                            <label class="commercial-toggle">
+                                <input type="checkbox" id="prefToggle-forecast" onchange="toggleUiPref('forecast', this.checked)">
+                                <span class="commercial-toggle-track"><span class="commercial-toggle-thumb"></span></span>
+                            </label>
+                        </div>
 
-                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                        <div class="py-3 flex items-center justify-between gap-3">
                             <div>
-                                <div class="text-xs font-extrabold text-slate-800">📝 Wedstrijd Samenvatting</div>
-                                <div class="text-[11px] text-slate-500">Inklapbare samenvatting met pulldown onderaan het Veld-scherm</div>
+                                <div class="text-xs font-extrabold text-slate-800">Wedstrijd Samenvatting</div>
+                                <div class="text-[11px] text-slate-500">Inklapbare samenvatting met pulldown onderaan het Startscherm</div>
                             </div>
-                            <input type="checkbox" id="prefToggle-summary" onchange="toggleUiPref('summary', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
-                        </label>
+                            <label class="commercial-toggle">
+                                <input type="checkbox" id="prefToggle-summary" onchange="toggleUiPref('summary', this.checked)">
+                                <span class="commercial-toggle-track"><span class="commercial-toggle-thumb"></span></span>
+                            </label>
+                        </div>
 
-                        <label class="py-3 flex items-center justify-between gap-3 cursor-pointer">
+                        <div class="py-3 flex items-center justify-between gap-3">
                             <div>
-                                <div class="text-xs font-extrabold text-slate-800">💬 Zwevende AI Data Assistent</div>
+                                <div class="text-xs font-extrabold text-slate-800">Zwevende AI Data Assistent</div>
                                 <div class="text-[11px] text-slate-500">Toon of verberg de oranje AI-chatknop rechtsonder</div>
                             </div>
-                            <input type="checkbox" id="prefToggle-aiChat" onchange="toggleUiPref('aiChat', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer">
-                        </label>
+                            <label class="commercial-toggle">
+                                <input type="checkbox" id="prefToggle-aiChat" onchange="toggleUiPref('aiChat', this.checked)">
+                                <span class="commercial-toggle-track"><span class="commercial-toggle-thumb"></span></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -1341,19 +1457,22 @@
     <nav id="bottomNavBar" class="fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 shadow-2xl">
         <div id="bottomNavGrid" class="max-w-3xl mx-auto grid grid-cols-4 gap-1 px-2 py-2">
             <button type="button" onclick="switchMainTab('match')" id="bottomNav-match" class="flex flex-col items-center justify-center py-2 rounded-2xl text-orange-400 bg-slate-800/90 transition cursor-pointer active:scale-95">
-                <span class="text-xl leading-none">🏟️</span>
-                <span class="text-[11px] font-black mt-1">Veld</span>
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span class="text-[11px] font-black mt-1">Startscherm</span>
             </button>
-            <button type="button" onclick="openLiveMatchMode()" id="bottomNav-live" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
-                <span class="text-xl leading-none">⏱️</span>
+            <button type="button" onclick="openLiveMatchMode()" id="bottomNav-live" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95 relative">
+                <div class="relative">
+                    <i data-lucide="radio" class="w-5 h-5"></i>
+                    <span id="liveNavPulseDot" class="hidden absolute -top-1 -right-1.5 w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping"></span>
+                </div>
                 <span class="text-[11px] font-black mt-1">Live</span>
             </button>
             <button type="button" onclick="switchMainTab('season')" id="bottomNav-season" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
-                <span class="text-xl leading-none">📊</span>
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                 <span class="text-[11px] font-black mt-1">Stats</span>
             </button>
             <button type="button" onclick="switchMainTab('settings')" id="bottomNav-settings" class="flex flex-col items-center justify-center py-2 rounded-2xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition cursor-pointer active:scale-95">
-                <span class="text-xl leading-none">☰</span>
+                <i data-lucide="menu" class="w-5 h-5"></i>
                 <span class="text-[11px] font-black mt-1">Meer</span>
             </button>
         </div>
@@ -3229,13 +3348,16 @@
             if (!isCoach) return;
 
             list.innerHTML = SUPPORTER_VISIBILITY_ITEMS.map(item => `
-                <label class="py-2.5 flex items-center justify-between gap-3 cursor-pointer">
+                <div class="py-2.5 flex items-center justify-between gap-3">
                     <div>
                         <div class="text-xs font-extrabold text-slate-800">${item.label}</div>
                         <div class="text-[11px] text-slate-500">${item.desc}</div>
                     </div>
-                    <input type="checkbox" ${supporterVisibility[item.key] ? 'checked' : ''} onchange="toggleSupporterVisibility('${item.key}', this.checked)" class="w-5 h-5 accent-orange-600 cursor-pointer shrink-0">
-                </label>
+                    <label class="commercial-toggle">
+                        <input type="checkbox" ${supporterVisibility[item.key] ? 'checked' : ''} onchange="toggleSupporterVisibility('${item.key}', this.checked)">
+                        <span class="commercial-toggle-track"><span class="commercial-toggle-thumb"></span></span>
+                    </label>
+                </div>
             `).join('');
         }
 
@@ -3528,6 +3650,42 @@
                     return `<button type="button" ${disabled ? 'disabled' : ''} onclick="setFormationLineCount('${c.key}', ${n})" class="${cls}" title="${exceeds ? 'Totaal mag niet meer zijn dan ' + total + ' spelers' : ''}">${n}</button>`;
                 }).join('');
             });
+
+            const miniPitch = document.getElementById('formationMiniPitchPreview');
+            if (miniPitch) {
+                const renderMiniRow = (items, bgCls) => {
+                    if (!items || items.length === 0) return '';
+                    return `<div class="flex justify-center gap-1.5 flex-wrap">${items.map(p => `<span class="px-2 py-0.5 rounded-full text-[10px] font-black shadow-xs ${bgCls}">${p.short}</span>`).join('')}</div>`;
+                };
+                miniPitch.innerHTML = `
+                    ${renderMiniRow(attPos, 'bg-rose-100 text-rose-900 border border-white')}
+                    ${renderMiniRow(midPos, 'bg-emerald-100 text-emerald-950 border border-white')}
+                    ${renderMiniRow(defPos, 'bg-blue-100 text-blue-950 border border-white')}
+                    ${renderMiniRow(LINE_POSITION_TEMPLATES.Keeper[1], 'bg-amber-200 text-amber-950 border border-white')}
+                `;
+            }
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function updateSeasonKpiStrip() {
+            const kpiBal = document.getElementById('kpiSeasonBalance');
+            const kpiDiff = document.getElementById('kpiGoalDiff');
+            if (!kpiBal || !kpiDiff) return;
+
+            let w = 0, g = 0, v = 0, gf = 0, ga = 0;
+            savedMatches.forEach(m => {
+                const onG = Array.isArray(m.goals) ? m.goals.length : 0;
+                const oppG = m.opponentGoals || 0;
+                gf += onG;
+                ga += oppG;
+                if (onG > oppG) w++;
+                else if (onG < oppG) v++;
+                else g++;
+            });
+            kpiBal.innerText = `${w}W - ${g}G - ${v}V`;
+            const diff = gf - ga;
+            kpiDiff.innerText = diff > 0 ? `+${diff}` : String(diff);
         }
 
         function switchStatsSubTab(subTab) {
@@ -3594,6 +3752,7 @@
             }
 
             if (tab === 'season') {
+                updateSeasonKpiStrip();
                 body.className = "bg-slate-950 text-slate-100 min-h-screen pb-28 transition-colors duration-300";
                 renderSeasonOverview();
                 renderForecastMonitor();
