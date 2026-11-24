@@ -2,6 +2,12 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
+    <meta name="theme-color" content="#00143D">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ON JO11-4">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CVV Oranje Nassau JO11-4 • Match Dashboard & Speeltijdplanner</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -150,6 +156,71 @@
         }
 
     </style>
+
+<style id="onaDesignV2">
+/* ===== ON DESIGN V2 — overlay ===== */
+:root{--on-radius:18px;--on-ink:#0f172a;--on-muted:#64748b;--on-line:#e2e8f0;
+--on-shadow:0 1px 2px rgba(15,23,42,.06),0 8px 24px -12px rgba(15,23,42,.18);}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{color:var(--on-ink);letter-spacing:-.005em;padding-bottom:env(safe-area-inset-bottom);
+ overscroll-behavior-y:none;-webkit-font-smoothing:antialiased}
+/* ruimte onder vaste onderbalk */
+#standardAppContainer,#view-match{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+/* header: rustiger, kleiner accent */
+#mainHeader{border-bottom-width:3px!important}
+/* kaarten */
+.rounded-2xl.bg-white,.rounded-3xl.bg-white,section.bg-white,div.bg-white.rounded-2xl,div.bg-white.rounded-xl{
+ border-color:var(--on-line)!important;box-shadow:var(--on-shadow)}
+/* onderbalk: glas, grotere doelen, duidelijke actieve staat */
+#bottomNavBar{background:rgba(0,20,61,.92)!important;border-top:1px solid rgba(255,255,255,.08)!important;
+ padding-bottom:env(safe-area-inset-bottom);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px)}
+#bottomNavGrid button{min-height:56px;border-radius:16px;position:relative}
+#bottomNavGrid button span{letter-spacing:.01em}
+#bottomNavGrid button.text-orange-400::after{content:"";position:absolute;top:3px;left:50%;width:22px;height:3px;
+ margin-left:-11px;border-radius:3px;background:#F97316}
+/* aanraakdoelen */
+button,select,input[type=text],input[type=date],input[type=number],input[type=password]{min-height:44px}
+button.p-1,button.p-1\.5{min-width:40px;min-height:40px}
+input,select,textarea{font-size:16px!important;border-radius:12px}
+/* focus (toegankelijkheid) */
+:focus-visible{outline:3px solid #F97316!important;outline-offset:2px;border-radius:10px}
+/* actieknoppen voelen ingedrukt */
+button:active{transform:scale(.97)}
+button{transition:transform .08s ease,background-color .15s ease,box-shadow .15s ease}
+/* klok en score: groot, cijfers op vaste breedte */
+#timerDisplay,#matchModeTimerDisplay,#scoreLeftNumber,#scoreRightNumber,#matchModeScoreHome,#matchModeScoreAway{
+ font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+/* veld: zachter, scherper lijnen */
+.soccer-pitch{border-radius:20px;box-shadow:inset 0 0 40px rgba(0,0,0,.28),0 10px 24px -14px rgba(0,43,127,.5)}
+/* tabellen: leesbaarder */
+table{border-collapse:separate;border-spacing:0}
+thead th{position:sticky;top:0;z-index:10;background:#f8fafc;font-size:11px;letter-spacing:.04em}
+tbody tr:nth-child(even) td{background-color:rgba(241,245,249,.55)}
+tbody tr:hover td{background-color:#fff7ed}
+.sticky-col{background-color:#fff!important}
+td,th{padding-top:.55rem;padding-bottom:.55rem}
+/* modals/menu */
+#authModal>div,[id$="Modal"]>div{border-radius:24px}
+#navDrawer{border-top-right-radius:24px;border-bottom-right-radius:24px}
+/* kleurenblind: afwijking krijgt ook symbool via aria/tekst, hier sterkere gewicht */
+.text-red-600,.text-red-700{font-weight:800}
+.text-emerald-600,.text-emerald-700,.text-green-600{font-weight:800}
+/* toasts + status-pill */
+#onaToast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+ background:#0f172a;color:#fff;font-weight:800;font-size:13px;padding:10px 16px;border-radius:999px;opacity:0;
+ pointer-events:none;transition:all .25s;z-index:200;box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
+#onaToast.show{opacity:1;transform:translate(-50%,0)}
+#onaNetPill{position:fixed;top:calc(8px + env(safe-area-inset-top));right:10px;z-index:150;font-size:11px;font-weight:800;
+ padding:4px 10px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;display:none}
+body.ona-offline #onaNetPill{display:block}
+#onaSnapBox{margin-top:12px;padding:14px;border:1px solid var(--on-line);border-radius:16px;background:#f8fafc}
+#onaSnapBox button{margin-top:6px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;background:#fff;
+ border:1px solid #cbd5e1;font-weight:700;font-size:12px}
+/* grotere tekst voor kleine labels op telefoon */
+@media (max-width:480px){.text-\[10px\]{font-size:11px!important}.text-\[11px\]{font-size:12px!important}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{#bottomNavBar,#mainHeader,#onaNetPill{display:none!important}}
+</style>
 </head>
 <body id="appBody" class="bg-slate-100 text-slate-800 min-h-screen pb-24 transition-colors duration-300">
 
@@ -7364,5 +7435,95 @@
 
         window.onload = initApp;
     </script>
+
+<div id="onaToast" role="status" aria-live="polite"></div>
+<div id="onaNetPill">Offline — wijzigingen blijven lokaal</div>
+<script id="onaAddonsV2">
+(function(){
+  const $=s=>document.querySelector(s);
+  function toast(t){const e=$('#onaToast');if(!e)return;e.textContent=t;e.classList.add('show');
+    clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('show'),2600);}
+  window.onaToast=toast;
+
+  /* 1. Offline-indicator */
+  function net(){document.body.classList.toggle('ona-offline',!navigator.onLine);}
+  addEventListener('online',()=>{net();toast('Weer online');});
+  addEventListener('offline',()=>{net();toast('Je bent offline');});
+  net();
+
+  /* 2. Scherm aan tijdens de wedstrijd (Wake Lock) */
+  let lock=null;
+  async function wake(){try{if('wakeLock' in navigator&&!lock){lock=await navigator.wakeLock.request('screen');
+    lock.addEventListener('release',()=>{lock=null;});}}catch(e){}}
+  document.addEventListener('click',e=>{if(e.target.closest('#toggleTimerBtn,#mmToggleTimerBtn,#bottomNav-live,#matchModeLaunchBtn'))wake();},true);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&localStorage.getItem('ona_jo11_4_match_mode'))wake();});
+
+  /* 3. Haptiek bij belangrijke knoppen */
+  document.addEventListener('click',e=>{
+    if(e.target.closest('#toggleTimerBtn,#mmToggleTimerBtn,#mmNextPeriodBtn,#nextPeriodManualBtn')&&navigator.vibrate)navigator.vibrate(25);
+  },true);
+
+  /* 4. Automatische rollende backups (laatste 5), zonder geheime sleutels */
+  const SNAP='ona_snapshots_v1',SKIP=['ona_jo11_4_firebase_config','ona_gemini_api_key','ona_auth_session',SNAP];
+  function collect(){const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
+    if(k.startsWith('ona_')&&!SKIP.includes(k)&&!k.startsWith('ona_accordion_'))o[k]=localStorage.getItem(k);}return o;}
+  function snap(manual){
+    try{const data=collect(),str=JSON.stringify(data);
+      let list=JSON.parse(localStorage.getItem(SNAP)||'[]');
+      if(list.length&&list[0].str===str&&!manual)return;
+      list.unshift({t:Date.now(),str});list=list.slice(0,5);
+      localStorage.setItem(SNAP,JSON.stringify(list));if(manual)toast('Backup opgeslagen');renderSnaps();
+    }catch(e){try{const l=JSON.parse(localStorage.getItem(SNAP)||'[]').slice(0,2);localStorage.setItem(SNAP,JSON.stringify(l));}catch(_){}}
+  }
+  setInterval(()=>snap(false),60000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')snap(false);});
+  addEventListener('pagehide',()=>snap(false));
+  function renderSnaps(){
+    const box=$('#onaSnapList');if(!box)return;
+    const list=JSON.parse(localStorage.getItem(SNAP)||'[]');
+    box.innerHTML=list.length?'':'<div style="font-size:12px;color:#64748b">Nog geen automatische backups.</div>';
+    list.forEach((s,i)=>{const b=document.createElement('button');b.type='button';
+      b.textContent='↩ Herstel versie van '+new Date(s.t).toLocaleString('nl-NL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      b.onclick=()=>{if(!confirm('Deze versie terugzetten? De huidige gegevens worden overschreven.'))return;
+        snap(true);const d=JSON.parse(s.str);Object.keys(d).forEach(k=>localStorage.setItem(k,d[k]));location.reload();};
+      box.appendChild(b);});
+  }
+  function injectSnapUI(){
+    const ta=$('#backupTextarea');if(!ta||$('#onaSnapBox'))return;
+    const host=ta.closest('.space-y-3,.space-y-4,div')?.parentElement;if(!host)return;
+    const box=document.createElement('div');box.id='onaSnapBox';
+    box.innerHTML='<div style="font-size:12px;font-weight:900;text-transform:uppercase;color:#334155">4. Automatische backups (laatste 5)</div>'+
+      '<div id="onaSnapList"></div><button type="button" id="onaSnapNow" style="text-align:center;background:#002B7F;color:#fff;border-color:#002B7F">Maak nu een backup</button>';
+    host.appendChild(box);$('#onaSnapNow').onclick=()=>snap(true);renderSnaps();
+  }
+
+  /* 5. Wissel-herinnering: korte toast + trilling als blok bijna voorbij is */
+  let warned=-1;
+  setInterval(()=>{
+    const el=$('#timerDisplay')||$('#matchModeTimerDisplay');if(!el)return;
+    const m=(el.textContent||'').match(/(\d+):(\d+)/);if(!m)return;
+    const sec=+m[1]*60+ +m[2],blockEnd=Math.ceil((sec+1)/900)*900,left=blockEnd-sec;
+    if(left<=60&&left>55&&warned!==blockEnd&&sec>0&&sec<3600){warned=blockEnd;
+      toast('⏱ Over 1 minuut wissel — bereid de bank voor');if(navigator.vibrate)navigator.vibrate([80,60,80]);}
+  },1000);
+
+  /* 6. Veilig delen: fallback voor klembord */
+  const _w=navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText.bind(navigator.clipboard):null;
+  if(_w){navigator.clipboard.writeText=t=>_w(t).catch(()=>{const a=document.createElement('textarea');a.value=t;
+    document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove();});}
+
+  /* 7. Toegankelijke labels op icoonknoppen */
+  function aria(){document.querySelectorAll('button:not([aria-label])').forEach(b=>{
+    if(!b.textContent.trim()&&b.title)b.setAttribute('aria-label',b.title);});}
+
+  addEventListener('load',()=>{setTimeout(()=>{injectSnapUI();aria();snap(false);},800);});
+  /* 8. Manifest (PWA: toevoegen aan beginscherm) */
+  try{const mf={name:'ON JO11-4 Match Dashboard',short_name:'ON JO11-4',display:'standalone',
+    background_color:'#00143D',theme_color:'#00143D',start_url:location.href,
+    icons:[{src:"data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#00143D"/><text x="50" y="64" font-size="40" font-weight="900" text-anchor="middle" fill="#F97316" font-family="Arial">ON</text></svg>'),sizes:'512x512',type:'image/svg+xml'}]};
+    const l=document.createElement('link');l.rel='manifest';
+    l.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}));document.head.appendChild(l);}catch(e){}
+})();
+</script>
 </body>
 </html>
