@@ -2200,6 +2200,36 @@ body.ona-offline #onaNetPill{display:block}
             return 1 + getActiveOutfieldCount(cfg);
         }
 
+        function getTotalMatchFieldMinutes() {
+            let total = 0;
+            for (let q = 1; q <= 4; q++) {
+                total += getActiveOutfieldCount(getFormationConfigForQuarter(q)) * 15;
+            }
+            return total;
+        }
+
+        function getCleanBlockObject(qBlock, quarter) {
+            const cleaned = {};
+            const validPositions = getPositionsForQuarter(quarter);
+            const seenPlayers = new Set();
+            if (qBlock && typeof qBlock === 'object') {
+                // Keeper altijd eerst behouden
+                if (qBlock["GK"]) {
+                    cleaned["GK"] = qBlock["GK"];
+                    seenPlayers.add(qBlock["GK"]);
+                }
+                validPositions.forEach(pos => {
+                    if (pos.id === "GK") return;
+                    const name = qBlock[pos.id];
+                    if (name && !seenPlayers.has(name)) {
+                        cleaned[pos.id] = name;
+                        seenPlayers.add(name);
+                    }
+                });
+            }
+            return cleaned;
+        }
+
         function rebuildPositionsFromFormation() {
             POSITIONS = getPositionsForConfig(formationConfig);
             TABLE_POSITIONS = getTablePositionsForConfig(formationConfig);
@@ -3678,7 +3708,10 @@ body.ona-offline #onaNetPill{display:block}
                             if (d.fixedKeeperName) fixedKeeperName = d.fixedKeeperName;
                             if (d.quarterKeepers) quarterKeepers = { ...d.quarterKeepers };
                             if (d.quarterFormations) quarterFormations = { 1: d.quarterFormations[1] || null, 2: d.quarterFormations[2] || null, 3: d.quarterFormations[3] || null, 4: d.quarterFormations[4] || null };
-                            if (d.lineup) lineup = JSON.parse(JSON.stringify(d.lineup));
+                            if (d.lineup) {
+                                lineup = JSON.parse(JSON.stringify(d.lineup));
+                                pruneLineupToCurrentPositions();
+                            }
                             if (Array.isArray(d.emergencySubs)) emergencySubs = d.emergencySubs;
                             if (Array.isArray(d.matchGoals)) matchGoals = d.matchGoals;
                             if (d.opponentGoals !== undefined) opponentGoals = d.opponentGoals;
@@ -3746,7 +3779,12 @@ body.ona-offline #onaNetPill{display:block}
                     fixedKeeperName,
                     quarterKeepers: { ...quarterKeepers },
                     quarterFormations: { ...quarterFormations },
-                    lineup: JSON.parse(JSON.stringify(lineup)),
+                    lineup: {
+                        1: getCleanBlockObject(lineup[1], 1),
+                        2: getCleanBlockObject(lineup[2], 2),
+                        3: getCleanBlockObject(lineup[3], 3),
+                        4: getCleanBlockObject(lineup[4], 4)
+                    },
                     emergencySubs: JSON.parse(JSON.stringify(emergencySubs)),
                     matchGoals: JSON.parse(JSON.stringify(matchGoals)),
                     opponentGoals,
@@ -3758,7 +3796,7 @@ body.ona-offline #onaNetPill{display:block}
                 };
             }
 
-            docRef.set(payload, { merge: true }).catch(err => {
+            docRef.set(payload, { mergeFields: Object.keys(payload) }).catch(err => {
                 console.warn("Cloud write fout:", err);
             });
         }
@@ -4035,11 +4073,7 @@ body.ona-offline #onaNetPill{display:block}
 
         function pruneLineupToCurrentPositions() {
             for (let q = 1; q <= 4; q++) {
-                const validIds = new Set(getPositionsForQuarter(q).map(p => p.id));
-                if (!lineup[q]) lineup[q] = {};
-                Object.keys(lineup[q]).forEach(posId => {
-                    if (!validIds.has(posId)) delete lineup[q][posId];
-                });
+                lineup[q] = getCleanBlockObject(lineup[q], q);
                 if (!lineup[q]["GK"]) {
                     lineup[q]["GK"] = isFixedKeeper ? fixedKeeperName : (quarterKeepers[q] || fixedKeeperName);
                 }
@@ -4782,7 +4816,7 @@ body.ona-offline #onaNetPill{display:block}
                 totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
-            const totalMatchFieldMins = getActiveOutfieldCount() * 60;
+            const totalMatchFieldMins = getTotalMatchFieldMinutes();
             const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
             const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
@@ -4972,8 +5006,9 @@ body.ona-offline #onaNetPill{display:block}
             const active = getActivePlayers();
             const currentVal = lineup[quarter][posObj.id] || "";
 
-            const usedElsewhere = Object.entries(lineup[quarter])
-                .filter(([keyPos]) => keyPos !== posObj.id)
+            const validIdsForQ = new Set(getPositionsForQuarter(quarter).map(p => p.id));
+            const usedElsewhere = Object.entries(lineup[quarter] || {})
+                .filter(([keyPos]) => keyPos !== posObj.id && validIdsForQ.has(keyPos))
                 .map(([, name]) => name);
 
             const available = active.filter(p => !usedElsewhere.includes(p.name) || p.name === currentVal);
@@ -5471,14 +5506,31 @@ body.ona-offline #onaNetPill{display:block}
             }
 
             if (m && m.lineup && typeof m.lineup === 'object') {
+                const baseCfg = sanitizeFormationConfig(m.formationConfig || DEFAULT_FORMATION_CONFIG);
                 for (let q = 1; q <= 4; q++) {
                     const qBlock = m.lineup[q];
                     if (!qBlock || typeof qBlock !== 'object') continue;
+                    const qFormVal = m.quarterFormations && m.quarterFormations[q];
+                    const qCfg = (typeof qFormVal === 'string' && BLOCK_FORMATION_PRESETS[qFormVal])
+                        ? BLOCK_FORMATION_PRESETS[qFormVal]
+                        : (qFormVal && typeof qFormVal === 'object' ? sanitizeFormationConfig(qFormVal) : baseCfg);
+                    const validIds = new Set(getPositionsForConfig(qCfg).map(p => p.id));
+                    const countedInBlock = new Set();
+
+                    if (qBlock["GK"]) {
+                        const gkKey = ensureKey(qBlock["GK"]);
+                        if (gkKey) {
+                            mins[gkKey].keeper += 15;
+                            countedInBlock.add(gkKey);
+                        }
+                    }
+
                     for (let posId in qBlock) {
+                        if (posId === "GK" || !validIds.has(posId)) continue;
                         const key = ensureKey(qBlock[posId]);
-                        if (key) {
-                            if (posId === "GK") mins[key].keeper += 15;
-                            else mins[key].field += 15;
+                        if (key && !countedInBlock.has(key)) {
+                            mins[key].field += 15;
+                            countedInBlock.add(key);
                         }
                     }
                 }
@@ -5914,6 +5966,7 @@ body.ona-offline #onaNetPill{display:block}
                 return;
             }
 
+            pruneLineupToCurrentPositions();
             const opponent = selectedOpponent || "avc Heracles O11-2JM";
             const date = document.getElementById('matchDate').value || new Date().toISOString().slice(0, 10);
             const active = getActivePlayers();
@@ -5931,7 +5984,7 @@ body.ona-offline #onaNetPill{display:block}
                 totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
-            const totalMatchFieldMins = getActiveOutfieldCount() * 60;
+            const totalMatchFieldMins = getTotalMatchFieldMinutes();
             const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
             const targetFieldMinutesPerOutfielder = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
@@ -6033,6 +6086,7 @@ body.ona-offline #onaNetPill{display:block}
             rebuildPositionsFromFormation();
             renderFormationSettingsUI();
             lineup = m.lineup ? JSON.parse(JSON.stringify(m.lineup)) : { 1: { GK: fixedKeeperName }, 2: { GK: fixedKeeperName }, 3: { GK: fixedKeeperName }, 4: { GK: fixedKeeperName } };
+            pruneLineupToCurrentPositions();
             emergencySubs = m.emergencySubs ? JSON.parse(JSON.stringify(m.emergencySubs)) : [];
             matchGoals = m.goals ? JSON.parse(JSON.stringify(m.goals)) : [];
             opponentGoals = m.opponentGoals || 0;
@@ -6083,7 +6137,10 @@ body.ona-offline #onaNetPill{display:block}
             if (d.quarterKeepers) quarterKeepers = { ...d.quarterKeepers };
             if (d.quarterFormations) quarterFormations = { 1: d.quarterFormations[1] || null, 2: d.quarterFormations[2] || null, 3: d.quarterFormations[3] || null, 4: d.quarterFormations[4] || null };
             else quarterFormations = { 1: null, 2: null, 3: null, 4: null };
-            if (d.lineup) lineup = JSON.parse(JSON.stringify(d.lineup));
+            if (d.lineup) {
+                lineup = JSON.parse(JSON.stringify(d.lineup));
+                pruneLineupToCurrentPositions();
+            }
             if (Array.isArray(d.emergencySubs)) emergencySubs = JSON.parse(JSON.stringify(d.emergencySubs));
             if (Array.isArray(d.matchGoals)) matchGoals = JSON.parse(JSON.stringify(d.matchGoals));
             if (d.opponentGoals !== undefined) opponentGoals = d.opponentGoals;
@@ -6362,16 +6419,29 @@ body.ona-offline #onaNetPill{display:block}
             });
 
             for (let q = 1; q <= 4; q++) {
-                const pitchNames = Object.values(srcLineup[q] || {}).filter(Boolean);
-                for (let posId in srcLineup[q]) {
-                    const pName = srcLineup[q][posId];
-                    if (pName && mins[pName]) {
-                        if (posId === "GK") mins[pName].keeper += 15;
-                        else mins[pName].field += 15;
-                    }
+                const qBlock = srcLineup[q] || {};
+                const validPositions = getPositionsForQuarter(q);
+                const countedInBlock = new Set();
+
+                // Keeper eerst tellen (als aanwezig)
+                const gkName = qBlock["GK"];
+                if (gkName && mins[gkName]) {
+                    mins[gkName].keeper += 15;
+                    countedInBlock.add(gkName);
                 }
+
+                // Alleen geldige veldposities voor de formatie van dit blok tellen (max 1x per speler per blok)
+                validPositions.forEach(pos => {
+                    if (pos.id === "GK") return;
+                    const pName = qBlock[pos.id];
+                    if (pName && mins[pName] && !countedInBlock.has(pName)) {
+                        mins[pName].field += 15;
+                        countedInBlock.add(pName);
+                    }
+                });
+
                 active.forEach(p => {
-                    if (!pitchNames.includes(p.name)) mins[p.name].benchQuarters++;
+                    if (!countedInBlock.has(p.name)) mins[p.name].benchQuarters++;
                 });
             }
 
@@ -6500,7 +6570,7 @@ body.ona-offline #onaNetPill{display:block}
                 totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
-            const totalMatchFieldMins = getActiveOutfieldCount() * 60;
+            const totalMatchFieldMins = getTotalMatchFieldMinutes();
             const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
             const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
