@@ -1132,7 +1132,7 @@ body.ona-offline #onaNetPill{display:block}
                     </button>
 
                     <div id="matchSummaryContent" class="hidden p-4 sm:p-5 border-t border-slate-200 space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div id="matchSummaryPickerRow" class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                             <label for="matchSummarySelect" class="text-xs font-extrabold uppercase tracking-wider text-slate-700 shrink-0">
                                 🏟️ Kies wedstrijd:
                             </label>
@@ -1188,7 +1188,7 @@ body.ona-offline #onaNetPill{display:block}
                             <h2 class="text-xl sm:text-2xl font-black text-white">📊 Seizoensoverzicht O.N. Almelo JO11-4</h2>
                             <p class="text-xs text-slate-300 mt-1">
                                 • Alleen wedstrijden waarin een speler <strong>aanwezig</strong> was tellen mee voor zijn gemiddelde.<br>
-                                • Gastspelers en keeperstijd verlagen het streefgemiddelde van de vaste spelers niet.<br>
+                                • Speeltijd van gastspelers wordt in mindering gebracht op de beschikbare veldtijd voor vaste spelers; keeperstijd telt niet mee als veldspeeltijd.<br>
                                 • <span class="text-orange-300 font-bold">💡 Tip: Klik op een spelersnaam of op een cijfer in de tabel om de exacte opbouw per wedstrijd te zien.</span>
                             </p>
                         </div>
@@ -3955,7 +3955,7 @@ body.ona-offline #onaNetPill{display:block}
             document.getElementById('uiCard-prep')?.classList.toggle('hidden', !sv.prep);
             if (pitchWrapper) pitchWrapper.classList.toggle('hidden', !sv.pitch);
             document.getElementById('uiCard-historical')?.classList.toggle('hidden', !sv.historical);
-            document.getElementById('uiCard-forecast')?.classList.toggle('hidden', !sv.forecast);
+            document.getElementById('uiCard-forecast')?.classList.toggle('hidden', !sv.forecast || loadedMatchId !== null);
             document.getElementById('uiCard-summary')?.classList.toggle('hidden', !sv.summary);
             document.getElementById('chatWidgetContainer')?.classList.toggle('hidden', !sv.aiChat);
 
@@ -4057,7 +4057,8 @@ body.ona-offline #onaNetPill{display:block}
             ];
             map.forEach(item => {
                 const el = document.getElementById(item.elId);
-                if (el) el.classList.toggle('hidden', !uiPrefs[item.key]);
+                const hideForSavedView = (item.key === 'forecast' && loadedMatchId !== null);
+                if (el) el.classList.toggle('hidden', hideForSavedView || !uiPrefs[item.key]);
                 const cb = document.getElementById('prefToggle-' + item.key);
                 if (cb) cb.checked = !!uiPrefs[item.key];
             });
@@ -6285,6 +6286,25 @@ body.ona-offline #onaNetPill{display:block}
             if (currentUserRole === 'supporter' && saveBtn) {
                 saveBtn.classList.add('hidden');
             }
+
+            // Bij bekijken/heropenen van een opgeslagen wedstrijd vanuit seizoensoverzicht:
+            // verberg Forecast, Opstelling doorkopiëren en wedstrijd-pulldown in samenvatting
+            const isViewingSaved = (loadedMatchId !== null);
+            const pitchCopyCard = document.getElementById('pitchCopyCard');
+            if (pitchCopyCard) pitchCopyCard.classList.toggle('hidden', isViewingSaved);
+
+            const summaryPickerRow = document.getElementById('matchSummaryPickerRow');
+            if (summaryPickerRow) summaryPickerRow.classList.toggle('hidden', isViewingSaved);
+
+            const forecastCard = document.getElementById('uiCard-forecast');
+            if (forecastCard) {
+                if (isViewingSaved) {
+                    forecastCard.classList.add('hidden');
+                } else {
+                    const allowedForRole = (currentUserRole === 'supporter') ? !!supporterVisibility.forecast : !!uiPrefs.forecast;
+                    forecastCard.classList.toggle('hidden', !allowedForRole);
+                }
+            }
         }
 
         // =========================================================
@@ -6834,9 +6854,14 @@ body.ona-offline #onaNetPill{display:block}
                 sel.appendChild(group);
             }
 
-            // Herstel eerdere keuze als die nog bestaat; anders meest recente opgeslagen duel (of live)
             const validValues = Array.from(sel.options).map(o => o.value);
-            if (prevVal && validValues.includes(prevVal)) {
+            const statsSel = document.getElementById('statsSummarySelect');
+            const prevStatsVal = statsSel ? statsSel.value : '';
+
+            // Als een opgeslagen wedstrijd is heropend, toon op het hoofdscherm altijd die wedstrijd
+            if (loadedMatchId !== null && validValues.includes(String(loadedMatchId))) {
+                sel.value = String(loadedMatchId);
+            } else if (prevVal && validValues.includes(prevVal)) {
                 sel.value = prevVal;
             } else if (sortedMatches.length > 0) {
                 sel.value = String(sortedMatches[0].id);
@@ -6844,10 +6869,13 @@ body.ona-offline #onaNetPill{display:block}
                 sel.value = "__LIVE__";
             }
 
-            const statsSel = document.getElementById('statsSummarySelect');
             if (statsSel) {
                 statsSel.innerHTML = sel.innerHTML;
-                statsSel.value = sel.value;
+                if (prevStatsVal && validValues.includes(prevStatsVal)) {
+                    statsSel.value = prevStatsVal;
+                } else {
+                    statsSel.value = sel.value;
+                }
             }
             renderMatchSummaryDetails();
         }
@@ -6903,6 +6931,59 @@ body.ona-offline #onaNetPill{display:block}
             const awayScore = isHome ? oppGoals : onGoals;
             const homeName = isHome ? "Oranje Nassau" : (matchObj.opponent || "Tegenstander");
             const awayName = isHome ? (matchObj.opponent || "Tegenstander") : "Oranje Nassau";
+
+            // Bereken/haal streeftijd voor deze wedstrijd (incl. aftrek van gastspeler-minuten)
+            let summaryTargetMins = null;
+            let summaryGuestFieldMins = 0;
+            let summaryTotalFieldMins = 420;
+            let summaryFixedShares = 0;
+            const baseNamesSet = new Set(basePlayers.map(p => p.name));
+
+            if (isLiveSelection || (loadedMatchId !== null && String(loadedMatchId) === String(sel.value) && !isReadOnlyMode)) {
+                const liveMins = calculateMatchMinutes();
+                const liveActive = getActivePlayers();
+                liveActive.filter(p => p.isGuest).forEach(g => {
+                    summaryGuestFieldMins += (liveMins[g.name]?.field || 0);
+                });
+                liveActive.filter(p => !p.isGuest).forEach(p => {
+                    const kMin = liveMins[p.name]?.keeper || 0;
+                    summaryFixedShares += Math.max(0, (60 - kMin) / 60);
+                });
+                summaryTotalFieldMins = getTotalMatchFieldMinutes();
+                const netFixed = Math.max(0, summaryTotalFieldMins - summaryGuestFieldMins);
+                summaryTargetMins = summaryFixedShares > 0 ? (netFixed / summaryFixedShares) : (summaryTotalFieldMins / Math.max(1, getActiveOutfieldCount()));
+            } else {
+                const computedMins = computeSavedMatchMinutes(matchObj);
+                const baseCfg = sanitizeFormationConfig(matchObj.formationConfig || DEFAULT_FORMATION_CONFIG);
+                summaryTotalFieldMins = 0;
+                for (let q = 1; q <= 4; q++) {
+                    const qfv = matchObj.quarterFormations && matchObj.quarterFormations[q];
+                    const qCfg = (typeof qfv === 'string' && BLOCK_FORMATION_PRESETS[qfv])
+                        ? BLOCK_FORMATION_PRESETS[qfv]
+                        : (qfv && typeof qfv === 'object' ? sanitizeFormationConfig(qfv) : baseCfg);
+                    summaryTotalFieldMins += getActiveOutfieldCount(qCfg) * 15;
+                }
+                Object.entries(computedMins).forEach(([pName, mData]) => {
+                    if (!baseNamesSet.has(pName)) {
+                        summaryGuestFieldMins += (mData?.field || 0);
+                    }
+                });
+                basePlayers.forEach(p => {
+                    if (!matchObj.attendance || matchObj.attendance[p.name] !== false) {
+                        const kMin = computedMins[p.name]?.keeper || 0;
+                        summaryFixedShares += Math.max(0, (60 - kMin) / 60);
+                    }
+                });
+                if (typeof matchObj.targetFieldMinutesPerOutfielder === 'number' && !isNaN(matchObj.targetFieldMinutesPerOutfielder)) {
+                    summaryTargetMins = matchObj.targetFieldMinutesPerOutfielder;
+                } else {
+                    const netFixed = Math.max(0, summaryTotalFieldMins - summaryGuestFieldMins);
+                    summaryTargetMins = summaryFixedShares > 0 ? (netFixed / summaryFixedShares) : 52.5;
+                }
+            }
+            const summaryTargetTooltip = summaryFixedShares > 0
+                ? `(${summaryTotalFieldMins} min totaal${summaryGuestFieldMins > 0 ? ' - ' + summaryGuestFieldMins + ' min gast' : ''}) ÷ ${summaryFixedShares.toFixed(2).replace(/\.00$/, '')} vaste veldspeler(s)`
+                : 'Streeftijd per vaste veldspeler';
 
             let resultLabel = "Gelijkspel";
             let resultBadgeClass = "bg-amber-100 text-amber-800 border border-amber-300";
@@ -7110,6 +7191,15 @@ body.ona-offline #onaNetPill{display:block}
                         <div class="flex-1 text-left">
                             <span class="text-sm sm:text-base font-black ${!isHome ? 'text-orange-400' : 'text-white'}">${awayName}</span>
                         </div>
+                    </div>
+
+                    <div class="mt-3 pt-2.5 border-t border-slate-700/80 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                        <span class="text-slate-300 font-semibold" title="${summaryTargetTooltip}">
+                            ⏱ Streeftijd deze wedstrijd: <strong class="text-orange-300 font-black">${summaryTargetMins !== null ? summaryTargetMins.toFixed(1) + ' min' : '-'}</strong> <span class="text-slate-400">/ vaste veldspeler</span>
+                        </span>
+                        <span class="text-[10px] font-bold text-slate-400">
+                            ${summaryGuestFieldMins > 0 ? `Incl. ${summaryGuestFieldMins}m gastspeler (${summaryTotalFieldMins - summaryGuestFieldMins}m over voor ${summaryFixedShares.toFixed(2).replace(/\.00$/, '')} vaste sp.)` : `${summaryTotalFieldMins}m ÷ ${summaryFixedShares > 0 ? summaryFixedShares.toFixed(2).replace(/\.00$/, '') : '-'} vaste sp.`}
+                        </span>
                     </div>
                 </div>
 
