@@ -309,7 +309,7 @@ body.ona-offline #onaNetPill{display:block}
             <div class="space-y-2">
                 <button onclick="switchMainTab('match'); toggleNavDrawer();" id="drawerTab-match" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-orange-600 text-white shadow-md">
                     <span class="text-base">⚽</span>
-                    <span>Hoofdscherm</span>
+                    <span>Startscherm</span>
                 </button>
 
                 <button onclick="switchMainTab('season'); toggleNavDrawer();" id="drawerTab-season" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center justify-between bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
@@ -318,11 +318,6 @@ body.ona-offline #onaNetPill{display:block}
                         <span>Seizoensmonitor</span>
                     </div>
                     <span id="drawerSavedCountBadge" class="text-[11px] bg-slate-700 text-orange-300 font-bold px-2 py-0.5 rounded-full">0</span>
-                </button>
-
-                <button id="drawerTab-live" onclick="toggleMatchMode(); toggleNavDrawer();" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-gradient-to-r from-rose-700 to-orange-600 text-white shadow-md">
-                    <span class="text-base">⏱️</span>
-                    <span>Open Match Dashboard</span>
                 </button>
 
                 <button onclick="switchMainTab('settings'); toggleNavDrawer();" id="drawerTab-settings" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-3 bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
@@ -378,21 +373,18 @@ body.ona-offline #onaNetPill{display:block}
                     <div>
                         <div class="flex items-center gap-2">
                             <h1 class="text-base sm:text-lg font-black tracking-tight text-white leading-tight">ON Almelo JO11-4</h1>
-                            <span id="headerFormationBadge" class="inline bg-orange-500/20 border border-orange-400/40 text-orange-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                8v8 • 1-3-3-1 • 4x 15m
-                            </span>
+
                         </div>
                         <p class="text-slate-400 text-[10px] leading-none mt-0.5 truncate max-w-[190px] sm:max-w-none">Live Match Tracker & Wisselplanner</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Rechterzijde: Directe actieknop 'START MATCH DASHBOARD' -->
-            <div class="flex items-center gap-2">
-                <button onclick="toggleMatchMode()" id="matchModeLaunchBtn" class="bg-gradient-to-r from-rose-700 via-rose-600 to-orange-600 hover:from-rose-800 hover:to-orange-700 active:scale-95 text-white px-3.5 sm:px-4 py-2.5 rounded-2xl text-xs font-black transition cursor-pointer flex items-center gap-2 shadow-md border border-rose-400">
-                    <span class="w-2.5 h-2.5 rounded-full bg-white animate-pulse"></span>
-                    <span class="tracking-tight">START MATCH DASHBOARD</span>
-                </button>
+            <!-- Rechterzijde: Versienummer -->
+            <div class="flex items-start self-start pt-0.5">
+                <span id="appVersionBadge" class="text-[10px] font-bold tracking-wider text-slate-300/80 bg-white/10 border border-white/15 px-2 py-0.5 rounded-full select-none">
+                    v2.0.1
+                </span>
             </div>
         </div>
     </header>
@@ -423,9 +415,6 @@ body.ona-offline #onaNetPill{display:block}
                 </div>
             </div>
 
-            <button onclick="toggleMatchMode()" class="bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-black px-4 py-2.5 rounded-2xl text-xs sm:text-sm border border-orange-400 transition cursor-pointer flex items-center gap-2 shadow-lg">
-                ← Naar Hoofdscherm
-            </button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
@@ -470,11 +459,6 @@ body.ona-offline #onaNetPill{display:block}
                     </div>
                 </div>
 
-                <div class="pt-2">
-                    <button onclick="toggleMatchMode()" class="w-full py-3 text-center text-xs font-black text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-2xl transition cursor-pointer flex items-center justify-center gap-2 border border-slate-700">
-                        ← Terug naar Hoofdscherm
-                    </button>
-                </div>
             </div>
 
             <!-- Cockpit Hoofdinhoud -->
@@ -1188,14 +1172,11 @@ body.ona-offline #onaNetPill{display:block}
                             <h2 class="text-xl sm:text-2xl font-black text-white">📊 Seizoensoverzicht O.N. Almelo JO11-4</h2>
                             <p class="text-xs text-slate-300 mt-1">
                                 • Alleen wedstrijden waarin een speler <strong>aanwezig</strong> was tellen mee voor zijn gemiddelde.<br>
-                                • Speeltijd van gastspelers wordt in mindering gebracht op de beschikbare veldtijd voor vaste spelers; keeperstijd telt niet mee als veldspeeltijd.<br>
+                                • De streeftijd per duel is het totaal aantal veldminuten gedeeld door het totaal aantal aanwezige veldspelers (inclusief gastspelers); keeperstijd telt niet mee als veldspeeltijd.<br>
                                 • <span class="text-orange-300 font-bold">💡 Tip: Klik op een spelersnaam of op een cijfer in de tabel om de exacte opbouw per wedstrijd te zien.</span>
                             </p>
                         </div>
                         <div class="flex flex-wrap gap-2 self-start">
-                            <button onclick="switchMainTab('match')" class="text-xs bg-orange-600 hover:bg-orange-700 text-white font-black px-4 py-2.5 rounded-xl cursor-pointer shadow-md transition flex items-center gap-1.5">
-                                ← Terug naar Hoofdscherm
-                            </button>
                             <button id="seasonBackupBtn" onclick="openBackupModal()" class="hidden text-xs bg-slate-700 hover:bg-slate-600 text-white font-bold px-3.5 py-2.5 rounded-xl cursor-pointer border border-slate-600">
                                 📦 Backup / Export
                             </button>
@@ -1434,7 +1415,7 @@ body.ona-offline #onaNetPill{display:block}
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
                     <div class="border-b border-slate-100 pb-3">
                         <span class="text-[11px] font-black uppercase tracking-wider text-orange-600">Weergave & Minimalisme</span>
-                        <h2 class="text-lg font-black text-slate-900">⚙️ Zichtbare Onderdelen op Hoofdscherm</h2>
+                        <h2 class="text-lg font-black text-slate-900">⚙️ Zichtbare Onderdelen op Startscherm</h2>
                         <p class="text-xs text-slate-500 mt-0.5">Zet onderdelen aan of uit om je hoofdscherm zo rustig mogelijk te houden. Alles blijft altijd bereikbaar via <strong>Stats</strong> of <strong>Meer</strong>.</p>
                     </div>
 
@@ -1674,7 +1655,7 @@ body.ona-offline #onaNetPill{display:block}
             <p id="finishModalSubtitle" class="text-xs font-bold text-slate-600">Eindstand: 4 - 2</p>
             <div class="pt-2">
                 <button onclick="closeMatchFinishModal()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-black py-3 rounded-2xl text-xs shadow-md transition cursor-pointer">
-                    Terug naar Hoofdscherm
+                    Terug naar Startscherm
                 </button>
             </div>
         </div>
@@ -3829,7 +3810,7 @@ body.ona-offline #onaNetPill{display:block}
             { key: 'scoreboard', label: '⏱️ Scorebord & Klok', desc: 'Live stand, wedstrijdklok & doelpuntenbadges op Veld' },
             { key: 'prep', label: '📋 Wedstrijd & Selectie', desc: 'Voorbereidingskaart (tegenstander, keeper, aanwezigheid)' },
             { key: 'pitch', label: '🏟️ Opstelling & Veldweergave', desc: 'Veld (Per Blok), 4 Veldjes, Matrix & wisselbank' },
-            { key: 'live', label: '🔴 Live Match Dashboard', desc: 'Toegang tot het Live-scherm & START MATCH DASHBOARD knop' },
+            { key: 'live', label: '🔴 Live Match Dashboard', desc: 'Toegang tot het Live-scherm onderin' },
             { key: 'historical', label: '⏱ Historische 5%-Regel Monitor', desc: 'Historische speeltijd- & 5%-tabel op het Veld-scherm' },
             { key: 'seasonTable', label: '📊 Seizoensoverzicht (Speeltijd & 5%)', desc: 'Tabel met speeltijden en 5%-afwijkingen onder Stats → Seizoen' },
             { key: 'savedMatches', label: '📁 Opgeslagen Wedstrijden', desc: 'Lijst met gespeelde duels onder Stats → Seizoen' },
@@ -4805,21 +4786,14 @@ body.ona-offline #onaNetPill{display:block}
             const active = getActivePlayers();
             const todayMins = calculateMatchMinutes(customLineup);
 
-            let guestFieldMinutesToday = 0;
-            active.filter(p => p.isGuest).forEach(g => {
-                guestFieldMinutesToday += (todayMins[g.name]?.field || 0);
-            });
-
-            const fixedActive = active.filter(p => !p.isGuest);
-            let totalFixedOutfieldShares = 0;
-            fixedActive.forEach(p => {
+            let totalOutfieldShares = 0;
+            active.forEach(p => {
                 const kMin = todayMins[p.name]?.keeper || 0;
-                totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
+                totalOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
             const totalMatchFieldMins = getTotalMatchFieldMinutes();
-            const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
-            const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
+            const matchFieldTarget = totalOutfieldShares > 0 ? (totalMatchFieldMins / totalOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
             const result = {};
             basePlayers.forEach(p => {
@@ -5973,21 +5947,14 @@ body.ona-offline #onaNetPill{display:block}
             const active = getActivePlayers();
             const todayMins = calculateMatchMinutes();
 
-            let guestFieldMinutesToday = 0;
-            active.filter(p => p.isGuest).forEach(g => {
-                guestFieldMinutesToday += (todayMins[g.name]?.field || 0);
-            });
-
-            const fixedActive = active.filter(p => !p.isGuest);
-            let totalFixedOutfieldShares = 0;
-            fixedActive.forEach(p => {
+            let totalOutfieldShares = 0;
+            active.forEach(p => {
                 const kMin = todayMins[p.name]?.keeper || 0;
-                totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
+                totalOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
             const totalMatchFieldMins = getTotalMatchFieldMinutes();
-            const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
-            const targetFieldMinutesPerOutfielder = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
+            const targetFieldMinutesPerOutfielder = totalOutfieldShares > 0 ? (totalMatchFieldMins / totalOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
             const res = getMatchResultDetails(matchGoals.length, opponentGoals, isHomeMatch);
 
@@ -6234,7 +6201,7 @@ body.ona-offline #onaNetPill{display:block}
                                 </button>
                                 ` : ''}
                                 <button onclick="startNewMatchMode(true)" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition">
-                                    ← Terug naar Hoofdscherm
+                                    ← Terug naar Startscherm
                                 </button>
                             </div>
                         `;
@@ -6261,7 +6228,7 @@ body.ona-offline #onaNetPill{display:block}
                                     Annuleren
                                 </button>
                                 <button onclick="startNewMatchMode(true)" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-3.5 py-2.5 rounded-xl text-xs cursor-pointer transition">
-                                    ← Terug naar Hoofdscherm
+                                    ← Terug naar Startscherm
                                 </button>
                             </div>
                         `;
@@ -6578,21 +6545,14 @@ body.ona-offline #onaNetPill{display:block}
             const active = getActivePlayers();
             const todayMins = calculateMatchMinutes();
 
-            let guestFieldMinutesToday = 0;
-            active.filter(p => p.isGuest).forEach(g => {
-                guestFieldMinutesToday += (todayMins[g.name]?.field || 0);
-            });
-
-            const fixedActive = active.filter(p => !p.isGuest);
-            let totalFixedOutfieldShares = 0;
-            fixedActive.forEach(p => {
+            let totalOutfieldShares = 0;
+            active.forEach(p => {
                 const kMin = todayMins[p.name]?.keeper || 0;
-                totalFixedOutfieldShares += Math.max(0, (60 - kMin) / 60);
+                totalOutfieldShares += Math.max(0, (60 - kMin) / 60);
             });
 
             const totalMatchFieldMins = getTotalMatchFieldMinutes();
-            const netFieldForFixed = Math.max(0, totalMatchFieldMins - guestFieldMinutesToday);
-            const matchFieldTarget = totalFixedOutfieldShares > 0 ? (netFieldForFixed / totalFixedOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
+            const matchFieldTarget = totalOutfieldShares > 0 ? (totalMatchFieldMins / totalOutfieldShares) : (totalMatchFieldMins / Math.max(1, getActiveOutfieldCount()));
 
             const pillEl = document.getElementById('forecastTargetPill');
             if (pillEl) {
@@ -6932,26 +6892,23 @@ body.ona-offline #onaNetPill{display:block}
             const homeName = isHome ? "Oranje Nassau" : (matchObj.opponent || "Tegenstander");
             const awayName = isHome ? (matchObj.opponent || "Tegenstander") : "Oranje Nassau";
 
-            // Bereken/haal streeftijd voor deze wedstrijd (incl. aftrek van gastspeler-minuten)
+            // Bereken/haal streeftijd voor deze wedstrijd: totaal veldminuten ÷ totaal aantal aanwezige veldspelers (incl. gastspelers)
             let summaryTargetMins = null;
-            let summaryGuestFieldMins = 0;
             let summaryTotalFieldMins = 420;
-            let summaryFixedShares = 0;
+            let summaryTotalOutfieldShares = 0;
+            let summaryGuestCount = 0;
             const baseNamesSet = new Set(basePlayers.map(p => p.name));
 
             if (isLiveSelection || (loadedMatchId !== null && String(loadedMatchId) === String(sel.value) && !isReadOnlyMode)) {
                 const liveMins = calculateMatchMinutes();
                 const liveActive = getActivePlayers();
-                liveActive.filter(p => p.isGuest).forEach(g => {
-                    summaryGuestFieldMins += (liveMins[g.name]?.field || 0);
-                });
-                liveActive.filter(p => !p.isGuest).forEach(p => {
+                liveActive.forEach(p => {
+                    if (p.isGuest) summaryGuestCount++;
                     const kMin = liveMins[p.name]?.keeper || 0;
-                    summaryFixedShares += Math.max(0, (60 - kMin) / 60);
+                    summaryTotalOutfieldShares += Math.max(0, (60 - kMin) / 60);
                 });
                 summaryTotalFieldMins = getTotalMatchFieldMinutes();
-                const netFixed = Math.max(0, summaryTotalFieldMins - summaryGuestFieldMins);
-                summaryTargetMins = summaryFixedShares > 0 ? (netFixed / summaryFixedShares) : (summaryTotalFieldMins / Math.max(1, getActiveOutfieldCount()));
+                summaryTargetMins = summaryTotalOutfieldShares > 0 ? (summaryTotalFieldMins / summaryTotalOutfieldShares) : (summaryTotalFieldMins / Math.max(1, getActiveOutfieldCount()));
             } else {
                 const computedMins = computeSavedMatchMinutes(matchObj);
                 const baseCfg = sanitizeFormationConfig(matchObj.formationConfig || DEFAULT_FORMATION_CONFIG);
@@ -6963,27 +6920,41 @@ body.ona-offline #onaNetPill{display:block}
                         : (qfv && typeof qfv === 'object' ? sanitizeFormationConfig(qfv) : baseCfg);
                     summaryTotalFieldMins += getActiveOutfieldCount(qCfg) * 15;
                 }
-                Object.entries(computedMins).forEach(([pName, mData]) => {
-                    if (!baseNamesSet.has(pName)) {
-                        summaryGuestFieldMins += (mData?.field || 0);
+                const countedGuests = new Set();
+                if (Array.isArray(matchObj.guestPlayers)) {
+                    matchObj.guestPlayers.forEach(g => {
+                        if (g && g.name && g.name.trim()) {
+                            countedGuests.add(`${g.name.trim()} (Gast)`);
+                        }
+                    });
+                }
+                Object.keys(computedMins).forEach(pName => {
+                    if (!baseNamesSet.has(pName) && pName.trim()) {
+                        countedGuests.add(pName);
                     }
                 });
+                summaryGuestCount = countedGuests.size;
                 basePlayers.forEach(p => {
                     if (!matchObj.attendance || matchObj.attendance[p.name] !== false) {
                         const kMin = computedMins[p.name]?.keeper || 0;
-                        summaryFixedShares += Math.max(0, (60 - kMin) / 60);
+                        summaryTotalOutfieldShares += Math.max(0, (60 - kMin) / 60);
                     }
+                });
+                countedGuests.forEach(gName => {
+                    const pMin = lookupMinutesCaseInsensitive(computedMins, gName);
+                    const kMin = pMin?.keeper || 0;
+                    summaryTotalOutfieldShares += Math.max(0, (60 - kMin) / 60);
                 });
                 if (typeof matchObj.targetFieldMinutesPerOutfielder === 'number' && !isNaN(matchObj.targetFieldMinutesPerOutfielder)) {
                     summaryTargetMins = matchObj.targetFieldMinutesPerOutfielder;
                 } else {
-                    const netFixed = Math.max(0, summaryTotalFieldMins - summaryGuestFieldMins);
-                    summaryTargetMins = summaryFixedShares > 0 ? (netFixed / summaryFixedShares) : 52.5;
+                    summaryTargetMins = summaryTotalOutfieldShares > 0 ? (summaryTotalFieldMins / summaryTotalOutfieldShares) : 52.5;
                 }
             }
-            const summaryTargetTooltip = summaryFixedShares > 0
-                ? `(${summaryTotalFieldMins} min totaal${summaryGuestFieldMins > 0 ? ' - ' + summaryGuestFieldMins + ' min gast' : ''}) ÷ ${summaryFixedShares.toFixed(2).replace(/\.00$/, '')} vaste veldspeler(s)`
-                : 'Streeftijd per vaste veldspeler';
+            const summarySharesLabel = summaryTotalOutfieldShares.toFixed(2).replace(/\.00$/, '');
+            const summaryTargetTooltip = summaryTotalOutfieldShares > 0
+                ? `${summaryTotalFieldMins} min totaal ÷ ${summarySharesLabel} aanwezige veldspeler(s)${summaryGuestCount > 0 ? ' (incl. ' + summaryGuestCount + ' gast)' : ''}`
+                : 'Streeftijd per veldspeler';
 
             let resultLabel = "Gelijkspel";
             let resultBadgeClass = "bg-amber-100 text-amber-800 border border-amber-300";
@@ -7195,10 +7166,10 @@ body.ona-offline #onaNetPill{display:block}
 
                     <div class="mt-3 pt-2.5 border-t border-slate-700/80 flex flex-wrap items-center justify-between gap-2 text-[11px]">
                         <span class="text-slate-300 font-semibold" title="${summaryTargetTooltip}">
-                            ⏱ Streeftijd deze wedstrijd: <strong class="text-orange-300 font-black">${summaryTargetMins !== null ? summaryTargetMins.toFixed(1) + ' min' : '-'}</strong> <span class="text-slate-400">/ vaste veldspeler</span>
+                            ⏱ Streeftijd deze wedstrijd: <strong class="text-orange-300 font-black">${summaryTargetMins !== null ? summaryTargetMins.toFixed(1) + ' min' : '-'}</strong> <span class="text-slate-400">/ veldspeler</span>
                         </span>
                         <span class="text-[10px] font-bold text-slate-400">
-                            ${summaryGuestFieldMins > 0 ? `Incl. ${summaryGuestFieldMins}m gastspeler (${summaryTotalFieldMins - summaryGuestFieldMins}m over voor ${summaryFixedShares.toFixed(2).replace(/\.00$/, '')} vaste sp.)` : `${summaryTotalFieldMins}m ÷ ${summaryFixedShares > 0 ? summaryFixedShares.toFixed(2).replace(/\.00$/, '') : '-'} vaste sp.`}
+                            ${summaryTotalFieldMins}m ÷ ${summaryTotalOutfieldShares > 0 ? summarySharesLabel : '-'} veldspelers${summaryGuestCount > 0 ? ` (incl. ${summaryGuestCount} gast)` : ''}
                         </span>
                     </div>
                 </div>
