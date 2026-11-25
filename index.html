@@ -402,7 +402,7 @@ body.ona-offline #onaNetPill{display:block}
                 </span>
                 <div>
                     <h2 id="matchModeMatchTitle" class="text-xs sm:text-base font-black text-white flex items-center gap-2"></h2>
-                    <span id="matchModeCurrentQuarterBadge" class="text-[10px] sm:text-[11px] font-bold text-slate-400">Blok 1 (0-15m)</span>
+                    <span id="matchModeCurrentQuarterBadge" class="text-[10px] sm:text-[11px] font-bold text-slate-400">Blok 1 (1-15m)</span>
                 </div>
             </div>
 
@@ -478,7 +478,7 @@ body.ona-offline #onaNetPill{display:block}
                     <button type="button" onclick="toggleAccordion('mmActivePeriodContent', 'mmActivePeriodChevron')" class="w-full p-3.5 sm:p-4 flex items-center justify-between hover:bg-slate-800/40 transition cursor-pointer text-left">
                         <div class="flex items-center gap-2">
                             <span class="text-sm font-black text-white">Weergave: Periode <span id="mmActivePeriodNum">1</span></span>
-                            <span id="mmActivePeriodMins" class="text-xs text-slate-400 font-semibold">(0 - 15m)</span>
+                            <span id="mmActivePeriodMins" class="text-xs text-slate-400 font-semibold">(1 - 15m)</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-[10px] text-slate-500 font-bold uppercase hidden sm:inline">Timer & Knoppen</span>
@@ -887,28 +887,28 @@ body.ona-offline #onaNetPill{display:block}
                         <button onclick="selectActiveQuarter(1)" id="qTab-1" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-orange-600 text-white border-orange-600 shadow-md">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-black uppercase tracking-wider">Blok 1</span>
-                                <span class="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-bold">0 - 15m</span>
+                                <span class="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-bold">1 - 15m</span>
                             </div>
                             <div id="qTabSub-1" class="text-[11px] mt-1 font-medium text-orange-100 truncate">Wissel: -</div>
                         </button>
                         <button onclick="selectActiveQuarter(2)" id="qTab-2" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-white text-slate-700 border-slate-200 hover:border-orange-300">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-black uppercase tracking-wider">Blok 2</span>
-                                <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">15 - 30m</span>
+                                <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">16 - 30m</span>
                             </div>
                             <div id="qTabSub-2" class="text-[11px] mt-1 font-medium text-slate-400 truncate">Wissel: -</div>
                         </button>
                         <button onclick="selectActiveQuarter(3)" id="qTab-3" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-white text-slate-700 border-slate-200 hover:border-orange-300">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-black uppercase tracking-wider">Blok 3</span>
-                                <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">30 - 45m</span>
+                                <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">31 - 45m</span>
                             </div>
                             <div id="qTabSub-3" class="text-[11px] mt-1 font-medium text-slate-400 truncate">Wissel: -</div>
                         </button>
                         <button onclick="selectActiveQuarter(4)" id="qTab-4" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer bg-white text-slate-700 border-slate-200 hover:border-orange-300">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-black uppercase tracking-wider">Blok 4</span>
-                                <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">45 - 60m</span>
+                                <span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">46 - 60m</span>
                             </div>
                             <div id="qTabSub-4" class="text-[11px] mt-1 font-medium text-slate-400 truncate">Wissel: -</div>
                         </button>
@@ -966,7 +966,7 @@ body.ona-offline #onaNetPill{display:block}
                                     <th class="p-3.5 sticky-col w-48 border-r border-slate-200 font-extrabold">Positie</th>
                                     <th class="p-3 w-1/4">
                                         <div class="flex items-center justify-between gap-1">
-                                            <span class="font-extrabold">Blok 1 (0-15m)</span>
+                                            <span class="font-extrabold">Blok 1 (1-15m)</span>
                                             <button onclick="copyBlockToNext(1)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
                                                 Kopieer → B2
                                             </button>
@@ -974,7 +974,7 @@ body.ona-offline #onaNetPill{display:block}
                                     </th>
                                     <th class="p-3 w-1/4">
                                         <div class="flex items-center justify-between gap-1">
-                                            <span class="font-extrabold">Blok 2 (15-30m)</span>
+                                            <span class="font-extrabold">Blok 2 (16-30m)</span>
                                             <button onclick="copyBlockToNext(2)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
                                                 Kopieer → B3
                                             </button>
@@ -982,13 +982,13 @@ body.ona-offline #onaNetPill{display:block}
                                     </th>
                                     <th class="p-3 w-1/4">
                                         <div class="flex items-center justify-between gap-1">
-                                            <span class="font-extrabold">Blok 3 (30-45m)</span>
+                                            <span class="font-extrabold">Blok 3 (31-45m)</span>
                                             <button onclick="copyBlockToNext(3)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
                                                 Kopieer → B4
                                             </button>
                                         </div>
                                     </th>
-                                    <th class="p-3 w-1/4 font-extrabold">Blok 4 (45-60m)</th>
+                                    <th class="p-3 w-1/4 font-extrabold">Blok 4 (46-60m)</th>
                                 </tr>
                             </thead>
                             <tbody id="matrixTableBody" class="divide-y divide-slate-100 text-xs"></tbody>
@@ -1288,10 +1288,10 @@ body.ona-offline #onaNetPill{display:block}
                             <thead>
                                 <tr class="bg-slate-950 text-slate-400 uppercase border-b border-slate-700">
                                     <th id="posReportFirstColHeader" class="p-2.5">Datum & Wedstrijd</th>
-                                    <th class="p-2.5 text-center">Blok 1 (0-15m)</th>
-                                    <th class="p-2.5 text-center">Blok 2 (15-30m)</th>
-                                    <th class="p-2.5 text-center">Blok 3 (30-45m)</th>
-                                    <th class="p-2.5 text-center">Blok 4 (45-60m)</th>
+                                    <th class="p-2.5 text-center">Blok 1 (1-15m)</th>
+                                    <th class="p-2.5 text-center">Blok 2 (16-30m)</th>
+                                    <th class="p-2.5 text-center">Blok 3 (31-45m)</th>
+                                    <th class="p-2.5 text-center">Blok 4 (46-60m)</th>
                                     <th class="p-2.5 text-center">Totaal Gespeeld</th>
                                 </tr>
                             </thead>
@@ -1712,7 +1712,7 @@ body.ona-offline #onaNetPill{display:block}
             <div>
                 <label class="block text-xs font-bold uppercase text-slate-500 mb-1">In welke minuut wordt er gewisseld? (1 - 59)</label>
                 <input type="number" id="emMinute" min="1" max="59" value="22" oninput="refreshEmergencyDropdowns()" class="w-full border border-slate-300 rounded-xl p-2.5 text-sm font-extrabold text-slate-800 outline-none focus:ring-2 focus:ring-rose-500">
-                <span id="emPeriodInfo" class="block text-[11px] font-bold text-orange-600 mt-1">Valt in Blok 2 (15 - 30 min)</span>
+                <span id="emPeriodInfo" class="block text-[11px] font-bold text-orange-600 mt-1">Valt in Blok 2 (16 - 30 min)</span>
             </div>
             <div>
                 <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Speler die eruit gaat</label>
@@ -2619,9 +2619,9 @@ body.ona-offline #onaNetPill{display:block}
         function renderMatchModeCockpit() {
             if (!isMatchMode) return;
 
-            document.getElementById('matchModeCurrentQuarterBadge').innerText = `Klok: Blok ${timerActiveQuarter} (${(timerActiveQuarter - 1) * 15}-${timerActiveQuarter * 15}m)`;
+            document.getElementById('matchModeCurrentQuarterBadge').innerText = `Klok: Blok ${timerActiveQuarter} (${(timerActiveQuarter - 1) * 15 + 1}-${timerActiveQuarter * 15}m)`;
             document.getElementById('mmActivePeriodNum').innerText = activeQuarterView;
-            document.getElementById('mmActivePeriodMins').innerText = `(${(activeQuarterView - 1) * 15} - ${activeQuarterView * 15}m)`;
+            document.getElementById('mmActivePeriodMins').innerText = `(${(activeQuarterView - 1) * 15 + 1} - ${activeQuarterView * 15}m)`;
 
             for (let q = 1; q <= 4; q++) {
                 const b = document.getElementById(`mmQBtn-${q}`);
@@ -4183,6 +4183,13 @@ body.ona-offline #onaNetPill{display:block}
                         }
                     }
                 }
+                emergencySubs.forEach(e => {
+                    if (e.in === oldName && val.trim() !== "") e.in = newName;
+                    if (e.out === oldName && val.trim() !== "") e.out = newName;
+                });
+                matchGoals.forEach(mg => {
+                    if (mg.scorer === oldName && val.trim() !== "") mg.scorer = newName;
+                });
             }
             renderKeeperControls();
             renderAllViews();
@@ -4667,7 +4674,7 @@ body.ona-offline #onaNetPill{display:block}
             const active = getActivePlayers();
             const onPitch = Object.values(lineup[quarter] || {}).filter(Boolean);
             const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
-            const qStart = (quarter - 1) * 15;
+            const qStart = (quarter - 1) * 15 + 1;
             const qEnd = quarter * 15;
 
             const copyNextBtnHtml = (!isEffectiveReadOnly() && quarter < 4 && !isMatchMode)
@@ -5028,14 +5035,72 @@ body.ona-offline #onaNetPill{display:block}
             return stats;
         }
 
+        function computeSavedMatchMinutes(m) {
+            const mins = {};
+            function ensureKey(name) {
+                if (!name) return null;
+                const clean = String(name).trim();
+                if (!clean) return null;
+                if (mins[clean]) return clean;
+                const lower = clean.toLowerCase();
+                const existing = Object.keys(mins).find(k => k.toLowerCase() === lower);
+                if (existing) return existing;
+                mins[clean] = { field: 0, keeper: 0 };
+                return clean;
+            }
+
+            if (m && m.lineup && typeof m.lineup === 'object') {
+                for (let q = 1; q <= 4; q++) {
+                    const qBlock = m.lineup[q];
+                    if (!qBlock || typeof qBlock !== 'object') continue;
+                    for (let posId in qBlock) {
+                        const key = ensureKey(qBlock[posId]);
+                        if (key) {
+                            if (posId === "GK") mins[key].keeper += 15;
+                            else mins[key].field += 15;
+                        }
+                    }
+                }
+                if (Array.isArray(m.emergencySubs)) {
+                    m.emergencySubs.forEach(e => {
+                        if (!e) return;
+                        const qNum = Number(e.quarter) || Math.min(4, Math.ceil((Number(e.minute) || 1) / 15));
+                        const minsTransferred = Math.max(0, Math.min(15, (qNum * 15) - Number(e.minute)));
+                        const outKey = ensureKey(e.out);
+                        const inKey = ensureKey(e.in);
+                        if (e.posId === "GK") {
+                            if (outKey) mins[outKey].keeper = Math.max(0, mins[outKey].keeper - minsTransferred);
+                            if (inKey) mins[inKey].keeper += minsTransferred;
+                        } else {
+                            if (outKey) mins[outKey].field = Math.max(0, mins[outKey].field - minsTransferred);
+                            if (inKey) mins[inKey].field += minsTransferred;
+                        }
+                    });
+                }
+                return mins;
+            }
+            return (m && m.minutes && typeof m.minutes === 'object') ? m.minutes : {};
+        }
+
+        function lookupMinutesCaseInsensitive(minsObj, playerName) {
+            if (!minsObj || !playerName) return { field: 0, keeper: 0 };
+            if (minsObj[playerName]) return minsObj[playerName];
+            const lower = String(playerName).trim().toLowerCase();
+            const foundKey = Object.keys(minsObj).find(k => k.trim().toLowerCase() === lower);
+            return foundKey ? minsObj[foundKey] : { field: 0, keeper: 0 };
+        }
+
         function getGuestSeasonHistoryStats(excludeMatchId = null) {
             const baseNames = new Set(basePlayers.map(p => p.name));
             const stats = {};
 
             function ensureGuest(name) {
-                if (!stats[name]) {
-                    stats[name] = {
-                        name,
+                const lower = String(name).trim().toLowerCase();
+                const existingKey = Object.keys(stats).find(k => k.trim().toLowerCase() === lower);
+                const key = existingKey || String(name).trim();
+                if (!stats[key]) {
+                    stats[key] = {
+                        name: key,
                         presentMatches: 0,
                         outfieldMatches: 0,
                         fieldMinutes: 0,
@@ -5043,24 +5108,39 @@ body.ona-offline #onaNetPill{display:block}
                         goals: 0
                     };
                 }
-                return stats[name];
+                return stats[key];
             }
 
             savedMatches.forEach(m => {
                 if (excludeMatchId && m.id === excludeMatchId) return;
 
-                const matchGuestNames = new Set();
+                const computedMins = computeSavedMatchMinutes(m);
+                const matchGuestNames = new Map(); // lower -> displayName
+
+                function registerMatchGuest(rawName) {
+                    if (!rawName) return;
+                    const clean = String(rawName).trim();
+                    if (!clean || baseNames.has(clean) || clean === "Eigen doelpunt tegenstander") return;
+                    const lower = clean.toLowerCase();
+                    if (!matchGuestNames.has(lower)) matchGuestNames.set(lower, clean);
+                }
+
                 if (Array.isArray(m.guestPlayers)) {
                     m.guestPlayers.forEach(g => {
                         if (g && g.name && g.name.trim()) {
-                            matchGuestNames.add(`${g.name.trim()} (Gast)`);
+                            registerMatchGuest(`${g.name.trim()} (Gast)`);
                         }
                     });
                 }
                 if (m.minutes && typeof m.minutes === 'object') {
-                    Object.keys(m.minutes).forEach(k => {
-                        if (!baseNames.has(k) && k.trim()) {
-                            matchGuestNames.add(k);
+                    Object.keys(m.minutes).forEach(k => registerMatchGuest(k));
+                }
+                Object.keys(computedMins).forEach(k => registerMatchGuest(k));
+                if (Array.isArray(m.emergencySubs)) {
+                    m.emergencySubs.forEach(e => {
+                        if (e) {
+                            registerMatchGuest(e.in);
+                            registerMatchGuest(e.out);
                         }
                     });
                 }
@@ -5068,7 +5148,7 @@ body.ona-offline #onaNetPill{display:block}
                 matchGuestNames.forEach(gName => {
                     const entry = ensureGuest(gName);
                     entry.presentMatches++;
-                    const pMin = (m.minutes && m.minutes[gName]) ? m.minutes[gName] : { field: 0, keeper: 0 };
+                    const pMin = lookupMinutesCaseInsensitive(computedMins, gName);
                     const kMin = pMin.keeper || 0;
                     const fMin = pMin.field || 0;
                     entry.fieldMinutes += fMin;
@@ -5736,9 +5816,12 @@ body.ona-offline #onaNetPill{display:block}
             if (min > 59) min = 59;
 
             const q = Math.min(4, Math.ceil(min / 15));
-            const qStart = (q - 1) * 15;
+            const qStart = (q - 1) * 15 + 1;
             const qEnd = q * 15;
-            document.getElementById('emPeriodInfo').innerText = `Valt in Blok ${q} (${qStart} - ${qEnd} min) • Resterend: ${qEnd - min} min`;
+            const minsLeft = qEnd - min;
+            document.getElementById('emPeriodInfo').innerText = minsLeft === 0
+                ? `Valt in Blok ${q} (${qStart} - ${qEnd} min) • 0 min resterend (voor start Blok ${Math.min(4, q + 1)} kies minuut ${qEnd + 1})`
+                : `Valt in Blok ${q} (${qStart} - ${qEnd} min) • Resterend: ${minsLeft} min`;
 
             const active = getActivePlayers();
             const pitchEntries = Object.entries(lineup[q] || {}).filter(([, name]) => name);
@@ -5856,14 +5939,27 @@ body.ona-offline #onaNetPill{display:block}
                 });
             }
 
+            function resolveMinuteKey(name) {
+                if (!name) return null;
+                if (mins[name]) return name;
+                const lower = String(name).trim().toLowerCase();
+                const found = Object.keys(mins).find(k => k.trim().toLowerCase() === lower);
+                if (found) return found;
+                mins[name] = { field: 0, keeper: 0, benchQuarters: 0 };
+                return name;
+            }
+
             emergencySubs.forEach(e => {
-                const minsTransferred = Math.max(0, Math.min(15, (e.quarter * 15) - e.minute));
+                const qNum = Number(e.quarter) || Math.min(4, Math.ceil((Number(e.minute) || 1) / 15));
+                const minsTransferred = Math.max(0, Math.min(15, (qNum * 15) - Number(e.minute)));
+                const outKey = resolveMinuteKey(e.out);
+                const inKey = resolveMinuteKey(e.in);
                 if (e.posId === "GK") {
-                    if (mins[e.out]) mins[e.out].keeper = Math.max(0, mins[e.out].keeper - minsTransferred);
-                    if (mins[e.in]) mins[e.in].keeper += minsTransferred;
+                    if (outKey && mins[outKey]) mins[outKey].keeper = Math.max(0, mins[outKey].keeper - minsTransferred);
+                    if (inKey && mins[inKey]) mins[inKey].keeper += minsTransferred;
                 } else {
-                    if (mins[e.out]) mins[e.out].field = Math.max(0, mins[e.out].field - minsTransferred);
-                    if (mins[e.in]) mins[e.in].field += minsTransferred;
+                    if (outKey && mins[outKey]) mins[outKey].field = Math.max(0, mins[outKey].field - minsTransferred);
+                    if (inKey && mins[inKey]) mins[inKey].field += minsTransferred;
                 }
             });
 
@@ -6433,7 +6529,7 @@ body.ona-offline #onaNetPill{display:block}
 
             let subsCardsHtml = `
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                    <div class="text-[11px] font-black uppercase text-slate-500 mb-1">Start Blok 1 (0 - 15m)</div>
+                    <div class="text-[11px] font-black uppercase text-slate-500 mb-1">Start Blok 1 (1 - 15m)</div>
                     <div class="text-xs font-bold text-slate-700">
                         🔄 Begint op de bank: <span class="text-orange-700">${q1Bench.length > 0 ? q1Bench.join(', ') : 'Geen wissels'}</span>
                     </div>
@@ -6453,7 +6549,7 @@ body.ona-offline #onaNetPill{display:block}
                 subsCardsHtml += `
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-black uppercase text-slate-500">Wissel naar Blok ${q} (${(q - 1) * 15}m)</span>
+                            <span class="text-[11px] font-black uppercase text-slate-500">Wissel naar Blok ${q} (${(q - 1) * 15 + 1}m)</span>
                             ${keeperChanged ? `<span class="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">🧤 Keeper: ${curr["GK"]}</span>` : ''}
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -7327,11 +7423,13 @@ body.ona-offline #onaNetPill{display:block}
                 const matchTitle = isHome ? `Oranje Nassau vs ${m.opponent || 'Tegenstander'}` : `${m.opponent || 'Tegenstander'} vs Oranje Nassau`;
                 const matchTarget = m.targetFieldMinutesPerOutfielder || 52.5;
 
+                const pLower = String(playerName).trim().toLowerCase();
                 const wasPresent = !isGuest
                     ? (!m.attendance || m.attendance[playerName] !== false)
-                    : ((Array.isArray(m.guestPlayers) && m.guestPlayers.some(g => g && g.name && `${g.name.trim()} (Gast)` === playerName)) ||
-                       (m.minutes && m.minutes[playerName] !== undefined) ||
-                       (Array.isArray(m.goals) && m.goals.some(g => g && g.scorer === playerName)));
+                    : ((Array.isArray(m.guestPlayers) && m.guestPlayers.some(g => g && g.name && `${g.name.trim()} (Gast)`.toLowerCase() === pLower)) ||
+                       (m.minutes && Object.keys(m.minutes).some(k => k.trim().toLowerCase() === pLower)) ||
+                       (Array.isArray(m.emergencySubs) && m.emergencySubs.some(e => e && (String(e.in || '').trim().toLowerCase() === pLower || String(e.out || '').trim().toLowerCase() === pLower))) ||
+                       (Array.isArray(m.goals) && m.goals.some(g => g && String(g.scorer || '').trim().toLowerCase() === pLower)));
 
                 if (!wasPresent) {
                     if (!isGuest) {
@@ -7348,7 +7446,9 @@ body.ona-offline #onaNetPill{display:block}
                     return;
                 }
 
-                const pMin = (m.minutes && m.minutes[playerName]) ? m.minutes[playerName] : { field: 0, keeper: 0 };
+                const pMin = isGuest
+                    ? lookupMinutesCaseInsensitive(computeSavedMatchMinutes(m), playerName)
+                    : ((m.minutes && m.minutes[playerName]) ? m.minutes[playerName] : { field: 0, keeper: 0 });
                 const fieldMins = Number(pMin.field) || 0;
                 const keeperMins = Number(pMin.keeper) || 0;
                 const benchMins = Math.max(0, 60 - fieldMins - keeperMins);
@@ -8024,7 +8124,7 @@ body.ona-offline #onaNetPill{display:block}
             txt += `\n`;
 
             for (let q = 1; q <= 4; q++) {
-                txt += `*Blok ${q} (${(q - 1) * 15} - ${q * 15} min):*\n`;
+                txt += `*Blok ${q} (${(q - 1) * 15 + 1} - ${q * 15} min):*\n`;
                 TABLE_POSITIONS.forEach(pos => {
                     txt += `• ${pos.short}: ${lineup[q]?.[pos.id] || '-'}\n`;
                 });
