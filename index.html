@@ -965,30 +965,44 @@ body.ona-offline #onaNetPill{display:block}
                                 <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b border-slate-200">
                                     <th class="p-3.5 sticky-col w-48 border-r border-slate-200 font-extrabold">Positie</th>
                                     <th class="p-3 w-1/4">
-                                        <div class="flex items-center justify-between gap-1">
+                                        <div class="flex flex-wrap items-center justify-between gap-1">
                                             <span class="font-extrabold">Blok 1 (1-15m)</span>
-                                            <button onclick="copyBlockToNext(1)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
-                                                Kopieer → B2
-                                            </button>
+                                            <div class="flex items-center gap-1">
+                                                <span id="matrixFormationSelectWrap-1"></span>
+                                                <button onclick="copyBlockToNext(1)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
+                                                    → B2
+                                                </button>
+                                            </div>
                                         </div>
                                     </th>
                                     <th class="p-3 w-1/4">
-                                        <div class="flex items-center justify-between gap-1">
+                                        <div class="flex flex-wrap items-center justify-between gap-1">
                                             <span class="font-extrabold">Blok 2 (16-30m)</span>
-                                            <button onclick="copyBlockToNext(2)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
-                                                Kopieer → B3
-                                            </button>
+                                            <div class="flex items-center gap-1">
+                                                <span id="matrixFormationSelectWrap-2"></span>
+                                                <button onclick="copyBlockToNext(2)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
+                                                    → B3
+                                                </button>
+                                            </div>
                                         </div>
                                     </th>
                                     <th class="p-3 w-1/4">
-                                        <div class="flex items-center justify-between gap-1">
+                                        <div class="flex flex-wrap items-center justify-between gap-1">
                                             <span class="font-extrabold">Blok 3 (31-45m)</span>
-                                            <button onclick="copyBlockToNext(3)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
-                                                Kopieer → B4
-                                            </button>
+                                            <div class="flex items-center gap-1">
+                                                <span id="matrixFormationSelectWrap-3"></span>
+                                                <button onclick="copyBlockToNext(3)" class="bg-orange-100 hover:bg-orange-200 text-orange-800 text-[10px] font-extrabold px-2 py-1 rounded-lg transition cursor-pointer editable-control">
+                                                    → B4
+                                                </button>
+                                            </div>
                                         </div>
                                     </th>
-                                    <th class="p-3 w-1/4 font-extrabold">Blok 4 (46-60m)</th>
+                                    <th class="p-3 w-1/4">
+                                        <div class="flex flex-wrap items-center justify-between gap-1">
+                                            <span class="font-extrabold">Blok 4 (46-60m)</span>
+                                            <span id="matrixFormationSelectWrap-4"></span>
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="matrixTableBody" class="divide-y divide-slate-100 text-xs"></tbody>
@@ -1955,12 +1969,179 @@ body.ona-offline #onaNetPill{display:block}
             return { totalPlayers: total, def, mid, att };
         }
 
+        const BLOCK_FORMATION_PRESETS = {
+            "3-3-1": { totalPlayers: 8, def: 3, mid: 3, att: 1 },
+            "4-2-1": { totalPlayers: 8, def: 4, mid: 2, att: 1 },
+            "3-2-2": { totalPlayers: 8, def: 3, mid: 2, att: 2 }
+        };
+
         let formationConfig = sanitizeFormationConfig(JSON.parse(localStorage.getItem('ona_jo11_4_formation_v1') || 'null'));
+        let quarterFormations = { 1: null, 2: null, 3: null, 4: null };
         let POSITIONS = [];
         let TABLE_POSITIONS = [];
 
         function getFormationString(cfg = formationConfig) {
             return `1-${cfg.def}-${cfg.mid}-${cfg.att}`;
+        }
+
+        function getFormationShortKey(cfg = formationConfig) {
+            return `${cfg.def}-${cfg.mid}-${cfg.att}`;
+        }
+
+        function getFormationConfigForQuarter(q) {
+            const val = quarterFormations && quarterFormations[q];
+            if (typeof val === 'string' && BLOCK_FORMATION_PRESETS[val]) {
+                return BLOCK_FORMATION_PRESETS[val];
+            }
+            if (val && typeof val === 'object') {
+                return sanitizeFormationConfig(val);
+            }
+            return formationConfig;
+        }
+
+        function getFormationKeyForQuarter(q) {
+            return getFormationShortKey(getFormationConfigForQuarter(q));
+        }
+
+        function getFormationStringForQuarter(q) {
+            return getFormationString(getFormationConfigForQuarter(q));
+        }
+
+        function getPositionsForConfig(cfg) {
+            const c = sanitizeFormationConfig(cfg);
+            const attList = LINE_POSITION_TEMPLATES.Aanval[c.att] || LINE_POSITION_TEMPLATES.Aanval[1];
+            const midList = LINE_POSITION_TEMPLATES.Middenveld[c.mid] || LINE_POSITION_TEMPLATES.Middenveld[3];
+            const defList = LINE_POSITION_TEMPLATES.Verdediging[c.def] || LINE_POSITION_TEMPLATES.Verdediging[3];
+            const gkList = LINE_POSITION_TEMPLATES.Keeper[1];
+            return [...attList, ...midList, ...defList, ...gkList];
+        }
+
+        function getTablePositionsForConfig(cfg) {
+            const c = sanitizeFormationConfig(cfg);
+            const attList = LINE_POSITION_TEMPLATES.Aanval[c.att] || LINE_POSITION_TEMPLATES.Aanval[1];
+            const midList = LINE_POSITION_TEMPLATES.Middenveld[c.mid] || LINE_POSITION_TEMPLATES.Middenveld[3];
+            const defList = LINE_POSITION_TEMPLATES.Verdediging[c.def] || LINE_POSITION_TEMPLATES.Verdediging[3];
+            const gkList = LINE_POSITION_TEMPLATES.Keeper[1];
+            return [...gkList, ...defList, ...midList, ...attList];
+        }
+
+        function getPositionsForQuarter(q) {
+            return getPositionsForConfig(getFormationConfigForQuarter(q));
+        }
+
+        function getTablePositionsForQuarter(q) {
+            return getTablePositionsForConfig(getFormationConfigForQuarter(q));
+        }
+
+        function getAllActiveMatrixPositions() {
+            const activeIds = new Set();
+            for (let q = 1; q <= 4; q++) {
+                getPositionsForQuarter(q).forEach(p => activeIds.add(p.id));
+            }
+            const canonicalOrder = [
+                { id: "GK", short: "GK", label: "Keeper (GK)", line: "Keeper" },
+                { id: "LV", short: "LV", label: "Linksachter (LV)", line: "Verdediging" },
+                { id: "LCV", short: "LCV", label: "Links Centraal (LCV)", line: "Verdediging" },
+                { id: "CV", short: "CV", label: "Centraal Achter (CV)", line: "Verdediging" },
+                { id: "RCV", short: "RCV", label: "Rechts Centraal (RCV)", line: "Verdediging" },
+                { id: "RV", short: "RV", label: "Rechtsachter (RV)", line: "Verdediging" },
+                { id: "LM", short: "LM", label: "Linkermidden (LM)", line: "Middenveld" },
+                { id: "LCM", short: "LCM", label: "Links Centraal (LCM)", line: "Middenveld" },
+                { id: "CM", short: "CM (CVM)", label: "Centraal / CVM (CM)", line: "Middenveld" },
+                { id: "RCM", short: "RCM", label: "Rechts Centraal (RCM)", line: "Middenveld" },
+                { id: "RM", short: "RM", label: "Rechtermidden (RM)", line: "Middenveld" },
+                { id: "LA", short: "LA", label: "Linkeraanvaller (LA)", line: "Aanval" },
+                { id: "LSP", short: "LSP", label: "Linkerspits (LSP)", line: "Aanval" },
+                { id: "SP", short: "SP", label: "Spits (SP)", line: "Aanval" },
+                { id: "RSP", short: "RSP", label: "Rechterspits (RSP)", line: "Aanval" },
+                { id: "RA", short: "RA", label: "Rechteraanvaller (RA)", line: "Aanval" }
+            ];
+            return canonicalOrder.filter(p => activeIds.has(p.id));
+        }
+
+        function buildQuarterFormationSelectHTML(quarter, theme = 'dark') {
+            const currentKey = getFormationKeyForQuarter(quarter);
+            const effRO = isEffectiveReadOnly();
+            const presetKeys = Object.keys(BLOCK_FORMATION_PRESETS);
+            let optionsHtml = '';
+            if (!presetKeys.includes(currentKey)) {
+                optionsHtml += `<option value="${currentKey}" selected>${currentKey}</option>`;
+            }
+            presetKeys.forEach(k => {
+                optionsHtml += `<option value="${k}" ${k === currentKey ? 'selected' : ''}>${k}</option>`;
+            });
+
+            if (theme === 'light') {
+                return `
+                    <select ${effRO ? 'disabled' : ''} onchange="setQuarterFormation(${quarter}, this.value)"
+                        title="Kies veldindeling voor Blok ${quarter}"
+                        class="text-[11px] font-black rounded-lg px-2 py-1 border border-slate-300 bg-white text-slate-800 outline-none focus:ring-2 focus:ring-orange-500 ${effRO ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-orange-400'} editable-control"
+                        style="min-height: 30px; font-size: 11px !important;">
+                        ${optionsHtml}
+                    </select>
+                `;
+            }
+
+            return `
+                <select ${effRO ? 'disabled' : ''} onchange="setQuarterFormation(${quarter}, this.value)"
+                    title="Kies veldindeling voor Blok ${quarter}"
+                    class="text-[11px] font-black rounded-lg px-2 py-1 bg-slate-800 text-orange-300 border border-slate-600 outline-none focus:ring-2 focus:ring-orange-500 ${effRO ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:border-orange-400'} editable-control"
+                    style="min-height: 32px; font-size: 12px !important;">
+                    ${optionsHtml}
+                </select>
+            `;
+        }
+
+        function setQuarterFormation(quarter, presetKey) {
+            if (isEffectiveReadOnly()) return;
+            const q = Number(quarter);
+            if (![1, 2, 3, 4].includes(q)) return;
+
+            const newCfg = BLOCK_FORMATION_PRESETS[presetKey] || formationConfig;
+            quarterFormations[q] = BLOCK_FORMATION_PRESETS[presetKey] ? presetKey : null;
+
+            // Behoud opgestelde spelers slim bij formatiewissel in dit blok
+            const oldBlock = lineup[q] || {};
+            const newPositions = getPositionsForConfig(newCfg);
+            const newFieldPosObjs = newPositions.filter(p => p.id !== "GK");
+            const newFieldIds = new Set(newFieldPosObjs.map(p => p.id));
+
+            const newBlock = {};
+            if (oldBlock["GK"]) {
+                newBlock["GK"] = oldBlock["GK"];
+            } else {
+                newBlock["GK"] = isFixedKeeper ? fixedKeeperName : (quarterKeepers[q] || fixedKeeperName);
+            }
+
+            const displacedNames = [];
+            Object.entries(oldBlock).forEach(([posId, pName]) => {
+                if (posId === "GK" || !pName) return;
+                if (newFieldIds.has(posId) && !newBlock[posId]) {
+                    newBlock[posId] = pName;
+                } else {
+                    displacedNames.push(pName);
+                }
+            });
+
+            // Plaats verplaatste spelers op de vrijgekomen posities (liefst op voorkeurslinie)
+            const openPosObjs = newFieldPosObjs.filter(p => !newBlock[p.id]);
+            const activePlayers = getActivePlayers();
+            const remainingPlayers = displacedNames.map(name => activePlayers.find(ap => ap.name === name) || { name, pos1: '', pos2: '' });
+
+            openPosObjs.forEach(posObj => {
+                if (remainingPlayers.length === 0) return;
+                let idx = remainingPlayers.findIndex(pl => isPlayerPreferredForPos(pl, posObj));
+                if (idx === -1) idx = 0;
+                const chosen = remainingPlayers.splice(idx, 1)[0];
+                if (chosen) newBlock[posObj.id] = chosen.name;
+            });
+
+            lineup[q] = newBlock;
+
+            renderAllViews();
+            checkConsecutiveBenchWarning();
+            renderMatchModeCockpit();
+            syncLiveDraftToCloud();
         }
 
         function getActiveOutfieldCount(cfg = formationConfig) {
@@ -1972,13 +2153,8 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function rebuildPositionsFromFormation() {
-            const attList = LINE_POSITION_TEMPLATES.Aanval[formationConfig.att] || LINE_POSITION_TEMPLATES.Aanval[1];
-            const midList = LINE_POSITION_TEMPLATES.Middenveld[formationConfig.mid] || LINE_POSITION_TEMPLATES.Middenveld[3];
-            const defList = LINE_POSITION_TEMPLATES.Verdediging[formationConfig.def] || LINE_POSITION_TEMPLATES.Verdediging[3];
-            const gkList = LINE_POSITION_TEMPLATES.Keeper[1];
-
-            POSITIONS = [...attList, ...midList, ...defList, ...gkList];
-            TABLE_POSITIONS = [...gkList, ...defList, ...midList, ...attList];
+            POSITIONS = getPositionsForConfig(formationConfig);
+            TABLE_POSITIONS = getTablePositionsForConfig(formationConfig);
         }
 
         rebuildPositionsFromFormation();
@@ -3292,6 +3468,7 @@ body.ona-offline #onaNetPill{display:block}
                             }
                             if (d.fixedKeeperName) fixedKeeperName = d.fixedKeeperName;
                             if (d.quarterKeepers) quarterKeepers = { ...d.quarterKeepers };
+                            if (d.quarterFormations) quarterFormations = { 1: d.quarterFormations[1] || null, 2: d.quarterFormations[2] || null, 3: d.quarterFormations[3] || null, 4: d.quarterFormations[4] || null };
                             if (d.lineup) lineup = JSON.parse(JSON.stringify(d.lineup));
                             if (Array.isArray(d.emergencySubs)) emergencySubs = d.emergencySubs;
                             if (Array.isArray(d.matchGoals)) matchGoals = d.matchGoals;
@@ -3358,6 +3535,7 @@ body.ona-offline #onaNetPill{display:block}
                     isFixedKeeper,
                     fixedKeeperName,
                     quarterKeepers: { ...quarterKeepers },
+                    quarterFormations: { ...quarterFormations },
                     lineup: JSON.parse(JSON.stringify(lineup)),
                     emergencySubs: JSON.parse(JSON.stringify(emergencySubs)),
                     matchGoals: JSON.parse(JSON.stringify(matchGoals)),
@@ -3642,8 +3820,8 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function pruneLineupToCurrentPositions() {
-            const validIds = new Set(POSITIONS.map(p => p.id));
             for (let q = 1; q <= 4; q++) {
+                const validIds = new Set(getPositionsForQuarter(q).map(p => p.id));
                 if (!lineup[q]) lineup[q] = {};
                 Object.keys(lineup[q]).forEach(posId => {
                     if (!validIds.has(posId)) delete lineup[q][posId];
@@ -3656,6 +3834,7 @@ body.ona-offline #onaNetPill{display:block}
 
         function applyFormationChange(newCfg, shouldSync = true) {
             formationConfig = sanitizeFormationConfig(newCfg);
+            quarterFormations = { 1: null, 2: null, 3: null, 4: null };
             localStorage.setItem('ona_jo11_4_formation_v1', JSON.stringify(formationConfig));
             rebuildPositionsFromFormation();
             pruneLineupToCurrentPositions();
@@ -4000,6 +4179,7 @@ body.ona-offline #onaNetPill{display:block}
             ].filter(Boolean));
 
             const doCopy = () => {
+                quarterFormations[toQuarter] = quarterFormations[fromQuarter];
                 lineup[toQuarter] = { ...lineup[fromQuarter] };
                 quarterKeepers[toQuarter] = lineup[toQuarter]["GK"] || fixedKeeperName;
                 renderKeeperControls();
@@ -4029,6 +4209,7 @@ body.ona-offline #onaNetPill{display:block}
 
             const doCopyAll = () => {
                 for (let q = fromQuarter + 1; q <= 4; q++) {
+                    quarterFormations[q] = quarterFormations[fromQuarter];
                     lineup[q] = { ...lineup[fromQuarter] };
                     quarterKeepers[q] = lineup[q]["GK"] || fixedKeeperName;
                 }
@@ -4603,7 +4784,7 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function createPitchCardHTML(quarter, posId, badgeColorClass) {
-            const posObj = POSITIONS.find(p => p.id === posId);
+            const posObj = getPositionsForQuarter(quarter).find(p => p.id === posId) || POSITIONS.find(p => p.id === posId);
             const selectedName = lineup[quarter][posId] || "";
             const playerObj = getActivePlayers().find(p => p.name === selectedName);
             const roleSub = playerObj ? playerObj.badge : posObj.line;
@@ -4642,7 +4823,7 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function renderPitchLineHTML(quarter, lineName, badgeColorClass, extraWrapperClass = "", showArrows = false) {
-            const linePositions = POSITIONS.filter(p => p.line === lineName);
+            const linePositions = getPositionsForQuarter(quarter).filter(p => p.line === lineName);
             const count = linePositions.length;
             if (count === 0) return "";
 
@@ -4689,7 +4870,7 @@ body.ona-offline #onaNetPill{display:block}
                         <div class="flex items-center gap-2">
                             <span class="bg-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-lg">BLOK ${quarter}</span>
                             <span class="text-xs font-bold text-slate-300">Minuut ${qStart} - ${qEnd}</span>
-                            <span class="text-[10px] font-black bg-slate-800 text-orange-300 border border-slate-700 px-2 py-0.5 rounded-full">${getFormationString()}</span>
+                            ${buildQuarterFormationSelectHTML(quarter, 'dark')}
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-bold text-orange-300">
@@ -4763,7 +4944,9 @@ body.ona-offline #onaNetPill{display:block}
                 const onPitch = Object.values(lineup[q] || {}).filter(Boolean);
                 const bench = active.filter(p => !onPitch.includes(p.name)).map(p => p.name);
                 const subEl = document.getElementById(`qTabSub-${q}`);
-                if (subEl) subEl.innerText = `🔄 Wissel: ${bench.length > 0 ? bench.join(', ') : 'Geen'}`;
+                if (subEl) subEl.innerText = `${getFormationKeyForQuarter(q)} • 🔄 ${bench.length > 0 ? bench.join(', ') : 'Geen'}`;
+                const mfWrap = document.getElementById(`matrixFormationSelectWrap-${q}`);
+                if (mfWrap) mfWrap.innerHTML = buildQuarterFormationSelectHTML(q, 'light');
             }
 
             document.getElementById('singlePitchContainer').innerHTML = generatePitchHTMLForQuarter(activeQuarterView, false);
@@ -4823,7 +5006,7 @@ body.ona-offline #onaNetPill{display:block}
                 const subOut = prevPitch.filter(n => !currPitch.includes(n));
                 const posMoves = [];
 
-                POSITIONS.forEach(pos => {
+                getPositionsForQuarter(activeQuarterView).forEach(pos => {
                     if (curr[pos.id] && prev[pos.id] && curr[pos.id] !== prev[pos.id]) {
                         posMoves.push(`<li><strong>${pos.short}:</strong> ${curr[pos.id]} <em>(was ${prev[pos.id]})</em></li>`);
                     }
@@ -4852,7 +5035,15 @@ body.ona-offline #onaNetPill{display:block}
 
             const matrixBody = document.getElementById('matrixTableBody');
             matrixBody.innerHTML = '';
-            TABLE_POSITIONS.forEach(pos => {
+            const matrixForecastMap = getForecastPctMap();
+            const qPosIdSets = {
+                1: new Set(getPositionsForQuarter(1).map(p => p.id)),
+                2: new Set(getPositionsForQuarter(2).map(p => p.id)),
+                3: new Set(getPositionsForQuarter(3).map(p => p.id)),
+                4: new Set(getPositionsForQuarter(4).map(p => p.id))
+            };
+
+            getAllActiveMatrixPositions().forEach(pos => {
                 const tr = document.createElement('tr');
                 tr.className = pos.id === "GK" ? "bg-amber-50/40" : "hover:bg-slate-50";
 
@@ -4866,18 +5057,21 @@ body.ona-offline #onaNetPill{display:block}
                 `;
                 tr.appendChild(tdLabel);
 
-                const matrixForecastMap = getForecastPctMap();
                 for (let q = 1; q <= 4; q++) {
                     const td = document.createElement('td');
                     td.className = "p-2";
-                    const selName = lineup[q]?.[pos.id] || "";
-                    const arrowHtml = (selName && pos.id !== "GK") ? getMarginArrowHTML(selName, matrixForecastMap) : "";
-                    td.innerHTML = `
-                        <div class="flex items-center gap-1">
-                            <div class="flex-1 min-w-0">${buildPositionSelectHTML(q, pos, "p-2")}</div>
-                            ${arrowHtml}
-                        </div>
-                    `;
+                    if (!qPosIdSets[q].has(pos.id)) {
+                        td.innerHTML = `<div class="text-center text-slate-300 text-xs font-bold select-none" title="Niet actief in ${getFormationKeyForQuarter(q)}">—</div>`;
+                    } else {
+                        const selName = lineup[q]?.[pos.id] || "";
+                        const arrowHtml = (selName && pos.id !== "GK") ? getMarginArrowHTML(selName, matrixForecastMap) : "";
+                        td.innerHTML = `
+                            <div class="flex items-center gap-1">
+                                <div class="flex-1 min-w-0">${buildPositionSelectHTML(q, pos, "p-2")}</div>
+                                ${arrowHtml}
+                            </div>
+                        `;
+                    }
                     tr.appendChild(td);
                 }
                 matrixBody.appendChild(tr);
@@ -5312,14 +5506,14 @@ body.ona-offline #onaNetPill{display:block}
             }
 
             lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
-            const fieldSlotIds = POSITIONS.filter(p => p.id !== "GK").map(p => p.id);
 
             lineup[1]["GK"] = keepersPerQ[1];
             const sevenFieldPlayersB1 = active.filter(p => keepersPerQ[1] !== p.name && !benchPerQ[1].includes(p.name));
-            Object.assign(lineup[1], assignPositionsTactically(sevenFieldPlayersB1));
+            Object.assign(lineup[1], assignPositionsTactically(sevenFieldPlayersB1, 1));
 
             for (let q = 2; q <= 4; q++) {
                 lineup[q]["GK"] = keepersPerQ[q];
+                const qFieldSlotIds = getPositionsForQuarter(q).filter(p => p.id !== "GK").map(p => p.id);
                 const prevLineup = lineup[q - 1];
                 const activeThisBlock = active.filter(p => keepersPerQ[q] !== p.name && !benchPerQ[q].includes(p.name));
                 const activeNames = activeThisBlock.map(p => p.name);
@@ -5328,7 +5522,7 @@ body.ona-offline #onaNetPill{display:block}
                 const openSlots = [];
                 const unplacedPlayers = [...activeThisBlock];
 
-                fieldSlotIds.forEach(slotId => {
+                qFieldSlotIds.forEach(slotId => {
                     const prevPlayerName = prevLineup[slotId];
                     if (prevPlayerName && activeNames.includes(prevPlayerName)) {
                         currentBlockAssignments[slotId] = prevPlayerName;
@@ -5344,7 +5538,7 @@ body.ona-offline #onaNetPill{display:block}
                         if (unplacedPlayers[idx]) currentBlockAssignments[slotId] = unplacedPlayers[idx].name;
                     });
                 } else {
-                    const tacticalFill = assignPositionsTactically(unplacedPlayers);
+                    const tacticalFill = assignPositionsTactically(unplacedPlayers, q);
                     openSlots.forEach(slotId => {
                         if (tacticalFill[slotId]) {
                             currentBlockAssignments[slotId] = tacticalFill[slotId];
@@ -5363,7 +5557,7 @@ body.ona-offline #onaNetPill{display:block}
             syncLiveDraftToCloud();
         }
 
-        function assignPositionsTactically(playersPool) {
+        function assignPositionsTactically(playersPool, quarter = null) {
             const block = {};
             let pool = [...playersPool];
 
@@ -5373,9 +5567,10 @@ body.ona-offline #onaNetPill{display:block}
                 return null;
             }
 
-            const attSlots = POSITIONS.filter(p => p.line === "Aanval").map(p => p.id);
-            const midSlots = POSITIONS.filter(p => p.line === "Middenveld").map(p => p.id);
-            const defSlots = POSITIONS.filter(p => p.line === "Verdediging").map(p => p.id);
+            const qPositions = quarter ? getPositionsForQuarter(quarter) : POSITIONS;
+            const attSlots = qPositions.filter(p => p.line === "Aanval").map(p => p.id);
+            const midSlots = qPositions.filter(p => p.line === "Middenveld").map(p => p.id);
+            const defSlots = qPositions.filter(p => p.line === "Verdediging").map(p => p.id);
 
             attSlots.forEach(slot => {
                 const att = pick(p => p.pos1 === "Aanval") || pick(p => p.pos2 === "Aanval");
@@ -5425,12 +5620,13 @@ body.ona-offline #onaNetPill{display:block}
         // =========================================================
         function validateLineupForSaving() {
             for (let q = 1; q <= 4; q++) {
-                for (let pos of POSITIONS) {
+                const qPositions = getPositionsForQuarter(q);
+                for (let pos of qPositions) {
                     const assigned = lineup[q]?.[pos.id];
                     if (!assigned || assigned.trim() === "") {
                         return {
                             valid: false,
-                            error: `Blok ${q} heeft nog een lege plek op positie: ${pos.label}. Vul alle ${POSITIONS.length} posities in voordat je de wedstrijd opslaat!`
+                            error: `Blok ${q} (${getFormationKeyForQuarter(q)}) heeft nog een lege plek op positie: ${pos.label}. Vul alle ${qPositions.length} posities in voordat je de wedstrijd opslaat!`
                         };
                     }
                 }
@@ -5439,6 +5635,7 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function clearAllInputFieldsAfterSave() {
+            quarterFormations = { 1: null, 2: null, 3: null, 4: null };
             lineup = { 1: {}, 2: {}, 3: {}, 4: {} };
             for (let q = 1; q <= 4; q++) {
                 lineup[q]["GK"] = fixedKeeperName;
@@ -5522,6 +5719,7 @@ body.ona-offline #onaNetPill{display:block}
                 fixedKeeperName,
                 quarterKeepers: { ...quarterKeepers },
                 formationConfig: { ...formationConfig },
+                quarterFormations: { ...quarterFormations },
                 lineup: JSON.parse(JSON.stringify(lineup)),
                 minutes: todayMins,
                 targetFieldMinutesPerOutfielder,
@@ -5600,6 +5798,7 @@ body.ona-offline #onaNetPill{display:block}
             document.getElementById('splitKeeperBox').classList.toggle('hidden', isFixedKeeper);
 
             formationConfig = sanitizeFormationConfig(m.formationConfig || DEFAULT_FORMATION_CONFIG);
+            quarterFormations = m.quarterFormations ? { 1: m.quarterFormations[1] || null, 2: m.quarterFormations[2] || null, 3: m.quarterFormations[3] || null, 4: m.quarterFormations[4] || null } : { 1: null, 2: null, 3: null, 4: null };
             rebuildPositionsFromFormation();
             renderFormationSettingsUI();
             lineup = m.lineup ? JSON.parse(JSON.stringify(m.lineup)) : { 1: { GK: fixedKeeperName }, 2: { GK: fixedKeeperName }, 3: { GK: fixedKeeperName }, 4: { GK: fixedKeeperName } };
@@ -5651,6 +5850,8 @@ body.ona-offline #onaNetPill{display:block}
             }
             if (d.fixedKeeperName) fixedKeeperName = d.fixedKeeperName;
             if (d.quarterKeepers) quarterKeepers = { ...d.quarterKeepers };
+            if (d.quarterFormations) quarterFormations = { 1: d.quarterFormations[1] || null, 2: d.quarterFormations[2] || null, 3: d.quarterFormations[3] || null, 4: d.quarterFormations[4] || null };
+            else quarterFormations = { 1: null, 2: null, 3: null, 4: null };
             if (d.lineup) lineup = JSON.parse(JSON.stringify(d.lineup));
             if (Array.isArray(d.emergencySubs)) emergencySubs = JSON.parse(JSON.stringify(d.emergencySubs));
             if (Array.isArray(d.matchGoals)) matchGoals = JSON.parse(JSON.stringify(d.matchGoals));
@@ -5669,6 +5870,7 @@ body.ona-offline #onaNetPill{display:block}
             loadedMatchId = null;
             isReadOnlyMode = false;
             formationConfig = sanitizeFormationConfig(JSON.parse(localStorage.getItem('ona_jo11_4_formation_v1') || 'null'));
+            quarterFormations = { 1: null, 2: null, 3: null, 4: null };
             rebuildPositionsFromFormation();
             renderFormationSettingsUI();
             if (restoreDraftIfAvailable && latestCloudLiveDraft) {
@@ -8124,8 +8326,8 @@ body.ona-offline #onaNetPill{display:block}
             txt += `\n`;
 
             for (let q = 1; q <= 4; q++) {
-                txt += `*Blok ${q} (${(q - 1) * 15 + 1} - ${q * 15} min):*\n`;
-                TABLE_POSITIONS.forEach(pos => {
+                txt += `*Blok ${q} (${(q - 1) * 15 + 1} - ${q * 15} min • ${getFormationStringForQuarter(q)}):*\n`;
+                getTablePositionsForQuarter(q).forEach(pos => {
                     txt += `• ${pos.short}: ${lineup[q]?.[pos.id] || '-'}\n`;
                 });
                 const onPitch = Object.values(lineup[q] || {}).filter(Boolean);
