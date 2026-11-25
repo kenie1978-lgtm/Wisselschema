@@ -330,9 +330,14 @@ body.ona-offline #onaNetPill{display:block}
                     <span>Instellingen & Weergave</span>
                 </button>
 
-                <button id="drawerTab-backup" onclick="openBackupModal(); toggleNavDrawer();" class="w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-3 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white">
+                <button id="drawerTab-backup" onclick="openBackupModal(); toggleNavDrawer();" class="hidden w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-3 bg-slate-800/40 text-slate-300 hover:bg-slate-800 hover:text-white">
                     <span class="text-base">📦</span>
                     <span>Backup & Exporteren</span>
+                </button>
+
+                <button id="drawerTab-activityLog" onclick="openActivityLogSection(); toggleNavDrawer();" class="hidden w-full text-left px-4 py-3 rounded-2xl text-xs font-bold transition cursor-pointer flex items-center gap-3 bg-slate-800/40 text-amber-300 hover:bg-slate-800 hover:text-amber-200">
+                    <span class="text-base">📋</span>
+                    <span>Wijzigingslogboek</span>
                 </button>
             </div>
         </div>
@@ -722,7 +727,7 @@ body.ona-offline #onaNetPill{display:block}
 
                         <div class="sm:col-span-3">
                             <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Speeldatum</label>
-                            <input type="date" id="matchDate" onchange="checkConsecutiveBenchWarning(); syncLiveDraftToCloud();" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none editable-control">
+                            <input type="date" id="matchDate" onchange="handleMatchDateChange(this.value)" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-bold bg-slate-50 text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none editable-control">
                         </div>
                     </div>
 
@@ -1191,7 +1196,7 @@ body.ona-offline #onaNetPill{display:block}
                             <button onclick="switchMainTab('match')" class="text-xs bg-orange-600 hover:bg-orange-700 text-white font-black px-4 py-2.5 rounded-xl cursor-pointer shadow-md transition flex items-center gap-1.5">
                                 ← Terug naar Hoofdscherm
                             </button>
-                            <button onclick="openBackupModal()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white font-bold px-3.5 py-2.5 rounded-xl cursor-pointer border border-slate-600">
+                            <button id="seasonBackupBtn" onclick="openBackupModal()" class="hidden text-xs bg-slate-700 hover:bg-slate-600 text-white font-bold px-3.5 py-2.5 rounded-xl cursor-pointer border border-slate-600">
                                 📦 Backup / Export
                             </button>
                             <button onclick="clearSeasonHistory()" class="text-xs bg-rose-950/80 hover:bg-rose-900 text-rose-200 font-bold px-3.5 py-2.5 rounded-xl border border-rose-800 cursor-pointer">
@@ -1501,7 +1506,7 @@ body.ona-offline #onaNetPill{display:block}
                                 <div class="text-[10px] text-slate-500">Voorkeursposities per speler aanpassen</div>
                             </div>
                         </button>
-                        <button onclick="openBackupModal()" class="p-3.5 rounded-xl bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-left flex items-center gap-3 transition cursor-pointer">
+                        <button id="settingsBackupBtn" onclick="openBackupModal()" class="hidden p-3.5 rounded-xl bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-left flex items-center gap-3 transition cursor-pointer">
                             <span class="text-lg">📦</span>
                             <div>
                                 <div class="text-xs font-extrabold text-slate-800">Backup & Exporteren</div>
@@ -1523,6 +1528,48 @@ body.ona-offline #onaNetPill{display:block}
                             </div>
                         </button>
                     </div>
+                </div>
+
+                <!-- WIJZIGINGSLOGBOEK (ALLEEN ZICHTBAAR VOOR KENIE) -->
+                <div id="activityLogCard" class="hidden bg-white rounded-2xl shadow-sm border-2 border-amber-200 p-5 space-y-4">
+                    <div class="border-b border-slate-100 pb-3 flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-[11px] font-black uppercase tracking-wider text-amber-600">Beheer & Controle</span>
+                                <span class="text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">🔒 Alleen Kenie</span>
+                                <span id="activityLogCountBadge" class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">0 meldingen</span>
+                            </div>
+                            <h2 class="text-lg font-black text-slate-900 mt-0.5">📋 Wijzigingslogboek</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Overzicht van wie wanneer iets heeft aangepast in de app (gesynchroniseerd via Cloud).</p>
+                        </div>
+                        <button type="button" onclick="clearActivityLog()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-extrabold px-3 py-1.5 rounded-xl text-[11px] transition cursor-pointer shrink-0">
+                            🗑 Log wissen
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select id="activityLogUserFilter" onchange="renderActivityLog()" class="border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="ALL">👥 Alle gebruikers</option>
+                            <option value="Kenie">Kenie</option>
+                            <option value="Salih">Salih</option>
+                            <option value="Stephan">Stephan</option>
+                        </select>
+                        <select id="activityLogCategoryFilter" onchange="renderActivityLog()" class="border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold bg-slate-50 text-slate-800 outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="ALL">🏷️ Alle onderdelen</option>
+                            <option value="Opstelling">Opstelling</option>
+                            <option value="Formatie">Formatie</option>
+                            <option value="Score">Score</option>
+                            <option value="Wedstrijd">Wedstrijd</option>
+                            <option value="Selectie">Selectie</option>
+                            <option value="Keeper">Keeper</option>
+                            <option value="Noodwissel">Noodwissel</option>
+                            <option value="Instellingen">Instellingen</option>
+                            <option value="Backup">Backup</option>
+                            <option value="Sessie">Sessie</option>
+                        </select>
+                    </div>
+
+                    <div id="activityLogList" class="max-h-96 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-2xl bg-slate-50/60 px-3"></div>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-wrap items-center justify-between gap-3">
@@ -2137,6 +2184,7 @@ body.ona-offline #onaNetPill{display:block}
             });
 
             lineup[q] = newBlock;
+            logActivity('Formatie', `Blok ${q} veldindeling gewijzigd naar ${presetKey}`);
 
             renderAllViews();
             checkConsecutiveBenchWarning();
@@ -2214,15 +2262,160 @@ body.ona-offline #onaNetPill{display:block}
         // TOEGANG & ROLBEHEER (BEGELEIDING vs SUPPORTER)
         // =========================================================
         const BEGELEIDING_PIN = "150511";
+        const COACH_PINS = {
+            Kenie: "310578"
+        };
         const SUPPORTER_TIMEOUT_MS = 5 * 60 * 1000; // 5 minuten
         let currentUserRole = null; // 'begeleiding' | 'supporter'
         let currentUserName = "";
         let selectedAuthTab = "begeleiding";
         let selectedCoachName = "Kenie";
         let supporterTimeoutInterval = null;
+        let activityLog = JSON.parse(localStorage.getItem('ona_jo11_4_activity_log_v1') || '[]');
+        const MAX_ACTIVITY_LOG_ITEMS = 250;
+
+        function getExpectedPinForCoach(coachName) {
+            return COACH_PINS[coachName] || BEGELEIDING_PIN;
+        }
+
+        function isKenieUser() {
+            return currentUserRole === 'begeleiding' && currentUserName === 'Kenie';
+        }
 
         function isEffectiveReadOnly() {
             return currentUserRole !== 'begeleiding' || isReadOnlyMode;
+        }
+
+        function logActivity(category, detail, syncToCloud = false) {
+            if (isApplyingRemoteUpdate || currentUserRole !== 'begeleiding') return;
+            const entry = {
+                id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                timestamp: new Date().toISOString(),
+                user: currentUserName || 'Begeleiding',
+                category: category || 'Algemeen',
+                detail: String(detail || '')
+            };
+            if (!Array.isArray(activityLog)) activityLog = [];
+            activityLog.unshift(entry);
+            if (activityLog.length > MAX_ACTIVITY_LOG_ITEMS) {
+                activityLog = activityLog.slice(0, MAX_ACTIVITY_LOG_ITEMS);
+            }
+            localStorage.setItem('ona_jo11_4_activity_log_v1', JSON.stringify(activityLog));
+            if (isKenieUser()) {
+                renderActivityLog();
+            }
+            if (syncToCloud && firestoreDb) {
+                firestoreDb.collection('ona_teams').doc(teamRoomId).set({
+                    activityLog: JSON.parse(JSON.stringify(activityLog))
+                }, { merge: true }).catch(err => console.warn("Log sync fout:", err));
+            }
+        }
+
+        function formatLogTimestamp(isoStr) {
+            try {
+                const d = new Date(isoStr);
+                return d.toLocaleString('nl-NL', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            } catch (e) {
+                return isoStr || '-';
+            }
+        }
+
+        function renderActivityLog() {
+            const card = document.getElementById('activityLogCard');
+            const listEl = document.getElementById('activityLogList');
+            const countEl = document.getElementById('activityLogCountBadge');
+            if (!card || !listEl) return;
+
+            const canSee = isKenieUser();
+            card.classList.toggle('hidden', !canSee);
+            if (!canSee) return;
+
+            const userFilter = document.getElementById('activityLogUserFilter')?.value || 'ALL';
+            const catFilter = document.getElementById('activityLogCategoryFilter')?.value || 'ALL';
+
+            const filtered = (Array.isArray(activityLog) ? activityLog : []).filter(item => {
+                if (userFilter !== 'ALL' && item.user !== userFilter) return false;
+                if (catFilter !== 'ALL' && item.category !== catFilter) return false;
+                return true;
+            });
+
+            if (countEl) {
+                countEl.textContent = `${filtered.length} melding${filtered.length === 1 ? '' : 'en'}`;
+            }
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<div class="py-6 text-center text-xs text-slate-400 italic">Nog geen wijzigingen vastgelegd voor dit filter.</div>`;
+                return;
+            }
+
+            const userColors = {
+                Kenie: "bg-orange-100 text-orange-800 border-orange-200",
+                Salih: "bg-sky-100 text-sky-800 border-sky-200",
+                Stephan: "bg-emerald-100 text-emerald-800 border-emerald-200"
+            };
+
+            listEl.innerHTML = filtered.map(item => {
+                const uCls = userColors[item.user] || "bg-slate-200 text-slate-700 border-slate-300";
+                return `
+                    <div class="py-2.5 flex flex-col gap-1 text-xs">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2 py-0.5 rounded-full border font-black text-[10px] ${uCls}">${escapeHtmlStr(item.user)}</span>
+                                <span class="px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600 font-bold text-[10px]">${escapeHtmlStr(item.category)}</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-slate-400">${escapeHtmlStr(formatLogTimestamp(item.timestamp))}</span>
+                        </div>
+                        <div class="text-slate-700 font-semibold leading-snug">${escapeHtmlStr(item.detail)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearActivityLog() {
+            if (!isKenieUser()) return;
+            if (!confirm("Weet je zeker dat je het volledige wijzigingslogboek wilt wissen?")) return;
+            activityLog = [];
+            localStorage.setItem('ona_jo11_4_activity_log_v1', JSON.stringify(activityLog));
+            renderActivityLog();
+            if (firestoreDb) {
+                firestoreDb.collection('ona_teams').doc(teamRoomId).set({
+                    activityLog: []
+                }, { merge: true }).catch(err => console.warn("Log wissen cloud fout:", err));
+            }
+        }
+
+        function openActivityLogSection() {
+            if (!isKenieUser()) return;
+            switchMainTab('settings');
+            setTimeout(() => {
+                document.getElementById('activityLogCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        function applyKenieOnlyVisibility() {
+            const isKenie = isKenieUser();
+            document.getElementById('drawerTab-backup')?.classList.toggle('hidden', !isKenie);
+            document.getElementById('drawerTab-activityLog')?.classList.toggle('hidden', !isKenie);
+            document.getElementById('seasonBackupBtn')?.classList.toggle('hidden', !isKenie);
+            document.getElementById('settingsBackupBtn')?.classList.toggle('hidden', !isKenie);
+            document.getElementById('activityLogCard')?.classList.toggle('hidden', !isKenie);
+            if (isKenie) {
+                renderActivityLog();
+            }
+        }
+
+        function handleMatchDateChange(newDate) {
+            if (isEffectiveReadOnly()) return;
+            logActivity('Wedstrijd', `Speeldatum gewijzigd naar ${newDate}`);
+            checkConsecutiveBenchWarning();
+            syncLiveDraftToCloud();
         }
 
         function selectAuthRole(role) {
@@ -2263,7 +2456,7 @@ body.ona-offline #onaNetPill{display:block}
             const errEl = document.getElementById('authPinError');
             const entered = (pinInput?.value || "").trim();
 
-            if (entered !== BEGELEIDING_PIN) {
+            if (entered !== getExpectedPinForCoach(selectedCoachName)) {
                 errEl.classList.remove('hidden');
                 pinInput.value = "";
                 pinInput.focus();
@@ -2284,6 +2477,7 @@ body.ona-offline #onaNetPill{display:block}
             document.getElementById('authExpiredMsg').classList.add('hidden');
             pinInput.value = "";
             applyAuthUIState();
+            logActivity('Sessie', `Ingelogd als ${selectedCoachName}`, true);
         }
 
         function submitSupporterLogin() {
@@ -2400,6 +2594,7 @@ body.ona-offline #onaNetPill{display:block}
             renderSeasonOverview();
             renderMatchModeCockpit();
             applySupporterVisibility();
+            applyKenieOnlyVisibility();
         }
 
         let chatChartInstance = null;
@@ -2535,6 +2730,7 @@ body.ona-offline #onaNetPill{display:block}
                 homeBtn.className = "py-2 rounded-lg text-xs font-black transition cursor-pointer text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5";
             }
 
+            logActivity('Wedstrijd', `Locatie gewijzigd naar ${isHome ? 'Thuis' : 'Uit'}`);
             renderScoreboard();
             renderMatchModeCockpit();
             syncLiveDraftToCloud();
@@ -2697,6 +2893,7 @@ body.ona-offline #onaNetPill{display:block}
                 opponentGoals = 0;
                 opponentGoalsLog = [];
                 editingGoalId = null;
+                logActivity('Score', 'Scorebord gereset naar 0 - 0');
                 renderScoreboard();
                 if (isMatchMode) renderMatchModeCockpit();
                 syncLiveDraftToCloud();
@@ -2915,6 +3112,7 @@ body.ona-offline #onaNetPill{display:block}
             if (isEffectiveReadOnly()) return;
             const minString = formatMatchMinuteString(timerActiveQuarter, timerSeconds);
             matchGoals.push({ id: Date.now(), scorer: scorerName, minute: minString });
+            logActivity('Score', `Doelpunt ON toegevoegd: ${scorerName} (${minString}')`);
             renderScoreboard();
             renderMatchModeCockpit();
             syncLiveDraftToCloud();
@@ -3165,6 +3363,7 @@ body.ona-offline #onaNetPill{display:block}
                 }
             }
             opponentGoals = newCount;
+            logActivity('Score', `Tegendoelpunten aangepast naar ${opponentGoals}`);
             renderScoreboard();
             renderMatchModeCockpit();
             syncLiveDraftToCloud();
@@ -3294,6 +3493,7 @@ body.ona-offline #onaNetPill{display:block}
                 }
             }
 
+            logActivity('Score', editingGoalType === 'opp' ? `Minuut tegendoelpunt bijgewerkt (${min || 'geen min.'})` : `Doelpunt ON ${editingGoalId !== null ? 'bewerkt' : 'toegevoegd'}: ${document.getElementById('goalScorerSelect').value}${min ? ' (' + min + "')" : ''}`);
             closeGoalModal();
             renderScoreboard();
             renderMatchModeCockpit();
@@ -3302,6 +3502,8 @@ body.ona-offline #onaNetPill{display:block}
 
         function removeGoalById(goalId) {
             if (isEffectiveReadOnly()) return;
+            const rem = matchGoals.find(g => String(g.id) === String(goalId));
+            if (rem) logActivity('Score', `Doelpunt ON verwijderd: ${rem.scorer}${rem.minute ? ' (' + rem.minute + "')" : ''}`);
             matchGoals = matchGoals.filter(g => String(g.id) !== String(goalId));
             renderScoreboard();
             renderMatchModeCockpit();
@@ -3363,6 +3565,7 @@ body.ona-offline #onaNetPill{display:block}
             let roleStr = basePlayers[idx].pos1;
             if (basePlayers[idx].pos2) roleStr += ` / ${basePlayers[idx].pos2}`;
             basePlayers[idx].role = roleStr;
+            logActivity('Selectie', `Rol van ${basePlayers[idx].name} gewijzigd naar ${roleStr}`);
 
             localStorage.setItem('ona_jo11_4_custom_roles', JSON.stringify(basePlayers));
             renderAttendancePills();
@@ -3441,6 +3644,12 @@ body.ona-offline #onaNetPill{display:block}
                         if (data.supporterVisibility && typeof data.supporterVisibility === 'object') {
                             supporterVisibility = Object.assign({}, DEFAULT_SUPPORTER_VISIBILITY, data.supporterVisibility);
                             localStorage.setItem('ona_supporter_visibility_v1', JSON.stringify(supporterVisibility));
+                        }
+
+                        if (Array.isArray(data.activityLog)) {
+                            activityLog = data.activityLog.slice(0, MAX_ACTIVITY_LOG_ITEMS);
+                            localStorage.setItem('ona_jo11_4_activity_log_v1', JSON.stringify(activityLog));
+                            if (isKenieUser()) renderActivityLog();
                         }
 
                         if (data.liveDraft) {
@@ -3522,7 +3731,8 @@ body.ona-offline #onaNetPill{display:block}
                 opponentsList: JSON.parse(JSON.stringify(opponentsList)),
                 basePlayers: JSON.parse(JSON.stringify(basePlayers)),
                 formationConfig: { ...formationConfig },
-                supporterVisibility: { ...supporterVisibility }
+                supporterVisibility: { ...supporterVisibility },
+                activityLog: JSON.parse(JSON.stringify((activityLog || []).slice(0, MAX_ACTIVITY_LOG_ITEMS)))
             };
 
             if (loadedMatchId === null) {
@@ -3611,6 +3821,8 @@ body.ona-offline #onaNetPill{display:block}
         function toggleSupporterVisibility(key, isEnabled) {
             if (currentUserRole !== 'begeleiding') return;
             supporterVisibility[key] = !!isEnabled;
+            const itemLabel = SUPPORTER_VISIBILITY_ITEMS.find(i => i.key === key)?.label || key;
+            logActivity('Instellingen', `Supporter-zichtbaarheid '${itemLabel}' ${isEnabled ? 'aangezet' : 'uitgezet'}`);
             localStorage.setItem('ona_supporter_visibility_v1', JSON.stringify(supporterVisibility));
             pushFullStateToCloud();
             renderSupporterVisibilitySettingsUI();
@@ -3621,6 +3833,7 @@ body.ona-offline #onaNetPill{display:block}
             SUPPORTER_VISIBILITY_ITEMS.forEach(item => {
                 supporterVisibility[item.key] = !!isEnabled;
             });
+            logActivity('Instellingen', `Alle supporter-onderdelen ${isEnabled ? 'aangezet' : 'uitgezet'}`);
             localStorage.setItem('ona_supporter_visibility_v1', JSON.stringify(supporterVisibility));
             pushFullStateToCloud();
             renderSupporterVisibilitySettingsUI();
@@ -3669,10 +3882,11 @@ body.ona-offline #onaNetPill{display:block}
                 if (pitchWrapper) pitchWrapper.classList.remove('hidden');
                 if (launchBtn) launchBtn.classList.remove('hidden');
                 ['bottomNav-match', 'bottomNav-live', 'bottomNav-season', 'bottomNav-settings',
-                 'drawerTab-match', 'drawerTab-live', 'drawerTab-season', 'drawerTab-settings', 'drawerTab-backup',
+                 'drawerTab-match', 'drawerTab-live', 'drawerTab-season', 'drawerTab-settings',
                  'statsSubBtn-season', 'statsSubBtn-forecast', 'statsSubBtn-summary', 'statsSubBtn-positions'].forEach(id => {
                     document.getElementById(id)?.classList.remove('hidden');
                 });
+                applyKenieOnlyVisibility();
                 if (bNavBar) bNavBar.classList.remove('hidden');
                 if (bNavGrid) bNavGrid.className = "max-w-3xl mx-auto grid grid-cols-4 gap-1 px-2 py-2";
                 return;
@@ -3756,7 +3970,7 @@ body.ona-offline #onaNetPill{display:block}
             document.getElementById('drawerTab-live')?.classList.toggle('hidden', !hasLive);
             document.getElementById('drawerTab-season')?.classList.toggle('hidden', !hasAnyStatsContent);
             document.getElementById('drawerTab-settings')?.classList.toggle('hidden', !hasSettings);
-            document.getElementById('drawerTab-backup')?.classList.toggle('hidden', !hasSettings);
+            applyKenieOnlyVisibility();
 
             const visibleNavCount = [hasAnyMatchContent, hasLive, hasAnyStatsContent, showSettingsInBottomNav].filter(Boolean).length;
             if (bNavBar) bNavBar.classList.toggle('hidden', visibleNavCount === 0);
@@ -3841,7 +4055,10 @@ body.ona-offline #onaNetPill{display:block}
             renderFormationSettingsUI();
             renderAllViews();
             renderMatchModeCockpit();
-            if (shouldSync) syncLiveDraftToCloud();
+            if (shouldSync) {
+                logActivity('Formatie', `Standaard spelsysteem gewijzigd naar ${formationConfig.totalPlayers}v${formationConfig.totalPlayers} (${getFormationString()})`);
+                syncLiveDraftToCloud();
+            }
         }
 
         function setFormationTotalPlayers(val) {
@@ -4073,6 +4290,7 @@ body.ona-offline #onaNetPill{display:block}
             if (isEffectiveReadOnly()) return;
             selectedOpponent = name;
             document.getElementById('opponentDropdownMenu').classList.add('hidden');
+            logActivity('Wedstrijd', `Tegenstander gekozen: ${name}`);
             renderOpponentDropdown();
             renderScoreboard();
             syncLiveDraftToCloud();
@@ -4085,6 +4303,7 @@ body.ona-offline #onaNetPill{display:block}
             if (opp) {
                 opp.locked = !opp.locked;
                 if (!opp.locked) selectedOpponent = opp.name;
+                logActivity('Wedstrijd', `Tegenstander ${opp.locked ? 'verborgen' : 'ontgrendeld'}: ${name}`);
                 saveOpponentsToStorage();
                 renderOpponentDropdown();
                 renderScoreboard();
@@ -4106,6 +4325,7 @@ body.ona-offline #onaNetPill{display:block}
                 selectedOpponent = name;
             }
             input.value = "";
+            logActivity('Wedstrijd', `Tegenstander toegevoegd: ${name}`);
             saveOpponentsToStorage();
             renderOpponentDropdown();
             renderScoreboard();
@@ -4182,6 +4402,7 @@ body.ona-offline #onaNetPill{display:block}
                 quarterFormations[toQuarter] = quarterFormations[fromQuarter];
                 lineup[toQuarter] = { ...lineup[fromQuarter] };
                 quarterKeepers[toQuarter] = lineup[toQuarter]["GK"] || fixedKeeperName;
+                logActivity('Opstelling', `Blok ${fromQuarter} gekopieerd naar Blok ${toQuarter}`);
                 renderKeeperControls();
                 activeQuarterView = toQuarter;
                 selectActiveQuarter(toQuarter);
@@ -4213,6 +4434,7 @@ body.ona-offline #onaNetPill{display:block}
                     lineup[q] = { ...lineup[fromQuarter] };
                     quarterKeepers[q] = lineup[q]["GK"] || fixedKeeperName;
                 }
+                logActivity('Opstelling', `Blok ${fromQuarter} gekopieerd naar Blok ${fromQuarter + 1} t/m 4`);
                 renderKeeperControls();
                 renderAllViews();
                 syncLiveDraftToCloud();
@@ -4267,6 +4489,7 @@ body.ona-offline #onaNetPill{display:block}
                 btn.onclick = () => {
                     if (isEffectiveReadOnly()) return;
                     attendance[p.name] = !isPresent;
+                    logActivity('Selectie', `${p.name} gemeld als ${attendance[p.name] ? 'aanwezig' : 'afwezig'}`);
                     if (!attendance[p.name]) {
                         for (let q = 1; q <= 4; q++) {
                             for (let pos in lineup[q]) {
@@ -4484,6 +4707,7 @@ body.ona-offline #onaNetPill{display:block}
         function applyFixedKeeper(keeperName) {
             if (isEffectiveReadOnly()) return;
             fixedKeeperName = keeperName;
+            logActivity('Keeper', `Vaste keeper ingesteld op ${keeperName}`);
             for (let q = 1; q <= 4; q++) {
                 quarterKeepers[q] = keeperName;
                 for (let pos in lineup[q]) {
@@ -4499,6 +4723,7 @@ body.ona-offline #onaNetPill{display:block}
         function setQuarterKeeper(q, keeperName) {
             if (isEffectiveReadOnly()) return;
             quarterKeepers[q] = keeperName;
+            logActivity('Keeper', `Keeper Blok ${q} ingesteld op ${keeperName}`);
             for (let pos in lineup[q]) {
                 if (pos !== "GK" && lineup[q][pos] === keeperName) delete lineup[q][pos];
             }
@@ -4670,6 +4895,8 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function commitPositionChange(quarter, posId, playerName) {
+            const prevP = lineup[quarter]?.[posId] || '';
+            logActivity('Opstelling', playerName ? `Blok ${quarter} (${posId}): ${playerName}${prevP && prevP !== playerName ? ' (was ' + prevP + ')' : ''}` : `Blok ${quarter} (${posId}): leeggemaakt${prevP ? ' (was ' + prevP + ')' : ''}`);
             if (!playerName) {
                 delete lineup[quarter][posId];
             } else {
@@ -5551,6 +5778,7 @@ body.ona-offline #onaNetPill{display:block}
                 Object.assign(lineup[q], currentBlockAssignments);
             }
 
+            logActivity('Opstelling', `Eerlijke opstelling gegenereerd (${ignorePositions ? 'posities genegeerd' : 'met voorkeursposities'})`);
             renderAllViews();
             checkConsecutiveBenchWarning();
             renderMatchModeCockpit();
@@ -5608,6 +5836,7 @@ body.ona-offline #onaNetPill{display:block}
                 lineup[q]["GK"] = isFixedKeeper ? fixedKeeperName : (quarterKeepers[q] || fixedKeeperName);
             }
             emergencySubs = [];
+            logActivity('Opstelling', 'Opstelling en noodwissels gewist');
             renderEmergencyBanner();
             renderAllViews();
             checkConsecutiveBenchWarning();
@@ -5735,8 +5964,10 @@ body.ona-offline #onaNetPill{display:block}
                 const idx = savedMatches.findIndex(x => x.id === loadedMatchId);
                 if (idx !== -1) savedMatches[idx] = matchPayload;
                 isReadOnlyMode = true;
+                logActivity('Wedstrijd', `Opgeslagen wedstrijd bijgewerkt: ${opponent} (${matchGoals.length}-${opponentGoals})`);
                 if (showManualAlert) alert(`Wijzigingen voor de wedstrijd zijn opgeslagen!`);
             } else {
+                logActivity('Wedstrijd', `Nieuwe wedstrijd opgeslagen: ${opponent} (${matchGoals.length}-${opponentGoals})`);
                 savedMatches.push(matchPayload);
                 const oppEntry = opponentsList.find(o => o.name === opponent);
                 if (oppEntry) oppEntry.locked = true;
@@ -6076,6 +6307,7 @@ body.ona-offline #onaNetPill{display:block}
                 in: inName,
                 posId: posId
             });
+            logActivity('Noodwissel', `Min ${min}' (Blok ${q}, ${posId}): ${inName} erin voor ${outName}`);
 
             renderEmergencyBanner();
             renderAllViews();
@@ -6086,6 +6318,8 @@ body.ona-offline #onaNetPill{display:block}
 
         function removeEmergencySub(id) {
             if (isEffectiveReadOnly()) return;
+            const rem = emergencySubs.find(e => e.id === id);
+            if (rem) logActivity('Noodwissel', `Noodwissel verwijderd (Min ${rem.minute}': ${rem.in} voor ${rem.out})`);
             emergencySubs = emergencySubs.filter(e => e.id !== id);
             renderEmergencyBanner();
             renderAllViews();
@@ -8153,6 +8387,7 @@ body.ona-offline #onaNetPill{display:block}
             if (confirm(`Deze opgeslagen wedstrijd tegen ${m.opponent} verwijderen uit het seizoensoverzicht?`)) {
                 if (loadedMatchId === m.id) startNewMatchMode();
                 savedMatches.splice(idx, 1);
+                logActivity('Wedstrijd', `Opgeslagen wedstrijd verwijderd: ${m.opponent} (${m.date})`);
                 localStorage.setItem('ona_jo11_4_season_v3', JSON.stringify(savedMatches));
                 pushFullStateToCloud();
                 renderSeasonOverview();
@@ -8166,6 +8401,7 @@ body.ona-offline #onaNetPill{display:block}
             if (currentUserRole !== 'begeleiding') return;
             if (confirm("Weet je zeker dat je alle opgeslagen wedstrijden van het seizoen wilt wissen?\n\nAlle tegenstanders worden ook weer ontgrendeld (niet meer grijs).")) {
                 savedMatches = [];
+                logActivity('Wedstrijd', 'Volledige seizoensgeschiedenis gewist');
                 localStorage.removeItem('ona_jo11_4_season_v3');
 
                 opponentsList.forEach(o => o.locked = false);
@@ -8193,11 +8429,13 @@ body.ona-offline #onaNetPill{display:block}
                 opponentsList,
                 formationConfig,
                 supporterVisibility,
+                activityLog,
                 savedMatches
             };
         }
 
         function openBackupModal() {
+            if (!isKenieUser()) return;
             document.getElementById('backupTextarea').value = JSON.stringify(getFullBackupObject());
             document.getElementById('backupModal').classList.remove('hidden');
         }
@@ -8207,6 +8445,8 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function downloadJsonBackup() {
+            if (!isKenieUser()) return;
+            logActivity('Backup', 'Volledige JSON-backup gedownload', true);
             const dataStr = JSON.stringify(getFullBackupObject(), null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
@@ -8221,6 +8461,8 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function downloadCsvExport() {
+            if (!isKenieUser()) return;
+            logActivity('Backup', 'Seizoen CSV-export voor Excel gedownload', true);
             const hist = getSeasonHistoryStats(null);
             let csv = "Speler;Rol;Aanwezig;Afwezig;Veldminuten;Gemiddeld;Streef;Doelpunten;Keeperminuten\n";
 
@@ -8255,7 +8497,12 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function applyImportedBackupData(parsed) {
-            if (currentUserRole !== 'begeleiding') return;
+            if (!isKenieUser()) return;
+            if (Array.isArray(parsed.activityLog)) {
+                activityLog = parsed.activityLog.slice(0, MAX_ACTIVITY_LOG_ITEMS);
+                localStorage.setItem('ona_jo11_4_activity_log_v1', JSON.stringify(activityLog));
+            }
+            logActivity('Backup', 'Backup hersteld vanuit import');
             if (!parsed || !Array.isArray(parsed.savedMatches)) {
                 alert("Ongeldig backup-formaat.");
                 return;
