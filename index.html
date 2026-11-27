@@ -147,6 +147,23 @@
         }
 
         /* Persistent Bottom Navigation Bar */
+        /* Tap-to-Swap & Drag-and-Drop Pitch Card Feedback */
+        .pitch-card-swap-source {
+            border-color: #F97316 !important;
+            box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.45), 0 12px 24px -6px rgba(0, 0, 0, 0.35) !important;
+            transform: scale(1.03);
+        }
+        .pitch-card-swap-target {
+            border-color: #fb923c !important;
+            box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.55) !important;
+            cursor: pointer;
+        }
+        .pitch-card-drag-over {
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.55) !important;
+            transform: scale(1.04);
+        }
+
         #bottomNavBar {
             background: rgba(0, 20, 61, 0.96) !important;
             backdrop-filter: blur(14px);
@@ -383,7 +400,7 @@ body.ona-offline #onaNetPill{display:block}
             <!-- Rechterzijde: Versienummer -->
             <div class="flex items-start self-start pt-0.5">
                 <span id="appVersionBadge" class="text-[10px] font-bold tracking-wider text-slate-300/80 bg-white/10 border border-white/15 px-2 py-0.5 rounded-full select-none">
-                    v2.0.1
+                    v2.0.2
                 </span>
             </div>
         </div>
@@ -4903,26 +4920,83 @@ body.ona-offline #onaNetPill{display:block}
             document.getElementById('marginWarningModal').classList.remove('hidden');
         }
 
-        function commitPositionChange(quarter, posId, playerName) {
-            const prevP = lineup[quarter]?.[posId] || '';
-            logActivity('Opstelling', playerName ? `Blok ${quarter} (${posId}): ${playerName}${prevP && prevP !== playerName ? ' (was ' + prevP + ')' : ''}` : `Blok ${quarter} (${posId}): leeggemaakt${prevP ? ' (was ' + prevP + ')' : ''}`);
+        let swapSource = null; // { quarter, posId, playerName, isBench }
+        let dragSourcePos = null; // { quarter, posId }
+
+        function cancelPitchSwap() {
+            swapSource = null;
+            renderAllViews();
+            renderMatchModeCockpit();
+        }
+
+        function findPlayerPositionInQuarter(quarter, playerName, excludePosId = null) {
+            if (!playerName || !lineup[quarter]) return null;
+            const validIds = new Set(getPositionsForQuarter(quarter).map(p => p.id));
+            for (const [keyPos, pName] of Object.entries(lineup[quarter])) {
+                if (keyPos !== excludePosId && validIds.has(keyPos) && pName === playerName) {
+                    return keyPos;
+                }
+            }
+            return null;
+        }
+
+        function applyPositionChangeToLineupObj(targetLineup, quarter, posId, playerName, otherPosId, previousPlayer) {
+            if (!targetLineup[quarter]) targetLineup[quarter] = {};
             if (!playerName) {
-                delete lineup[quarter][posId];
+                delete targetLineup[quarter][posId];
+                return;
+            }
+            if (otherPosId) {
+                // Direct ruilen of verplaatsen binnen hetzelfde blok
+                targetLineup[quarter][posId] = playerName;
+                if (previousPlayer) {
+                    targetLineup[quarter][otherPosId] = previousPlayer;
+                } else {
+                    delete targetLineup[quarter][otherPosId];
+                }
             } else {
-                lineup[quarter][posId] = playerName;
-                if (posId === "GK") {
-                    quarterKeepers[quarter] = playerName;
+                targetLineup[quarter][posId] = playerName;
+            }
+
+            // Vaste keeper synchroniseren als GK is gewijzigd
+            const newGk = targetLineup[quarter]["GK"];
+            if ((posId === "GK" || otherPosId === "GK") && newGk && isFixedKeeper) {
+                for (let q = 1; q <= 4; q++) {
+                    if (!targetLineup[q]) targetLineup[q] = {};
+                    for (let p in targetLineup[q]) {
+                        if (p !== "GK" && targetLineup[q][p] === newGk) delete targetLineup[q][p];
+                    }
+                    targetLineup[q]["GK"] = newGk;
+                }
+            }
+        }
+
+        function commitPositionChange(quarter, posId, playerName, otherPosId = null) {
+            const prevP = lineup[quarter]?.[posId] || '';
+            if (otherPosId) {
+                if (prevP) {
+                    logActivity('Opstelling', `Blok ${quarter}: ${playerName} (${otherPosId}) ⇄ ${prevP} (${posId}) geruild`);
+                } else {
+                    logActivity('Opstelling', `Blok ${quarter}: ${playerName} verplaatst van ${otherPosId} naar ${posId}`);
+                }
+            } else {
+                logActivity('Opstelling', playerName ? `Blok ${quarter} (${posId}): ${playerName}${prevP && prevP !== playerName ? ' (was ' + prevP + ')' : ''}` : `Blok ${quarter} (${posId}): leeggemaakt${prevP ? ' (was ' + prevP + ')' : ''}`);
+            }
+
+            applyPositionChangeToLineupObj(lineup, quarter, posId, playerName, otherPosId, prevP);
+
+            if (posId === "GK" || otherPosId === "GK") {
+                const newGk = lineup[quarter]["GK"];
+                if (newGk) {
+                    quarterKeepers[quarter] = newGk;
                     if (isFixedKeeper) {
-                        fixedKeeperName = playerName;
-                        for (let q = 1; q <= 4; q++) {
-                            for (let p in lineup[q]) {
-                                if (p !== "GK" && lineup[q][p] === playerName) delete lineup[q][p];
-                            }
-                            lineup[q]["GK"] = playerName;
-                        }
+                        fixedKeeperName = newGk;
+                        for (let q = 1; q <= 4; q++) quarterKeepers[q] = newGk;
                     }
                 }
             }
+
+            swapSource = null;
             renderKeeperControls();
             renderAllViews();
             checkConsecutiveBenchWarning();
@@ -4934,31 +5008,134 @@ body.ona-offline #onaNetPill{display:block}
             if (isEffectiveReadOnly()) return;
 
             const previousPlayer = lineup[quarter]?.[posId] || "";
+            const otherPosId = playerName ? findPlayerPositionInQuarter(quarter, playerName, posId) : null;
             const simulatedLineup = JSON.parse(JSON.stringify(lineup));
 
-            if (!playerName) {
-                delete simulatedLineup[quarter][posId];
-            } else {
-                simulatedLineup[quarter][posId] = playerName;
-                if (posId === "GK" && isFixedKeeper) {
-                    for (let q = 1; q <= 4; q++) {
-                        for (let p in simulatedLineup[q]) {
-                            if (p !== "GK" && simulatedLineup[q][p] === playerName) delete simulatedLineup[q][p];
-                        }
-                        simulatedLineup[q]["GK"] = playerName;
-                    }
-                }
-            }
+            applyPositionChangeToLineupObj(simulatedLineup, quarter, posId, playerName, otherPosId, previousPlayer);
 
             const affected = [playerName, previousPlayer].filter(Boolean);
-            const subtitle = `Door deze wijziging in <strong>Blok ${quarter} (${posId})</strong> valt onderstaande speler buiten de 5%-marge van de streeftijd:`;
+            const subtitle = otherPosId
+                ? (previousPlayer
+                    ? `Door het ruilen van <strong>${playerName} (${otherPosId})</strong> en <strong>${previousPlayer} (${posId})</strong> in <strong>Blok ${quarter}</strong> valt onderstaande speler buiten de 5%-marge:`
+                    : `Door het verplaatsen van <strong>${playerName}</strong> van <strong>${otherPosId}</strong> naar <strong>${posId}</strong> in <strong>Blok ${quarter}</strong> valt onderstaande speler buiten de 5%-marge:`)
+                : `Door deze wijziging in <strong>Blok ${quarter} (${posId})</strong> valt onderstaande speler buiten de 5%-marge van de streeftijd:`;
 
             checkLineupChangeAndWarn(
                 simulatedLineup,
                 affected,
                 subtitle,
-                () => commitPositionChange(quarter, posId, playerName)
+                () => commitPositionChange(quarter, posId, playerName, otherPosId)
             );
+        }
+
+        function handlePitchSwapTap(quarter, posId, event) {
+            if (event) event.stopPropagation();
+            if (isEffectiveReadOnly()) return;
+
+            const tappedPlayer = lineup[quarter]?.[posId] || "";
+
+            // Nog geen bron gekozen (of ander blok) -> selecteer deze speler als bron
+            if (!swapSource || swapSource.quarter !== quarter) {
+                if (!tappedPlayer) return;
+                swapSource = { quarter, posId, playerName: tappedPlayer, isBench: false };
+                renderAllViews();
+                renderMatchModeCockpit();
+                return;
+            }
+
+            // Zelfde positie nogmaals aantikken -> annuleren
+            if (!swapSource.isBench && swapSource.posId === posId) {
+                cancelPitchSwap();
+                return;
+            }
+
+            // Bron is een wisselspeler van de bank -> zet die speler direct op posId
+            if (swapSource.isBench) {
+                const benchPlayer = swapSource.playerName;
+                swapSource = null;
+                handlePositionChange(quarter, posId, benchPlayer);
+                return;
+            }
+
+            // Bron en doel zijn allebei posities in hetzelfde blok -> direct ruilen of verplaatsen
+            const sourcePlayer = swapSource.playerName;
+            swapSource = null;
+            handlePositionChange(quarter, posId, sourcePlayer);
+        }
+
+        function handleBenchSwapTap(quarter, playerName, event) {
+            if (event) event.stopPropagation();
+            if (isEffectiveReadOnly()) return;
+
+            // Geen bron actief (of ander blok) -> selecteer deze bankspeler
+            if (!swapSource || swapSource.quarter !== quarter) {
+                swapSource = { quarter, posId: null, playerName, isBench: true };
+                renderAllViews();
+                renderMatchModeCockpit();
+                return;
+            }
+
+            // Bron was ook op de bank
+            if (swapSource.isBench) {
+                if (swapSource.playerName === playerName) {
+                    cancelPitchSwap();
+                } else {
+                    swapSource = { quarter, posId: null, playerName, isBench: true };
+                    renderAllViews();
+                    renderMatchModeCockpit();
+                }
+                return;
+            }
+
+            // Bron stond op het veld -> vervang bron op het veld door deze bankspeler
+            const targetPosId = swapSource.posId;
+            swapSource = null;
+            handlePositionChange(quarter, targetPosId, playerName);
+        }
+
+        function handlePitchDragStart(event, quarter, posId) {
+            if (isEffectiveReadOnly()) {
+                event.preventDefault();
+                return;
+            }
+            if (event.target && event.target.tagName === 'SELECT') {
+                event.preventDefault();
+                return;
+            }
+            const pName = lineup[quarter]?.[posId] || "";
+            if (!pName) {
+                event.preventDefault();
+                return;
+            }
+            dragSourcePos = { quarter, posId };
+            try {
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', JSON.stringify(dragSourcePos));
+            } catch (e) {}
+        }
+
+        function handlePitchDragOver(event) {
+            if (!dragSourcePos || isEffectiveReadOnly()) return;
+            event.preventDefault();
+            if (event.currentTarget) event.currentTarget.classList.add('pitch-card-drag-over');
+        }
+
+        function handlePitchDragLeave(event) {
+            if (event.currentTarget) event.currentTarget.classList.remove('pitch-card-drag-over');
+        }
+
+        function handlePitchDrop(event, quarter, targetPosId) {
+            event.preventDefault();
+            if (event.currentTarget) event.currentTarget.classList.remove('pitch-card-drag-over');
+            if (isEffectiveReadOnly() || !dragSourcePos) return;
+
+            const src = dragSourcePos;
+            dragSourcePos = null;
+            if (src.quarter !== quarter || src.posId === targetPosId) return;
+
+            const srcPlayer = lineup[quarter]?.[src.posId] || "";
+            if (!srcPlayer) return;
+            handlePositionChange(quarter, targetPosId, srcPlayer);
         }
 
         function cancelMarginWarning() {
@@ -4982,11 +5159,15 @@ body.ona-offline #onaNetPill{display:block}
             const currentVal = lineup[quarter][posObj.id] || "";
 
             const validIdsForQ = new Set(getPositionsForQuarter(quarter).map(p => p.id));
-            const usedElsewhere = Object.entries(lineup[quarter] || {})
-                .filter(([keyPos]) => keyPos !== posObj.id && validIdsForQ.has(keyPos))
-                .map(([, name]) => name);
+            const usedElsewhereMap = {};
+            Object.entries(lineup[quarter] || {}).forEach(([keyPos, name]) => {
+                if (keyPos !== posObj.id && validIdsForQ.has(keyPos) && name) {
+                    usedElsewhereMap[name] = keyPos;
+                }
+            });
 
-            const available = active.filter(p => !usedElsewhere.includes(p.name) || p.name === currentVal);
+            const available = active.filter(p => !usedElsewhereMap[p.name] || p.name === currentVal);
+            const onPitchElsewhere = active.filter(p => usedElsewhereMap[p.name] && p.name !== currentVal);
             const preferred = available.filter(p => isPlayerPreferredForPos(p, posObj));
             const others = available.filter(p => !isPlayerPreferredForPos(p, posObj));
 
@@ -5007,9 +5188,16 @@ body.ona-offline #onaNetPill{display:block}
                 });
                 optionsHtml += `</optgroup>`;
             }
+            if (onPitchElsewhere.length > 0) {
+                optionsHtml += `<optgroup label="⇄ Ruilen met speler in het veld">`;
+                onPitchElsewhere.forEach(p => {
+                    optionsHtml += `<option value="${p.name}">⇄ ${p.name} (${usedElsewhereMap[p.name]})</option>`;
+                });
+                optionsHtml += `</optgroup>`;
+            }
 
             return `
-                <select ${isEffectiveReadOnly() ? 'disabled' : ''} onchange="handlePositionChange(${quarter}, '${posObj.id}', this.value)" 
+                <select ${isEffectiveReadOnly() ? 'disabled' : ''} onclick="event.stopPropagation()" onchange="handlePositionChange(${quarter}, '${posObj.id}', this.value)" 
                     class="w-full rounded-lg text-xs font-extrabold outline-none transition ${isEffectiveReadOnly() ? 'cursor-not-allowed bg-slate-100' : 'cursor-pointer'} ${extraClasses} ${
                         currentVal 
                         ? 'bg-white text-slate-900 border-2 border-slate-800/20 shadow-xs' 
@@ -5025,6 +5213,7 @@ body.ona-offline #onaNetPill{display:block}
             const selectedName = lineup[quarter][posId] || "";
             const playerObj = getActivePlayers().find(p => p.name === selectedName);
             const roleSub = playerObj ? playerObj.badge : posObj.line;
+            const effRO = isEffectiveReadOnly();
 
             const relevantEmergencySub = emergencySubs.find(e => e.quarter === quarter && (e.posId === posId || e.out === selectedName));
             let emergencyBadgeHtml = "";
@@ -5040,13 +5229,49 @@ body.ona-offline #onaNetPill{display:block}
 
             const marginArrowHtml = (selectedName && posId !== "GK") ? getMarginArrowHTML(selectedName) : "";
 
+            const isSwapActiveInQ = (!effRO && swapSource && swapSource.quarter === quarter);
+            const isThisSwapSource = (isSwapActiveInQ && !swapSource.isBench && swapSource.posId === posId);
+            const isThisSwapTarget = (isSwapActiveInQ && !isThisSwapSource);
+
+            const swapStateClass = isThisSwapSource
+                ? 'pitch-card-swap-source'
+                : (isThisSwapTarget ? 'pitch-card-swap-target' : '');
+
+            const swapBtnHtml = !effRO && (selectedName || isThisSwapTarget)
+                ? `<button type="button" onclick="handlePitchSwapTap(${quarter}, '${posId}', event)"
+                        title="${isThisSwapSource ? 'Annuleer ruilen' : (isThisSwapTarget ? 'Tik om hiermee te ruilen' : 'Tik om deze speler te ruilen of verplaatsen')}"
+                        style="min-height: 24px; min-width: 24px;"
+                        class="px-1.5 py-0.5 rounded-md text-[10px] font-black transition cursor-pointer shrink-0 flex items-center justify-center ${
+                            isThisSwapSource
+                                ? 'bg-orange-600 text-white shadow-sm'
+                                : (isThisSwapTarget
+                                    ? 'bg-orange-100 text-orange-700 border border-orange-400 animate-pulse'
+                                    : 'bg-slate-100 hover:bg-orange-100 text-slate-600 hover:text-orange-700 border border-slate-200')
+                        }">
+                        ${isThisSwapSource ? '✕' : '⇄'}
+                   </button>`
+                : '';
+
+            const cardClickAttr = isThisSwapTarget
+                ? `onclick="handlePitchSwapTap(${quarter}, '${posId}', event)"`
+                : '';
+
+            const dragAttrs = (!effRO && selectedName)
+                ? `draggable="true" ondragstart="handlePitchDragStart(event, ${quarter}, '${posId}')" ondragover="handlePitchDragOver(event)" ondragleave="handlePitchDragLeave(event)" ondrop="handlePitchDrop(event, ${quarter}, '${posId}')"`
+                : (!effRO
+                    ? `ondragover="handlePitchDragOver(event)" ondragleave="handlePitchDragLeave(event)" ondrop="handlePitchDrop(event, ${quarter}, '${posId}')"`
+                    : '');
+
             return `
-                <div class="bg-white/95 backdrop-blur-xs rounded-xl p-2 shadow-lg border-2 ${selectedName ? 'border-white' : 'border-rose-400'} w-full max-w-[175px] mx-auto transition transform hover:scale-[1.01]">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded ${badgeColorClass}">
-                            ${posObj.short}
-                        </span>
-                        <span class="text-[9px] font-bold text-slate-400 truncate ml-1">${roleSub}</span>
+                <div ${cardClickAttr} ${dragAttrs} class="bg-white/95 backdrop-blur-xs rounded-xl p-2 shadow-lg border-2 ${selectedName ? 'border-white' : 'border-rose-400'} ${swapStateClass} w-full max-w-[175px] mx-auto transition transform hover:scale-[1.01]">
+                    <div class="flex items-center justify-between gap-1 mb-1">
+                        <div class="flex items-center gap-1 min-w-0">
+                            <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded ${badgeColorClass} shrink-0">
+                                ${posObj.short}
+                            </span>
+                            <span class="text-[9px] font-bold text-slate-400 truncate">${roleSub}</span>
+                        </div>
+                        ${swapBtnHtml}
                     </div>
                     <div class="flex items-center gap-1">
                         <div class="flex-1 min-w-0">
@@ -5116,6 +5341,14 @@ body.ona-offline #onaNetPill{display:block}
                             ${copyNextBtnHtml}
                         </div>
                     </div>
+                    ${(!isEffectiveReadOnly() && swapSource && swapSource.quarter === quarter) ? `
+                        <div class="bg-orange-500 text-white px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs font-extrabold shadow-inner">
+                            <span>⇄ <strong>${swapSource.playerName}</strong> ${swapSource.isBench ? '(Wisselbank)' : '(' + swapSource.posId + ')'} geselecteerd — tik op een andere positie of wisselspeler om te ruilen</span>
+                            <button type="button" onclick="cancelPitchSwap()" style="min-height: 28px;" class="bg-white/20 hover:bg-white/30 text-white font-black px-2.5 py-1 rounded-lg text-[11px] cursor-pointer transition">
+                                Annuleren ✕
+                            </button>
+                        </div>
+                    ` : ''}
 
                     <div class="soccer-pitch rounded-b-xl ${compact ? 'p-3 sm:p-4' : 'p-4 sm:p-6'} flex flex-col justify-between gap-5 min-h-[470px]">
                         <div class="absolute inset-x-0 top-1/2 border-t-2 pitch-line"></div>
@@ -5138,6 +5371,7 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function setDisplayMode(mode) {
+            swapSource = null;
             displayMode = mode;
             document.getElementById('display-pitch').classList.toggle('hidden', mode !== 'pitch');
             document.getElementById('display-pitchAll').classList.toggle('hidden', mode !== 'pitchAll');
@@ -5156,6 +5390,7 @@ body.ona-offline #onaNetPill{display:block}
         }
 
         function selectActiveQuarter(q) {
+            swapSource = null;
             activeQuarterView = q;
             for (let i = 1; i <= 4; i++) {
                 const tab = document.getElementById(`qTab-${i}`);
@@ -5220,11 +5455,25 @@ body.ona-offline #onaNetPill{display:block}
                 sideBenchList.innerHTML = `<div class="text-xs text-slate-400 italic">Geen wisselspelers in dit blok.</div>`;
             } else {
                 const sideBenchFMap = getForecastPctMap();
+                const effROBench = isEffectiveReadOnly();
                 benchActive.forEach(p => {
+                    const isBenchSrc = (!effROBench && swapSource && swapSource.quarter === activeQuarterView && swapSource.isBench && swapSource.playerName === p.name);
+                    const isBenchTarget = (!effROBench && swapSource && swapSource.quarter === activeQuarterView && !swapSource.isBench);
+                    const safeName = p.name.replace(/'/g, "\'");
                     sideBenchList.innerHTML += `
-                        <div class="flex items-center justify-between bg-orange-50 border border-orange-200 px-3 py-2 rounded-xl">
-                            <span class="font-extrabold text-xs text-orange-950 inline-flex items-center gap-1">${p.name} ${getMarginArrowHTML(p.name, sideBenchFMap)}</span>
-                            <span class="text-[10px] font-bold bg-white text-orange-700 px-2 py-0.5 rounded border border-orange-200">${p.role}</span>
+                        <div ${!effROBench ? `onclick="handleBenchSwapTap(${activeQuarterView}, '${safeName}', event)"` : ''}
+                            class="flex items-center justify-between px-3 py-2 rounded-xl border transition ${
+                                isBenchSrc
+                                    ? 'bg-orange-500 text-white border-orange-600 shadow-md cursor-pointer'
+                                    : (isBenchTarget
+                                        ? 'bg-orange-100 border-2 border-orange-500 cursor-pointer hover:bg-orange-200'
+                                        : 'bg-orange-50 border-orange-200 ' + (!effROBench ? 'cursor-pointer hover:border-orange-400' : ''))
+                            }">
+                            <span class="font-extrabold text-xs ${isBenchSrc ? 'text-white' : 'text-orange-950'} inline-flex items-center gap-1">
+                                ${!effROBench ? `<span class="text-[11px] opacity-80">⇄</span>` : ''}
+                                ${p.name} ${getMarginArrowHTML(p.name, sideBenchFMap)}
+                            </span>
+                            <span class="text-[10px] font-bold ${isBenchSrc ? 'bg-white/20 text-white border-white/30' : 'bg-white text-orange-700 border-orange-200'} px-2 py-0.5 rounded border">${isBenchTarget ? 'Tik om in te vallen' : p.role}</span>
                         </div>
                     `;
                 });
